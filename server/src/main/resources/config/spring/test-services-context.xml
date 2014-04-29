@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+    xsi:schemaLocation="http://www.springframework.org/schema/context
+          http://www.springframework.org/schema/context/spring-context-3.0.xsd
+          http://www.springframework.org/schema/data/mongo
+          http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd
+          http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+ 
+    <!--         -->
+    <!-- General -->
+    <!--         -->
+
+    <bean id="testPlaceholderConfigurer" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer" >
+        <property name="ignoreUnresolvablePlaceholders" value="false"/>
+    </bean>
+
+    <!--           -->
+    <!-- Mongo     -->
+    <!--           -->
+    
+    <bean id="testMongoURI" class="com.mongodb.MongoClientURI" >
+        <constructor-arg name="uri" value="${mongo.test.uri}" />
+    </bean>
+
+    <bean id="testMongoClient" class="org.alfresco.mongo.MongoClientFactory" >
+        <constructor-arg name="mongoClientURI" ref="testMongoURI" />
+    </bean>
+
+    <bean id="testMongoDB" class="org.alfresco.mongo.MongoDBFactory" >
+        <constructor-arg name="mongoClient" ref="testMongoClient" />
+        <constructor-arg name="database" value="${mongo.test.database}" />
+        <constructor-arg name="username" value="${mongo.test.username}" />
+        <constructor-arg name="password" value="${mongo.test.password}" />
+    </bean>
+
+    <bean id="testMongoEventService" class="org.alfresco.bm.event.mongo.MongoEventService">
+        <constructor-arg name="db" ref="testMongoDB" />
+        <constructor-arg name="collection" value="${testRunFqn}.events" />
+    </bean>
+    
+    <bean id="testMongoResultService" class="org.alfresco.bm.event.mongo.MongoResultService">
+        <constructor-arg name="db" ref="testMongoDB" />
+        <constructor-arg name="collection" value="${testRunFqn}.results" />
+    </bean>
+    
+    <bean id="testMongoSessionService" class="org.alfresco.bm.session.MongoSessionService">
+        <constructor-arg name="db" ref="testMongoDB" />
+        <constructor-arg name="collection" value="${testRunFqn}.sessions" />
+    </bean>
+    
+    <!--           -->
+    <!-- Lifecycle -->
+    <!--           -->
+    
+    <bean id="servicesLifeCycleController" class="org.alfresco.bm.test.LifecycleController">
+        <constructor-arg>
+            <array>
+                <ref bean="testMongoEventService" />
+                <ref bean="testMongoResultService" />
+                <ref bean="testMongoSessionService" />
+            </array>
+        </constructor-arg>
+    </bean>
+    
+    <alias name="testMongoEventService" alias="eventService"/>
+    <alias name="testMongoResultService" alias="resultService"/>
+    <alias name="testMongoSessionService" alias="sessionService"/>
+    
+</beans>

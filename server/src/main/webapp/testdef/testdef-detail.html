@@ -1,0 +1,34 @@
+<div class="page-header">
+    <h3>{{data.item.release}}
+        <small>schema: {{data.item.schema}}</small>
+    </h3>
+</div>
+<div id="test-def" class="row row-offcanvas row-offcanvas-right">
+    <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+        <div class="well sidebar-nav">
+            <!--Sidebar content-->
+            Search:
+            <input id="filterTest" class="form-control" ng-model="query">
+            <br />Sort by:
+            <select class="form-control" ng-model="orderProp">
+                <option value="name">Alphabetical</option>
+                <option value="age">Newest</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-9">
+        <div class="panel panel-info" ng-repeat="item in data.item.properties | filter:query | orderBy:orderProp">
+            <div class="panel-heading">
+                <h3>{{item.title}}</h3>
+            </div>
+            <div class="panel-body">
+                <p>
+                    Description: {{item.description}} Default: {{item.default}}
+                    <br />Group: {{item.group}}
+                    <br />min: {{item.min}}
+                    <br />max: {{item.max}}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

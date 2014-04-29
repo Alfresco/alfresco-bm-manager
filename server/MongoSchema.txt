@@ -1,0 +1,114 @@
+MongoDB schema
+==============
+
+A benchmark application (server or test) requires basic MongoDB connection properties (defaults shown):
+    mongo.URI                   mongodb://127.0.0.1:27017/bm20
+    mongo.autoConnectRetry      true
+    mongo.connectionsPerHost    1024
+    mongo.socketTimeout         600000
+    mongo.writeNumber           1
+Basic server capabilities can also be defined:
+    server.capabilities         JAVA6,JAVA7,SELENIUM
+
+-----------
+Collections
+-----------
+
+db.test.app
+{
+    _id:****
+    name:"mytest-2.0.0"                                     // UNIQUE (name)
+    url:"https://.../releases/.../mytest-2.0.0.war"         // IDX (url)
+    username:"build-agent"
+    password:"******"
+}
+db.test.drivers
+{
+    _id:****,
+    release:"mytest-2.0.0"                                  // Software release
+    schema:5
+    ipAddress:"192.168.0.4",                                // UNIQUE (release|schema||ip)
+    contextPath:"/bm123"
+    hostname:server01.alfresco.com
+    ping
+    {
+        connected:<datetime>,                                   // Time when first connected
+        expires:<datetime>,                                     // Time when instance exires (regularly updated)
+    }
+    capabilities
+    {
+        system
+    }
+    properties
+    {
+        system
+    }
+}
+db.test.defs
+{
+    _id:****
+    release:"mytest-2.0.0"
+    schema:5                                                // UNIQUE (release,schema)
+    properties
+    {
+        prop1
+        {
+        }
+        prop2
+        {
+        }
+        ...
+        propN
+        {
+        }
+    }
+}
+db.tests
+{
+    _id:****
+    name:"bm123"                                            // UNIQUE (name)        > derived from app context
+    release:"mytest-2.0.0"                                  // Prevents old software from picking up the test
+    description
+    {
+        default                                             // Populated by application
+        custom
+    }
+    capabilities
+    {
+        default                                             // Populated by application
+        custom
+    }
+    properties
+    {
+        default                                             // Populated by application
+        custom
+    }
+}
+db.test.runs
+{
+    _id:*****
+    name:"bm123"
+    release:"mytest-2.0.0"                                  // Record the version of the software that was used
+    run:"01"                                                // UNIQUE (name|run)
+    notes
+    properties
+    {
+        custom
+        effective                                           // A snapshot of the effective properties when the run is started
+    }
+    createdTime
+    startTime
+}
+
+----
+APIs
+----
+
+List all defined tests
+    GET     /api/v2.0/tests
+
+Create new test
+    POST    /api/v2.0/tests
+    {
+        
+    }

@@ -1,0 +1,26 @@
+<div>
+    <h3>
+        {{summary.name}}
+        <small>, {{summary.description}}</small>
+    </h3>
+    <p>
+        State: {{summary.state}}
+    </p>
+    <div ng-show="summary.completed != -1">
+        <p>Completed: {{summary.completed | date:'dd-MM-yyyy (HH:mm:ss) '}}</p>
+    </div>
+    <div ng-show="summary.duration != 0">
+        <p>Duration: {{summary.duration}} ms</p>
+    </div>
+    <div>
+        Progress:
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="{{summary.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{summary.progress}}%;">
+                {{summary.progress}}
+            </div>
+        </div>
+    </div>
+    <span ng-show="summary.scheduled != -1">
+        Scheduled: {{summary.scheduled | date:'dd-MM-yyyy (HH:mm:ss)'}}
+    </span>
+</div>

@@ -1,0 +1,21 @@
+{
+  "name":"Alfresco-Benchmark",
+  "description":"Alfresco benchmark console",
+  "private":false,
+  "main":"index.html",
+  "dependencies": {
+    "express": "3.x"
+  },
+  "window": {
+    "toolbar":true,
+    "width": 1024,
+    "height": 600,
+    "position":"mouse",
+    "min_width":800,
+    "min_height":400,
+    "show" : false
+  },
+  "webkit": {
+    "plugin":true
+  }
+}

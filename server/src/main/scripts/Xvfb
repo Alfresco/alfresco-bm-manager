@@ -1,0 +1,51 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: Xvfb
+# Required-Start: $local_fs $remote_fs
+# Required-Stop:
+# X-Start-Before:
+# Default-Start: 2 3 4 5
+# Default-Stop:
+### END INIT INFO
+
+N=/etc/init.d/Xvfb
+
+set -e
+
+start()  {
+echo -n "Starting : X Virtual Frame Buffer "
+Xvfb :0 -screen 0 1024x768x24 &
+RETVAL=$?
+echo
+return $RETVAL
+}
+
+stop()   {
+echo -n "Shutting down : X Virtual Frame Buffer"
+echo
+killall Xvfb
+echo
+return 0
+}
+
+case "$1" in
+start)
+    start
+;;
+stop)
+    stop
+;;
+status)
+    status xvfb
+;;
+restart)
+    stop
+    start
+;;
+*)  
+    echo "Usage: $N {start|stop|restart|force-reload}" >&2exit 1
+;;
+esac
+
+exit 0

@@ -1,0 +1,26 @@
+<div id="server-def" class="row row-offcanvas row-offcanvas-right">
+    <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+        <div class="well sidebar-nav">
+            <!--Sidebar content-->
+            Search:
+            <input id="filterTestDef" class="form-control" ng-model="query">
+            <br />Sort by:
+            <select class="form-control" ng-model="orderProp">
+                <option value="name">Alphabetical</option>
+                <option value="age">Newest</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-9">
+        <div class="panel panel-info" ng-repeat="item in data.tests | filter:query | orderBy:orderProp">
+            <div class="panel-heading">
+                <a href="#/testdefs/{{item.release}}/{{item.schema}}">{{item.release}}</a>
+            </div>
+            <div class="panel-body">
+                <p>{{item.description}}</p>
+                <p>ID: {{item._id.$oid}}</p>
+                <p>Schema: {{item.schema}}</p>
+            </div>
+        </div>
+    </div>
+</div>

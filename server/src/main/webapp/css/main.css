@@ -1,0 +1,78 @@
+body {
+    //background-color:rgb(56, 62, 75);
+    padding-top: 70px;
+    padding-bottom: 30px;
+}
+/* link */
+ a {
+    color: #000000;
+}
+h1, h2, h3 {
+    margin-top: 2px;
+    margin-bottom: 10px;
+}
+.row {
+    margin-left: -20px;
+    *zoom: 1;
+    margin-bottom: 4px;
+}
+.subnav {
+    border-bottom: 1px solid rgba(0, 0, 0, 0);
+    border-color: rgb(230, 230, 230);
+    margin-bottom: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+}
+.main {
+    margin:10px;
+}
+.table tbody>tr>td {
+    padding: 0px;
+    line-height: 1.428571429;
+    vertical-align: top;
+    border-top: 1px solid rgb(221, 221, 221);
+}
+.progress-bar {
+    background-color: #323949;
+}
+.btn-dark {
+    color: #fff;
+    background-color: #323949;
+    border-color: #323949
+}
+.btn-dark:hover, .btn-dark:focus, .btn-dark:active, .btn-dark.active, .open .dropdown-toggle.btn-dark {
+    color: #fff;
+    background-color: #000;
+    border-color: #ac2925
+}
+.btn-dark:active, .btn-dark.active, .open .dropdown-toggle.btn-dark {
+    background-image: none
+}
+.btn-dark.disabled, .btn-dark[disabled], fieldset[disabled] .btn-dark, .btn-dark.disabled:hover, .btn-dark[disabled]:hover, fieldset[disabled] .btn-dark:hover, .btn-dark.disabled:focus, .btn-dark[disabled]:focus, fieldset[disabled] .btn-dark:focus, .btn-dark.disabled:active, .btn-dark[disabled]:active, fieldset[disabled] .btn-dark:active, .btn-dark.disabled.active, .btn-dark[disabled].active, fieldset[disabled] .btn-dark.active {
+    background-color: #d9534f;
+    border-color: #d43f3a
+}
+.donut-chart {
+    width: 250px;
+    height: 250px;
+    display:inline-block;
+}
+.chart {
+    background: #eee;
+    padding: 3px;
+}
+.chart div {
+    width: 0;
+    transition: all 1s ease-out;
+    -moz-transition: all 1s ease-out;
+    -webkit-transition: all 1s ease-out;
+}
+.chart div {
+    font: 10px sans-serif;
+    background-color: steelblue;
+    text-align: right;
+    padding: 3px;
+    margin: 5px;
+    color: white;
+    box-shadow: 2px 2px 2px #666;
+}

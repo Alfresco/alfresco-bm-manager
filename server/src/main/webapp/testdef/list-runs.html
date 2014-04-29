@@ -1,0 +1,55 @@
+<div ng-show="hasError" class="alert alert-danger">{{error.msg}}</div>
+<!-- popup modal message -->
+<modal data="modal"></modal>
+<div ng-show="data.runs.length > 0">
+    <div class="row">
+        <div class="form-group">
+            <a href="#/tests/{{data.testname}}/create" class="btn btn-default pull-right" id="createTestRunBtn">
+                <span class="glyphicon glyphicon-plus" alt="Add New Test Run"></span>
+            </a>
+        </div>
+    </div>
+    <div class="row row-offcanvas row-offcanvas-right">
+        <div class="panel panel-default">
+            <table class="table table-striped">
+                <tr ng-repeat="item in data.runs | filter:query | orderBy:orderProp">
+                    <td class="text-left">
+                        <a id="testRun-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.name}}</a>
+                    </td>
+                    <td class="text-left">
+                        <a id="testRunDesc-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.description}}</a>
+                    </td>
+
+                    <td>
+                        <div class="pull-right">
+                            <span ng-show="!item.run">
+                                <a ng-show="item.started < 0" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(item.name, data.testname, $index)" class="btn">
+                                    <span class="glyphicon glyphicon-play"></span>
+                                </a>
+                                <a ng-show="item.started > 0 && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
+                                    <span class="glyphicon glyphicon-stop"></span>
+                                </a>
+                            </span>
+                            <a href="#/tests/{{data.testname}}/{{item.name}}/copy" class="btn" id="copyTestRun-{{item.name}}">
+                                <span class="glyphicon glyphicon-list"></span>
+                            </a>
+                            <a class="btn" id="editTestRunBtn-{{item.name}}" href="#/tests/{{data.testname}}/{{item.name}}/properties">
+                                <span class="glyphicon glyphicon-cog"></span>
+                            </a>
+                            <a ng-click="deleteRun(item.name,data.testname)" class="btn" id="deleteTestRunBtn-{{item.name}}">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="panel-body">
+            <p>{{item.description}} {{item.started}}</p>
+        </div>
+    </div>
+</div>
+<div ng-show="data.runs.length == 0" class="main">
+    <h1 align="center">No test runs found, would you like to create one?</h1>
+    <div ng-include src="'testdef/run-create.html'"></div>
+</div>

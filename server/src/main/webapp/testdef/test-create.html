@@ -1,0 +1,52 @@
+<div class="main" ng-controller="TestCreateCtrl">
+    <form name="form" class="form-horizontal" id="create-test" role="form" novalidate>
+        <div class="form-group">
+            <div ng-show="hasError" class="alert alert-danger">{{errorMsg}}</div>
+        </div>
+        <div class="form-group">
+            <label for="inputTestName" class="col-lg-2 control-label">Test name</label>
+            <div class="col-lg-10">
+                <div ng-show="form.tName.$dirty && form.tName.$invalid" class="alert alert-danger">
+                    <small class="error" ng-show="form.tName.error" class="required">
+                        Test name is required.
+                    </small>
+                    <small class="error" ng-show="form.tName.$error.minlength">
+                        Test name must have at least 3 characters
+                    </small>
+                </div>
+                <input type="text" ng-model="test.name" name="tName" ng-minlength="3" class="form-control" id="inputTestName" placeholder="Test name" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputTestDesc" class="col-lg-2 control-label">Test description</label>
+            <div class="col-lg-10">
+                <div ng-show="form.tDesc.$dirty && form.tDesc.$invalid" class="alert alert-danger">
+                    <small class="error" ng-show="form.tDesc.error" class="required">
+                        Test description is required.
+                    </small>
+                    <small class="error" ng-show="form.tDesc.$error.minlength">
+                        Test description is needs at least 3 characters
+                    </small>
+                </div>
+                <input type="text" ng-model="test.description" name="tDesc" ng-minlength="3" class="form-control" id="inputTestDesc" placeholder="Test description" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="pickTestDef" class="col-lg-2 control-label">Test Definition</label>
+            <div class="col-lg-10">
+                <select class="form-control" ng-model="test.def">
+                    <option ng-repeat="item in defs" value="{{item.release}}-schema:{{item.schema}}">{{item.release}}-schema:{{item.schema}}</option>
+                </select>
+                <span ng-show="nodefs">No active test found</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-lg-offset-2 col-lg-10">
+                <button ng-disabled="!form.$valid" type="submit" class="btn btn-default btn-lg" ng-click="createTest(test)">Ok</button>
+                <a href="#/tests" ng-click="reset()" class="btn btn-dark btn-lg" id="cancelCreateTestBtn">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
