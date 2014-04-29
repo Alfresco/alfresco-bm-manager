@@ -1,0 +1,21 @@
+To create an archetype:
+
+> mvn clean install
+
+> mvn archetype:create-from-project
+> cd target\generated-sources\archetype
+
+Bring the archetype's pom in
+> del pom.xml
+> copy ..\..\..\archetype-pom.xml pom.xml
+
+Remove unecessary files:
+> del src\main\resources\archetype-resources\archetype-*.xml
+> del src\main\resources\archetype-resources\building-the-archetype.txt
+
+Check and deploy archetype artifact:
+> mvn clean install
+> mvn deploy
+
+To use, follow instructions on:
+   https://ts.alfresco.com/share/page/site/bm/wiki-page?title=Benchmark_client_project_setup
