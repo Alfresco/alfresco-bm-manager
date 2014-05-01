@@ -30,6 +30,12 @@ h1, h2, h3 {
 .table .progress {
     margin-top: 5px;
     margin-bottom: 0px;
+    text-align:center;
+}
+.progress-value {
+    position:absolute;
+    right:0;
+    left:0;
 }
 .progress-bar {
     background-color: #323949;
