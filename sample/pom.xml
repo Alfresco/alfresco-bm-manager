@@ -1,36 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>alfresco-benchmark-bm-sample</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <artifactId>alfresco-benchmark-sample</artifactId>
     <packaging>war</packaging>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tomcat.version>7.0.42</tomcat.version>
-    </properties>
+
     <parent>
         <groupId>org.alfresco</groupId>
-        <artifactId>alfresco-benchmark-common</artifactId>
-        <version>1.7</version>
+        <artifactId>alfresco-benchmark</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
+
     <dependencies>
         <dependency>
-            <groupId>org.alfresco</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>alfresco-benchmark-server</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
     <!-- Uncomment this for your project
     <scm>
-        <connection>scm:svn:http://svn.alfresco.com/repos/alfresco-open-mirror/benchmark/tests/bm-XXXX/HEAD</connection>
-        <developerConnection>scm:svn:https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/tests/bm-XXXX/HEAD</developerConnection>
+        <connection>scm:svn:SomeURL></connection>
     </scm>
     <build>
         <resources>
@@ -54,17 +51,12 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <tagNameFormat>V@{project.version}</tagNameFormat>
-                    <tagBase>https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/tests/bm-XXXX/tags</tagBase>
+                    <tagBase>URL-to-tags</tagBase>
                 </configuration>
             </plugin>
         </plugins>
     </build>
     -->
-    <!-- Delete this after creating your project -->
-    <scm>
-        <connection>http://svn.alfresco.com/repos/alfresco-open-mirror/benchmark/tests/bm-sample/HEAD</connection>
-        <developerConnection>scm:svn:https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/tests/bm-sample/HEAD</developerConnection>
-    </scm>
     <!-- Delete this after creating your project -->
     <build>
         <resources>
@@ -91,7 +83,7 @@
                 <version>2.1</version>
                 <configuration>
                     <port>9081</port>
-                    <path>/alfresco-benchmark-bm-sample</path>
+                    <path>/alfresco-benchmark-sample</path>
                 </configuration>
             </plugin>
             <plugin>
@@ -100,13 +92,6 @@
                 <version>2.1.1</version>
                 <configuration>
                     <attachClasses>true</attachClasses>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <tagNameFormat>V@{project.version}</tagNameFormat>
-                    <tagBase>https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/tests/bm-sample/tags</tagBase>
                 </configuration>
             </plugin>
         </plugins>

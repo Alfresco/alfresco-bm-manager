@@ -1,6 +1,8 @@
 *.class
 .idea
 .DS_Store
+*.log
+*.log*
 .classpath
 .project
 .settings/

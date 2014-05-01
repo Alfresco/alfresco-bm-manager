@@ -2,46 +2,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.alfresco</groupId>
-    <artifactId>alfresco-benchmark-common</artifactId>
-    <version>1.8-SNAPSHOT</version>
+    <artifactId>alfresco-benchmark</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Alfresco Benchmark Project</name>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.version>4.0.3.RELEASE</spring.version>
+        <jersey.version>1.17.1</jersey.version>
+        <tomcat.version>7.0.42</tomcat.version>
+        <junit.version>4.10</junit.version>
     </properties>
-    <packaging>pom</packaging>
-    <name>BenchMark Commons Project</name>
-    <repositories>
-        <repository>
-            <id>alfresco-public-snapshots</id>
-            <releases>
-                <enabled>false</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <updatePolicy>never</updatePolicy>
-                <checksumPolicy>fail</checksumPolicy>
-             </snapshots>
-             <name>Alfresco Public Snapshots Repository</name>
-             <url>https://artifacts.alfresco.com/nexus/content/repositories/public-snapshots/</url>
-        </repository>
-        <repository>
-            <id>alfresco-public</id>
-            <releases>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-                <checksumPolicy>fail</checksumPolicy>
-             </snapshots>
-             <name>Alfresco Public Releases Repository</name>
-             <url>https://artifacts.alfresco.com/nexus/content/groups/public/</url>              
-        </repository>
-    </repositories>
 
     <prerequisites>
        <maven>3.0.3</maven>
     </prerequisites>
 
+    <modules>
+        <module>server</module>
+        <module>util</module>
+        <module>sample</module>
+		<!--
+        <module>common</module>
+		-->
+    </modules>
+    
     <build>
         <plugins>
             <plugin>
@@ -65,14 +51,6 @@
                     <configuration>
                         <source>1.7</source>
                         <target>1.7</target>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>2.4</version>
-                    <configuration>
-                        <tagNameFormat>V@{project.version}</tagNameFormat>
-                        <tagBase>https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/common/tags</tagBase>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -106,6 +84,7 @@
             </plugins>
         </pluginManagement>
     </build>
+
     <distributionManagement>
         <repository>
             <id>alfresco-internal</id>
@@ -118,8 +97,5 @@
             <url>https://artifacts.alfresco.com/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-    <scm>
-        <connection>scm:svn:http://svn.alfresco.com/repos/alfresco-open-mirror/benchmark/common/HEAD</connection>
-        <developerConnection>scm:svn:https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/common/HEAD</developerConnection>
-    </scm>
+
 </project>
