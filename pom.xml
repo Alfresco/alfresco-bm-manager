@@ -23,9 +23,6 @@
         <module>server</module>
         <module>util</module>
         <module>sample</module>
-		<!--
-        <module>common</module>
-		-->
     </modules>
     
     <build>
