@@ -13,6 +13,7 @@
         <div class="panel panel-default">
             <table class="table table-striped">
                 <tr ng-repeat="item in data.runs | filter:query | orderBy:orderProp">
+                <td>{{item.hasStarted}}</td>
                     <td class="col-sm-2 text-left">
                         <a id="testRun-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.name}}</a>
                     </td>
@@ -29,10 +30,10 @@
                     <td class="col-sm-2">
                         <div class="pull-right">
                             <span ng-show="!item.run">
-                                <a ng-show="item.started < 0" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(item.name, data.testname, $index)" class="btn">
+                                <a ng-hide="item.hasStarted" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(data.testname, $index)" class="btn">
                                     <span class="glyphicon glyphicon-play"></span>
                                 </a>
-                                <a ng-show="item.started > 0 && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
+                                <a ng-show="item.hasStarted && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
                                     <span class="glyphicon glyphicon-stop"></span>
                                 </a>
                             </span>
