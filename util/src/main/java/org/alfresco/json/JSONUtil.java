@@ -169,7 +169,7 @@ public class JSONUtil
     public static JSONObject getObject(JSONObject json, String key)
     {
         Object object = json.get(key);
-        if (object instanceof JSONArray) { return (JSONObject) object; }
+        if (object instanceof JSONObject) { return (JSONObject) object; }
         return null;
     }
 
