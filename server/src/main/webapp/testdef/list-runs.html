@@ -13,7 +13,6 @@
         <div class="panel panel-default">
             <table class="table table-striped">
                 <tr ng-repeat="item in data.runs | filter:query | orderBy:orderProp">
-                <td>{{item.hasStarted}}</td>
                     <td class="col-sm-2 text-left">
                         <a id="testRun-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.name}}</a>
                     </td>
