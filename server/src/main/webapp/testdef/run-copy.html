@@ -1,7 +1,7 @@
 <!-- popup modal message -->
 <modal data="modal"></modal>
 <div class="main" ng-controller="TestRunCopyCtrl">
-    <form name="form" class="form-horizontal" id="copy-test" role="form" novalidate>
+    <form name="form" class="form-horizontal" id="copy-test-run" role="form" novalidate>
         <div class="form-group">
             <label for="inputTestName" class="col-lg-2 control-label">Test name</label>
             <div class="col-lg-10">
@@ -22,7 +22,7 @@
         <div class="form-group">
             <div class="col-lg-offset-2 col-lg-10">
                 <button ng-disabled="!form.$valid || test.name == testname" type="submit" class="btn btn-default btn-lg" ng-click="copyTest(test)">Ok</button>
-                <a href="#/tests/{{testname}}/{{runname}}" ng-click="reset()" class="btn btn-dark btn-lg" id="cancelCreateTestBtn">Cancel</a>
+                <a href="#/tests/{{testname}}" ng-click="cancel()" class="btn btn-dark btn-lg" id="cancelCreateTestBtn">Cancel</a>
             </div>
         </div>
     </form>
