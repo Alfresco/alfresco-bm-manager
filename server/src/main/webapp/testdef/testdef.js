@@ -487,26 +487,31 @@
             /**
              * List test runs controller
              */
-            .controller('TestRunCtrl', ['$scope', '$location', 'TestRunService', 'ModalService',
-                function($scope, $location, TestRunService, ModalService) {
+            .controller('TestRunCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService',
+                function($scope, $location, $timeout, TestRunService, ModalService) {
                     $scope.data = {};
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
                     $scope.data.testname = names[0];
                     $scope.data.runs = {}
+
                     TestRunService.getTestRuns({
                         id: $scope.data.testname
                     }, function(response) {
                         var runs = response;
                         for (var i = 0; i < runs.length; i++) {
                             var run = runs[i];
+                            if(run.state == 'NOT_SCHEDULED'){
+                                run.hasStarted = false;
+                            } else {
+                                run.hasStarted = true;
+                            }
                             if ("COMPLETED" == run.state || "STOPED" == run.state) {
                                 run.run = true;
                             } else {
                                 run.run = false;
                             }
                         }
-
                         $scope.data.runs = runs;
                     });
                     //Call back to delete run
@@ -536,8 +541,9 @@
                         })
                     }
                     //call back to start run
-                    $scope.startRun = function(runname, testname, index) {
-                        var version = $scope.data.runs[index].version;
+                    $scope.startRun = function(testname, index) {
+                        var run = $scope.data.runs[index];
+                        var version = run.version;
                         var currentdate = new Date();
                         var time = currentdate.valueOf();
                         var json = {
@@ -546,9 +552,11 @@
                         }
                         TestRunService.startTestRun({
                             id: $scope.data.testname,
-                            runname: runname
+                            runname: run.name
                         }, json, function(response) {
-                            $location.path("/tests/" + testname + "/" + runname);
+                            run = response;
+                             run.hasStarted = true;
+                             $scope.data.runs[index] = run;
                         })
                     }
                     //call back to stop run
@@ -722,7 +730,7 @@
                                 collection = collection.concat.apply(collection, $scope.data.properties);
                                 for (var i in collection) {
                                     if (propertyName === collection[i].name) {
-                                       collection.splice(i, 1, res);
+                                        collection.splice(i, 1, res);
                                         break;
                                     }
                                 }
@@ -856,7 +864,6 @@
                     });
                     $scope.master = {};
 
-
                     $scope.update = function(test) {
                         $scope.master = angular.copy(test);
                     };
@@ -891,7 +898,7 @@
                                 id: $scope.testname
                             }, postData, function(res) {
                                 $scope.response = res;
-                                $location.path("/tests/" + $scope.testname + "/" + res.name);
+                                $location.path("/tests/" + $scope.testname);
                             },
                             function error(error) {
                                 $scope.hasError = true;

@@ -13,20 +13,26 @@
         <div class="panel panel-default">
             <table class="table table-striped">
                 <tr ng-repeat="item in data.runs | filter:query | orderBy:orderProp">
-                    <td class="text-left">
+                    <td class="col-sm-2 text-left">
                         <a id="testRun-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.name}}</a>
                     </td>
-                    <td class="text-left">
+                    <td class="col-sm-3 text-left">
                         <a id="testRunDesc-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.description}}</a>
                     </td>
-
-                    <td>
+                    <td class="col-sm-5">
+                        <div class="progress ">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="{{item.progress*100}}" aria-valuemin="0" aria-valuemax="100" style="width: {{item.progress*100}}%; ">
+                                <span class="progress-value">{{item.progress*100}}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="col-sm-2">
                         <div class="pull-right">
                             <span ng-show="!item.run">
-                                <a ng-show="item.started < 0" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(item.name, data.testname, $index)" class="btn">
+                                <a ng-hide="item.hasStarted" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(data.testname, $index)" class="btn">
                                     <span class="glyphicon glyphicon-play"></span>
                                 </a>
-                                <a ng-show="item.started > 0 && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
+                                <a ng-show="item.hasStarted && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
                                     <span class="glyphicon glyphicon-stop"></span>
                                 </a>
                             </span>

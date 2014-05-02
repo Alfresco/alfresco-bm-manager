@@ -1,21 +1,56 @@
 alfresco-benchmark
 ==================
 
-Sample load tests, Alfresco-specific load tests and utility libraries will be available here, too.
+1. Build
 
-At present (Dec 2013) development of the Benchmark Server framework is ongoing at
-   https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/server/HEAD
+    mvn clean install
 
-All code will be ported to this repository prior to release of V2.0.0.
+2. Check availability of MongoDB server
 
-2013-12-02:
-==========
+    mongo \<mongo-host\>    
+    exit
 
-Rest API and UI are coming along well.  We anticipate a pause in development during the second half of December.
-A full end-to-end load test is not yet ready for demo.
+3. Start server
 
-2014-04-10:
-==========
+    cd server   
+    mvn tomcat7:run -Dmongo.config.host=\<mongo-host\>
 
-Another 2 weeks available for development.  Unit tests and tests with in-place Mongo are successful.  Packaging refactor is finished.  Control APIs and status updates all working.  Sample test is integrated but has a few refactor-related bugs that need ironing out.
-Code transfer to GitHub will probably take place next sprint (from 21 April 2014).
+4. Start sample load driver
+
+    cd ../sample    
+    mvn tomcat7:run -Dmongo.config.host=\<mongo-host\> 
+
+5. Access server UI
+
+    Browse to http://localhost:9080/alfresco-benchmark-server
+
+6. Create a Test
+
+    Click [+] if not presented with "Create Test" options.  
+    Fill in test details:   
+        - Test Name: MyFirstTest01  
+        - Test Description: Getting started 
+        - Test Definition: alfresco-benchmark-bm-sample-xxx     
+    Click "Ok".
+ 
+7. Edit test properties
+
+    It is a requirement that all test runs get told where to store the generated results.   
+    Change property "mongo.test.host" to your \<mongo-host\>  
+    Click: "MyFirstTest01" on top left
+
+8. Create a Test Run
+
+    Click [+] if not presented with "Create Test Run" options.  
+    Fill in test run details:   
+        - Test run name: 01     
+    Click "Ok".
+
+9. Start the Test Run
+
+    Click "Play" button next to Test Run "01".  
+    Refresh to see progress (TODO: auto-refresh)
+
+10. Download results
+
+    (TODO: details)
