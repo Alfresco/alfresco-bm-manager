@@ -6,7 +6,7 @@ angular.module('benchmark', ['benchtest','d3benchmark','modal','breadcrumbs'])
      when('/tests', {templateUrl: 'testdef/list-tests.html',   controller:'ListTestsCtrl'}).
      when('/tests/create', {templateUrl: 'testdef/test-create.html', controller: 'TestCreateCtrl'}).
      when('/tests/:testId/properties', {templateUrl: 'testdef/test-detail.html', controller: 'TestDetailCtrl'}).
-     when('/tests/:testId', {templateUrl: 'testdef/list-runs.html', controller: 'TestRunCtrl'}).
+     when('/tests/:testId', {templateUrl: 'testdef/list-runs.html', controller: 'TestRunListCtrl'}).
      when('/tests/:testId/create', {templateUrl: 'testdef/run-create.html', controller: 'TestRunCreateCtrl'}).
      when('/tests/:testId/copy', {templateUrl: 'testdef/test-copy.html', controller: 'TestCopyCtrl'}).
      when('/tests/:testId/:runId', {templateUrl: 'testdef/run-summary.html', controller: 'TestRunSummaryCtrl'}).
