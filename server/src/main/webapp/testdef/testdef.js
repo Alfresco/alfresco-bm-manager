@@ -487,33 +487,50 @@
             /**
              * List test runs controller
              */
-            .controller('TestRunCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService',
+            .controller('TestRunListCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService',
                 function($scope, $location, $timeout, TestRunService, ModalService) {
                     $scope.data = {};
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
                     $scope.data.testname = names[0];
-                    $scope.data.runs = {}
+                    $scope.data.runs = {};
 
-                    TestRunService.getTestRuns({
-                        id: $scope.data.testname
-                    }, function(response) {
-                        var runs = response;
-                        for (var i = 0; i < runs.length; i++) {
-                            var run = runs[i];
-                            if(run.state == 'NOT_SCHEDULED'){
-                                run.hasStarted = false;
-                            } else {
-                                run.hasStarted = true;
+                    /**
+                     * Get data gets test run collection from backend.
+                     */
+                    var getData = function() {
+                        TestRunService.getTestRuns({
+                            id: $scope.data.testname
+                        }, function(response) {
+                            var runs = response;
+                            for (var i = 0; i < runs.length; i++) {
+                                var run = runs[i];
+                                if (run.state == 'NOT_SCHEDULED') {
+                                    run.hasStarted = false;
+                                } else {
+                                    run.hasStarted = true;
+                                }
+                                if ("COMPLETED" == run.state || "STOPED" == run.state) {
+                                    run.run = true;
+                                } else {
+                                    run.run = false;
+                                }
                             }
-                            if ("COMPLETED" == run.state || "STOPED" == run.state) {
-                                run.run = true;
-                            } else {
-                                run.run = false;
-                            }
-                        }
-                        $scope.data.runs = runs;
-                    });
+                            $scope.data.runs = runs;
+                        });
+                    };
+                    //Prepare data for inital page load.
+                    getData.apply();
+
+                    //Refresh data every 2.5 seconds.
+                    var poll = function() {
+                        $timeout(function() {
+                            getData();
+                            poll();
+                        }, 2500);
+                    };
+                    poll();
+
                     //Call back to delete run
                     $scope.deleteRun = function(runname, testname) {
                         $scope.modal = {
@@ -527,6 +544,7 @@
                         }
                         $scope.modal = ModalService.create($scope.modal);
                     }
+
                     //Call back from modal to perform delete.
                     $scope.doDeleteRun = function(testname, runname) {
                         TestRunService.deleteTestRun({
@@ -555,8 +573,8 @@
                             runname: run.name
                         }, json, function(response) {
                             run = response;
-                             run.hasStarted = true;
-                             $scope.data.runs[index] = run;
+                            run.hasStarted = true;
+                            $scope.data.runs[index] = run;
                         })
                     }
                     //call back to stop run
@@ -569,6 +587,7 @@
                         })
                     }
                 }
+
             ])
 
             /**
