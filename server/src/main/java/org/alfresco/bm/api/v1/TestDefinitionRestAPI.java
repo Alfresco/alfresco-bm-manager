@@ -62,7 +62,6 @@ public class TestDefinitionRestAPI extends AbstractRestResource
     }
     
     @GET
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTestDefs(
             @DefaultValue("true") @QueryParam("activeOnly") boolean activeOnly,

@@ -52,12 +52,12 @@ import com.mongodb.MongoException.Network;
  * @author Derek Hulley
  * @since 2.0
  */
-public class TestServicesCache implements LifecycleListener, TestConstants
+public class TestRunServicesCache implements LifecycleListener, TestConstants
 {
     /** The time to hold a context open since last access */
     private static final long CONTEXT_ACCESS_TIMEOUT = 120000L;
     
-    private static final Log logger = LogFactory.getLog(TestServicesCache.class);
+    private static final Log logger = LogFactory.getLog(TestRunServicesCache.class);
     
     private final MongoTestDAO dao;
     private final Map<String, ClassPathXmlApplicationContext> contexts;
@@ -68,7 +68,7 @@ public class TestServicesCache implements LifecycleListener, TestConstants
     /**
      * @param dao               provides access to the state of a specific test run
      */
-    public TestServicesCache(MongoTestDAO dao)
+    public TestRunServicesCache(MongoTestDAO dao)
     {
         this.dao = dao;
         this.contexts = new HashMap<String, ClassPathXmlApplicationContext>(13);

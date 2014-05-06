@@ -20,6 +20,7 @@
     <bean id="api.v1.tests" class="org.alfresco.bm.api.v1.TestRestAPI">
         <constructor-arg name="testDAO" ref="testDAO" />
         <constructor-arg name="testService" ref="testService" />
+        <constructor-arg name="testRunServices" ref="testRunServices" />
     </bean>
     <bean id="api.v1.status" class="org.alfresco.bm.api.v1.StatusAPI">
         <constructor-arg name="lifeCycleController" ref="appLifeCycleController" />
@@ -124,7 +125,7 @@
         <constructor-arg name="testDAO" ref="testDAO" />
     </bean>
 
-    <bean id="testServicesCache" class="org.alfresco.bm.test.TestServicesCache">
+    <bean id="testRunServices" class="org.alfresco.bm.test.TestRunServicesCache">
         <constructor-arg name="dao" ref="testDAO" />
     </bean>
 

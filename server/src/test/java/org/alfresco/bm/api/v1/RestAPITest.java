@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 import org.alfresco.bm.log.LogWatcher;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRun;
+import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.TestServiceImpl;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
@@ -130,7 +131,8 @@ public class RestAPITest implements TestConstants
         dao = ctx.getBean(MongoTestDAO.class);
         appDB = dao.getDb();
         TestServiceImpl testService = ctx.getBean(TestServiceImpl.class);
-        api = new TestRestAPI(dao, testService);
+        TestRunServicesCache testRunServices = ctx.getBean(TestRunServicesCache.class);
+        api = new TestRestAPI(dao, testService, testRunServices);
     }
     
     @After

@@ -20,7 +20,7 @@ package org.alfresco.bm.tools;
 
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.test.TestConstants;
-import org.alfresco.bm.test.TestServicesCache;
+import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.junit.After;
 import org.junit.Assert;
@@ -190,13 +190,13 @@ public class BMTestRunnerTest implements TestConstants
             @Override
             public void testReady(ApplicationContext testCtx, String test)
             {
-                TestServicesCache services = testCtx.getBean(TestServicesCache.class);
+                TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
                 Assert.assertNotNull(services);
             }
             @Override
             public void testRunReady(ApplicationContext testCtx, String test, String run)
             {
-                TestServicesCache services = testCtx.getBean(TestServicesCache.class);
+                TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
                 rs = services.getResultService(test, run);
                 Assert.assertNotNull(rs);
                 Assert.assertEquals("Should not be any events", 0, rs.getEventNames().size());
@@ -204,14 +204,14 @@ public class BMTestRunnerTest implements TestConstants
             @Override
             public void testRunStarted(ApplicationContext testCtx, String test, String run)
             {
-                TestServicesCache services = testCtx.getBean(TestServicesCache.class);
+                TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
                 ResultService rsCheck = services.getResultService(test, run);
                 Assert.assertTrue("Expected a cached instance of the ResultService.", rsCheck == rs);
             }
             @Override
             public void testRunFinished(ApplicationContext testCtx, String test, String run)
             {
-                TestServicesCache services = testCtx.getBean(TestServicesCache.class);
+                TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
                 ResultService rsCheck = services.getResultService(test, run);
                 Assert.assertTrue("Expected a cached instance of the ResultService.", rsCheck == rs);
                 Assert.assertEquals("Incorrect number of results.", 1, rs.countResults());

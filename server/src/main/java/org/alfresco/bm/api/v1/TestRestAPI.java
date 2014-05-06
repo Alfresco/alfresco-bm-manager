@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2013 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -36,6 +36,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.alfresco.bm.api.AbstractRestResource;
+import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.ConcurrencyException;
@@ -67,19 +68,21 @@ public class TestRestAPI extends AbstractRestResource
 {
     private final MongoTestDAO testDAO;
     private final TestService testService;
+    private final TestRunServicesCache testRunServices;
     
     /**
      * @param testDAO                   low-level data service for tests
      * @param testService               test service for retrieving calculated data
+     * @param testRunServices           factory providing access to test run services
      */
-    public TestRestAPI(MongoTestDAO testDAO, TestService testService)
+    public TestRestAPI(MongoTestDAO testDAO, TestService testService, TestRunServicesCache testRunServices)
     {
         this.testDAO = testDAO;
         this.testService = testService;
+        this.testRunServices = testRunServices;
     }
     
     @GET
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTests(
             @QueryParam("release") String release,
@@ -137,7 +140,6 @@ public class TestRestAPI extends AbstractRestResource
     }
 
     @POST
-    @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String createTest(TestDetails testDetails)
@@ -293,7 +295,6 @@ public class TestRestAPI extends AbstractRestResource
     }
     
     @PUT
-    @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String updateTest(TestDetails testDetails)
@@ -1267,5 +1268,13 @@ public class TestRestAPI extends AbstractRestResource
             logger.debug("Outbound: " + json);
         }
         return json;
+    }
+    
+    @Path("/{test}/runs/{run}/results")
+    public ResultsRestAPI results(
+            @PathParam("test") String test,
+            @PathParam("run") String run)
+    {
+        return new ResultsRestAPI(testRunServices);
     }
 }

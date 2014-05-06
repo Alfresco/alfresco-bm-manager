@@ -1,23 +1,19 @@
 Developing in Eclipse:
 ---------------------
 
+Make sure you set the Maven repository location in Eclipse:
+    Window > Preferences > Java > Build Path > Classpath Variables: M2_REPO=[probably home/.m2/repository]
 Run
     mvn dependency:sources
     mvn eclipse:eclipse
-Import the generated project file into Eclipse
-Make sure you set the Maven repository location in Eclipse:
-    Window > Preferences > Java > Build Path > Classpath Variables: M2_REPO=[probably home/.m2/repository]
-Install ZooKeeper client plugin
-    Help > Install New Software > http://www.massedynamic.org/eclipse/updates/
-
+Import the parent and module poms into Eclipse
 
 Building in Maven:
 -----------------
 
+Checkout master or tag of 'alfresco-benchmark'
 Run
     mvn clean install
-Test
-    mvn test
 Generate all artifacts
     mvn -DperformRelease=true -Dmaven.test.skip=true clean install
 
@@ -36,8 +32,8 @@ API Walkthrough:
 
 Install MongoDB (local or remote)
 
-Checkout benchmark/server/HEAD
 Start the BM Server:
+> cd server
 > mvn tomcat7:run -Dmongo.config.host=localhost:27017
 The Mongo connection details must be supplied; there is no default.
 
@@ -52,18 +48,21 @@ There should be no test definitions available:
    GET: <server>/api/v1/test-defs
 Nor will there be any test, either:
    GET: <bm-server>/api/v1/tests
-   
-Checkout benchmark/tests/bm-sample/HEAD
+
 Start the BM Sample Test:
+> cd ../sample
 > mvn tomcat7:run -Dmongo.config.host=localhost
-The test will run at
+The sample test driver will run at
    http://localhost:9081/alfresco-benchmark-bm-sample
-There is no UI for the test but it has all the APIs
+There is no UI for the test driver and, although it has all the APIs, there is no
+direct communication between the server application (UI) and the test drivers.
+You can start any number of instances of the sample test driver on other
+machines.
 
 Check that the sample started OK
    GET: <bm-sample>/api/v1/status/startup
 
-The sample test will have registered the test details.  Retrieve the test definitions:
+The sample test will have registered and initialized the test details.  Retrieve the test definitions:
    GET: <bm-server>/api/v1/test-defs?activeOnly=true
 
 Shutdown the BM Sample application with CTRL-C.  Check the test defintions:
@@ -235,3 +234,5 @@ The request the test run state (STARTED, COMPLETED, etc):
 To request test run termination:
    POST:  <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/terminate
    
+To retrieve a csv stream of the test run results:
+   GET:   <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/results/csv

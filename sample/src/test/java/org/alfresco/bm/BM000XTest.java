@@ -24,7 +24,7 @@ import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.process.ScheduleProcesses;
-import org.alfresco.bm.test.TestServicesCache;
+import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.tools.BMTestRunner;
 import org.alfresco.bm.tools.BMTestRunnerListener;
 import org.alfresco.bm.tools.BMTestRunnerListenerAdaptor;
@@ -64,7 +64,7 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
     @Override
     public void testRunFinished(ApplicationContext testCtx, String test, String run)
     {
-        TestServicesCache services = testCtx.getBean(TestServicesCache.class);
+        TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
         ResultService resultService = services.getResultService(test, run);
         Assert.assertNotNull(resultService);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
