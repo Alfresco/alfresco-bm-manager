@@ -493,9 +493,12 @@
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
                     $scope.data.testname = names[0];
-                    $scope.data.runs = {}
+                    $scope.data.runs = {};
 
-                    $scope.getData = function() {
+                    /**
+                     * Get data gets test run collection from backend.
+                     */
+                    var getData = function() {
                         TestRunService.getTestRuns({
                             id: $scope.data.testname
                         }, function(response) {
@@ -515,11 +518,14 @@
                             }
                             $scope.data.runs = runs;
                         });
-                    }();
+                    };
+                    //Prepare data for inital page load.
+                    getData.apply();
+
                     //Refresh data every 2.5 seconds.
                     var poll = function() {
                         $timeout(function() {
-                            $scope.getData
+                            getData();
                             poll();
                         }, 2500);
                     };
