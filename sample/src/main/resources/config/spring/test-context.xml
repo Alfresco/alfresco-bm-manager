@@ -58,10 +58,14 @@
         <constructor-arg name="processCount" value="${proc.processCount}" />
         <constructor-arg name="timeBetweenProcesses" value="${proc.timeBetweenProcesses}" />
         <property name="batchSize" value="${proc.scheduleBatchSize}" />
-        <property name="chart" value="false" />
+        <property name="chart" value="true" />
     </bean>
     <bean id="event.process" class="org.alfresco.bm.process.ExecuteProcess" parent="event.base" >
         <constructor-arg name="processDataDAO" ref="processDataDAO" />
+        <property name="chart" value="true" />
+    </bean>
+    <bean id="event.processDone" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" >
+        <property name="chart" value="false" />
     </bean>
     
 </beans>

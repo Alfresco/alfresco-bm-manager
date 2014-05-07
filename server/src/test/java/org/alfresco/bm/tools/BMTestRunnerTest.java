@@ -18,10 +18,14 @@
  */
 package org.alfresco.bm.tools;
 
+import java.io.IOException;
+
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.report.SummaryReporter;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.mongo.MongoDBForTestsFactory;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -215,6 +219,25 @@ public class BMTestRunnerTest implements TestConstants
                 ResultService rsCheck = services.getResultService(test, run);
                 Assert.assertTrue("Expected a cached instance of the ResultService.", rsCheck == rs);
                 Assert.assertEquals("Incorrect number of results.", 1, rs.countResults());
+                
+                // Access the summary results
+                SummaryReporter summaryReporter = new SummaryReporter(rsCheck);
+                StringBuilderWriter sbWriter = new StringBuilderWriter(500);
+                try
+                {
+                    summaryReporter.export(sbWriter, "testAccessToResults");
+                }
+                catch (IOException e)
+                {
+                    throw new RuntimeException(e);
+                }
+                finally
+                {
+                    sbWriter.close();
+                }
+                String summary = sbWriter.getBuilder().toString();
+                Assert.assertTrue(summary.contains("testAccessToResults"));
+                Assert.assertTrue(summary.contains("Standard Deviation (ms)"));
             }
         };
         

@@ -18,16 +18,19 @@
  */
 package org.alfresco.bm;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.process.ScheduleProcesses;
+import org.alfresco.bm.report.SummaryReporter;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.tools.BMTestRunner;
 import org.alfresco.bm.tools.BMTestRunnerListener;
 import org.alfresco.bm.tools.BMTestRunnerListenerAdaptor;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,5 +95,24 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         
         // 202 events in total
         Assert.assertEquals("Incorrect number of results.", (403-failures), resultService.countResults());
+        
+        // Generate the test results summary
+        SummaryReporter summaryReporter = new SummaryReporter(resultService);
+        StringBuilderWriter sbWriter = new StringBuilderWriter(1024);
+        try
+        {
+            summaryReporter.export(sbWriter, "No notes");
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+        finally
+        {
+            sbWriter.close();
+        }
+        String summary = sbWriter.getBuilder().toString();
+        Assert.assertTrue(summary.contains("scheduleProcesses"));
+        Assert.assertTrue(summary.contains("process"));
     }
 }

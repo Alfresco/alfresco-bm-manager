@@ -37,6 +37,7 @@ import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.alfresco.bm.log.LogWatcher;
 import org.alfresco.bm.test.TestConstants;
@@ -892,5 +893,10 @@ public class RestAPITest implements TestConstants
 
         // Force another ping, which will deactivate the test run
         test.forcePing();
+        
+        // Get the results API
+        ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T1", "01");
+        StreamingOutput resultsOutput = resultsAPI.getResultsSummaryCSV();
+        // TODO: Stream it
     }
 }

@@ -74,54 +74,16 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     {
     }
 
-    @Override
-    public void recordResult(EventRecord result)
-    {
-        if (result == null)
-        {
-            throw new IllegalArgumentException("EventRecord may not be null.");
-        }
-        
-        Event event = result.getEvent();
-        if (event == null)
-        {
-            throw new IllegalArgumentException("EventRecord must contain an Event.");
-        }
-        
-        DBObject eventObj = MongoEventService.convertEvent(event);
-        DBObject insertObj = BasicDBObjectBuilder
-                .start()
-                .add(EventRecord.FIELD_CHART, result.isChart())
-                .add(EventRecord.FIELD_DATA, result.getData())
-                .add(EventRecord.FIELD_SERVER_ID, result.getServerId())
-                .add(EventRecord.FIELD_START_DELAY, result.getStartDelay())
-                .add(EventRecord.FIELD_START_TIME, result.getStartTime())
-                .add(EventRecord.FIELD_SUCCESS, result.isSuccess())
-                .add(EventRecord.FIELD_TIME, result.getTime())
-                .add(EventRecord.FIELD_WARNING, result.getWarning())
-                .add(EventRecord.FIELD_EVENT, eventObj)
-                .get();
-        
-        WriteResult wr = collection.insert(insertObj);
-        if (wr.getError() != null)
-        {
-            throw new RuntimeException(
-                    "Failed to insert event result:\n" +
-                    "   Result: " + insertObj + "\n" +
-                    "   Error:  " + wr);
-        }
-        // Done
-        if (logger.isDebugEnabled())
-        {
-            logger.debug("Recorded result: " + insertObj);
-        }
-    }
-    
     /**
      * Helper to convert Mongo-persisted object to a client-visible {@link EventRecord}
      */
     private EventRecord convertToEventRecord(DBObject eventRecordObj)
     {
+        if (eventRecordObj == null)
+        {
+            return null;
+        }
+        
         String serverId = (String) eventRecordObj.get(EventRecord.FIELD_SERVER_ID);
         boolean success = eventRecordObj.containsField(EventRecord.FIELD_SUCCESS) ?
                 (Boolean) eventRecordObj.get(EventRecord.FIELD_SUCCESS) :
@@ -194,6 +156,89 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                     "   Out: " + event);
         }
         return event;
+    }
+
+    @Override
+    public void recordResult(EventRecord result)
+    {
+        if (result == null)
+        {
+            throw new IllegalArgumentException("EventRecord may not be null.");
+        }
+        
+        Event event = result.getEvent();
+        if (event == null)
+        {
+            throw new IllegalArgumentException("EventRecord must contain an Event.");
+        }
+        
+        DBObject eventObj = MongoEventService.convertEvent(event);
+        DBObject insertObj = BasicDBObjectBuilder
+                .start()
+                .add(EventRecord.FIELD_CHART, result.isChart())
+                .add(EventRecord.FIELD_DATA, result.getData())
+                .add(EventRecord.FIELD_SERVER_ID, result.getServerId())
+                .add(EventRecord.FIELD_START_DELAY, result.getStartDelay())
+                .add(EventRecord.FIELD_START_TIME, result.getStartTime())
+                .add(EventRecord.FIELD_SUCCESS, result.isSuccess())
+                .add(EventRecord.FIELD_TIME, result.getTime())
+                .add(EventRecord.FIELD_WARNING, result.getWarning())
+                .add(EventRecord.FIELD_EVENT, eventObj)
+                .get();
+        
+        WriteResult wr = collection.insert(insertObj);
+        if (wr.getError() != null)
+        {
+            throw new RuntimeException(
+                    "Failed to insert event result:\n" +
+                    "   Result: " + insertObj + "\n" +
+                    "   Error:  " + wr);
+        }
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Recorded result: " + insertObj);
+        }
+    }
+    
+    @Override
+    public String getDataLocation()
+    {
+        return collection.getFullName();
+    }
+
+    @Override
+    public EventRecord getFirstResult()
+    {
+        DBObject sortObj = BasicDBObjectBuilder.start()
+                .add(EventRecord.FIELD_START_TIME, 1)
+                .get();
+
+        DBObject resultObj = collection.findOne(null, null, sortObj);
+        EventRecord result = convertToEventRecord(resultObj);
+
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Found first result: " + result);
+        }
+        return result;
+    }
+    
+    @Override
+    public EventRecord getLastResult()
+    {
+        DBObject sortObj = BasicDBObjectBuilder.start()
+                .add(EventRecord.FIELD_START_TIME, -1)
+                .get();
+
+        DBObject resultObj = collection.findOne(null, null, sortObj);
+        EventRecord result = convertToEventRecord(resultObj);
+
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Found last result: " + result);
+        }
+        return result;
     }
 
     @Override
