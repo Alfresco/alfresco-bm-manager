@@ -872,8 +872,17 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_SCHEMA, schema)
                 .get();
         
-        WriteResult result = tests.insert(writeObj);
-        boolean written = (result.getError() == null);
+        WriteResult result = null;
+        boolean written = true;
+        try
+        {
+            result = tests.insert(writeObj);
+            written = (result.getError() == null);
+        }
+        catch (DuplicateKey e)
+        {
+            written = false;
+        }
 
         // Done
         if (logger.isDebugEnabled())
@@ -1394,8 +1403,17 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_SUCCESS_RATE, Double.valueOf(1.0))
                 .get();
         
-        WriteResult result = testRuns.insert(writeObj);
-        boolean written = (result.getError() == null);
+        WriteResult result = null;
+        boolean written = true;
+        try
+        {
+            result = testRuns.insert(writeObj);
+            written = (result.getError() == null);
+        }
+        catch (DuplicateKey e)
+        {
+            written = false;
+        }
 
         // Done
         if (logger.isDebugEnabled())
@@ -2050,28 +2068,35 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_ORIGIN, origin)
                 .get();
         
+        WriteResult result = null;
         boolean written = false;
         if (value == null)
         {
             // There must an update
-            WriteResult result = testProps.remove(queryObj);
+            result = testProps.remove(queryObj);
             written = (result.getN() > 0);
-
         }
         else
         {
-            // A value was provided, so either INSERT or UPDATE
-            if (version == 0)
+            try
             {
-                // This indicates that no override should exist, yet
-                WriteResult result = testProps.insert(updateObj);
-                written = (result.getError() == null);
+                // A value was provided, so either INSERT or UPDATE
+                if (version == 0)
+                {
+                    // This indicates that no override should exist, yet
+                    result = testProps.insert(updateObj);
+                    written = (result.getError() == null);
+                }
+                else
+                {
+                    // There must an update
+                    result = testProps.update(queryObj, updateObj, true, false);
+                    written = (result.getN() > 0);
+                }
             }
-            else
+            catch (DuplicateKey e)
             {
-                // There must an update
-                WriteResult result = testProps.update(queryObj, updateObj, true, false);
-                written = (result.getN() > 0);
+                written = false;
             }
         }
 

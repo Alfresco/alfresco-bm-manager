@@ -23,22 +23,17 @@ import java.util.List;
 
 import org.alfresco.bm.event.mongo.MongoEventService;
 import org.alfresco.bm.event.mongo.MongoResultService;
+import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 import com.mongodb.DB;
-import com.mongodb.Mongo;
-
-import de.flapdoodle.embedmongo.distribution.Version;
-import de.flapdoodle.embedmongo.tests.MongodForTestsFactory;
 
 /**
  * @see EventWork
@@ -53,7 +48,7 @@ public class EventWorkTest
     private static final String TEST_RUN_FQN = "EventWorkTest.X";
     private static final String EVENT_NAME = "x.y";
     
-    private static MongodForTestsFactory mongoFactory;
+    private static MongoDBForTestsFactory mongoFactory;
     private MongoEventService eventService;
     private MongoResultService resultService;
     private DB db;
@@ -63,23 +58,11 @@ public class EventWorkTest
     private EventWork work;
 
     
-    @BeforeClass
-    public static void setUpMongo() throws Exception
-    {
-        mongoFactory = MongodForTestsFactory.with(Version.Main.V2_2);
-    }
-    
-    @AfterClass
-    public static void tearDownMongo()
-    {
-        mongoFactory.shutdown();
-    }
-    
     @Before
     public void setUp() throws Exception
     {
-        final Mongo mongo = mongoFactory.newMongo();
-        db = mongoFactory.newDB(mongo);
+        mongoFactory = new MongoDBForTestsFactory();
+        db = mongoFactory.getObject();
         eventService = new MongoEventService(db, "es");
         eventService.start();
         resultService = new MongoResultService(db, "rs");
@@ -96,11 +79,11 @@ public class EventWorkTest
     }
     
     @After
-    public void tearDownDao() throws Exception
+    public void tearDown() throws Exception
     {
+        mongoFactory.destroy();
         eventService.stop();
         resultService.stop();
-        db.dropDatabase();
     }
     
     private class TestEventProcessor extends AbstractEventProcessor

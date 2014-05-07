@@ -33,11 +33,10 @@ import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.event.ResultService.ResultHandler;
+import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -46,10 +45,6 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-
-import de.flapdoodle.embedmongo.distribution.Version;
-import de.flapdoodle.embedmongo.tests.MongodForTestsFactory;
 
 /**
  * @see MongoResultService
@@ -60,37 +55,26 @@ import de.flapdoodle.embedmongo.tests.MongodForTestsFactory;
 @RunWith(JUnit4.class)
 public class MongoResultServiceTest
 {
-    private static MongodForTestsFactory mongoFactory;
+    private MongoDBForTestsFactory mongoFactory;
     private MongoResultService resultService;
     private DB db;
     private DBCollection rs;
     
-    @BeforeClass
-    public static void setUpMongo() throws Exception
-    {
-        mongoFactory = MongodForTestsFactory.with(Version.Main.V2_2);
-    }
-    
-    @AfterClass
-    public static void tearDownMongo()
-    {
-        mongoFactory.shutdown();
-    }
-    
     @Before
-    public void setUpService() throws Exception
+    public void setUp() throws Exception
     {
-        final Mongo mongo = mongoFactory.newMongo();
-        db = mongoFactory.newDB(mongo);
+        mongoFactory = new MongoDBForTestsFactory();
+        db = mongoFactory.getObject();
         resultService = new MongoResultService(db, "rs");
         resultService.start();
         rs = db.getCollection("rs");
     }
     
     @After
-    public void tearDownDao() throws Exception
+    public void tearDown() throws Exception
     {
         resultService.stop();
+        mongoFactory.destroy();
     }
     
     @Test

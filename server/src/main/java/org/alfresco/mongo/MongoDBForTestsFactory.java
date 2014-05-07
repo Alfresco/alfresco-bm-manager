@@ -21,35 +21,61 @@ package org.alfresco.mongo;
 import java.util.UUID;
 
 import org.alfresco.bm.test.TestConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 
 import com.mongodb.DB;
-import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
 
+import de.flapdoodle.embedmongo.MongoDBRuntime;
+import de.flapdoodle.embedmongo.MongodExecutable;
+import de.flapdoodle.embedmongo.MongodProcess;
+import de.flapdoodle.embedmongo.config.MongodConfig;
+import de.flapdoodle.embedmongo.config.MongodProcessOutputConfig;
+import de.flapdoodle.embedmongo.config.RuntimeConfig;
 import de.flapdoodle.embedmongo.distribution.Version;
-import de.flapdoodle.embedmongo.tests.MongodForTestsFactory;
+import de.flapdoodle.embedmongo.io.IStreamProcessor;
+import de.flapdoodle.embedmongo.output.IProgressListener;
+import de.flapdoodle.embedmongo.runtime.Network;
 
 /**
- * This adaptor for the {@link MongodForTestsFactory}
- * in order to make use of it via Spring contexts.
+ * A factory for  {@link MongoClient} in order to make use of it via Spring contexts.
  * 
  * @author Derek Hulley
  * @since 2.0
  */
 public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, TestConstants
 {
-    private final MongodForTestsFactory mongoFactory;
-    private final Mongo mongo;
+    private Log logger = LogFactory.getLog(MongoDBForTestsFactory.class);
+    
+    private final MongodExecutable mongodExecutable;
+    private final MongodProcess mongodProcess;
     private final DB db;
 
     public MongoDBForTestsFactory() throws Exception
     {
-        mongoFactory = MongodForTestsFactory.with(Version.Main.V2_2);
-        mongo = mongoFactory.newMongo();
+        MongoDBStreamProcessor mongodInfoStreamLogger = new MongoDBStreamProcessor(false);
+        MongoDBStreamProcessor mongodErrorStreamLogger = new MongoDBStreamProcessor(false);
+        MongodProcessOutputConfig mongodProcessOutputConfig = new MongodProcessOutputConfig(mongodInfoStreamLogger, mongodErrorStreamLogger, mongodInfoStreamLogger);
+        
+        RuntimeConfig mongodRuntimeConfig = new RuntimeConfig();
+        mongodRuntimeConfig.setMongodOutputConfig(mongodProcessOutputConfig);
+        mongodRuntimeConfig.setProgressListener(new MongoDBForTestsProgressListener());
+
+        MongoDBRuntime mongodRuntime = MongoDBRuntime.getInstance(mongodRuntimeConfig);
+        MongodConfig mongodConfig = new MongodConfig(
+                Version.Main.V2_2,
+                Network.getFreeServerPort(),
+                Network.localhostIsIPv6());
+        mongodExecutable = mongodRuntime.prepare(mongodConfig);
+        mongodProcess = mongodExecutable.start();
+        MongoClient mongo = new MongoClient(new ServerAddress(
+                Network.getLocalHost(),
+                mongodProcess.getConfig().getPort()));
         db = mongo.getDB(UUID.randomUUID().toString());
     }
     
@@ -119,7 +145,84 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
     public void destroy() throws Exception
     {
         db.cleanCursors(true);
-        mongo.close();
-        mongoFactory.shutdown();
+        mongodProcess.stop();
+        mongodExecutable.cleanup();
+    }
+    
+    /**
+     * Helper class to write the internal MongoDB calls to regular logging.
+     * 
+     * @author Derek Hulley
+     * @since 2.0
+     */
+    private class MongoDBForTestsProgressListener implements IProgressListener
+    {
+        @Override
+        public void start(String label)
+        {
+            if (logger.isTraceEnabled())
+            {
+                logger.trace("Starting " + label);
+            }
+        }
+
+        @Override
+        public void progress(String label, int percent)
+        {
+            if (logger.isTraceEnabled())
+            {
+                logger.trace("Progress of " + label + ": " + percent);
+            }
+        }
+
+        @Override
+        public void info(String label, String message)
+        {
+            if (logger.isTraceEnabled())
+            {
+                logger.trace("Information for " + label + ": " + message);
+            }
+        }
+
+        @Override
+        public void done(String label)
+        {
+            if (logger.isTraceEnabled())
+            {
+                logger.trace("Completed " + label);
+            }
+        }
+    }
+    
+    /**
+     * Stream logger for Mongo
+     * 
+     * @author Derek Hulley
+     * @since 2.0
+     */
+    private class MongoDBStreamProcessor implements IStreamProcessor
+    {
+        private final boolean isError;
+        private MongoDBStreamProcessor(boolean isError)
+        {
+            this.isError = isError;
+        }
+        @Override
+        public void process(String block)
+        {
+            if (isError)
+            {
+                logger.error("Process " + block);
+            }
+            else if (logger.isTraceEnabled())
+            {
+                logger.trace("Process " + block);
+            }
+        }
+
+        @Override
+        public void onProcessed()
+        {
+        }
     }
 }
