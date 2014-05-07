@@ -798,6 +798,7 @@
                     $scope.summary = {};
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
+                    $scope.summary.testname = names[0];
                     var runname = names[1];
                     $scope.summary.result =[50,40];
 
