@@ -1,34 +1,42 @@
-<div class="panel panel-default">
-    <div class="panel-body">
-        <h3>
-            {{summary.name}}
-            <small ng-show="summary.description">,{{summary.description}}</small>
-        </h3>
-        <p>
-            State: {{summary.state}}
-        </p>
-        <p ng-show="summary.scheduled != -1">
-            Scheduled: {{summary.scheduled | date:'dd-MM-yyyy (HH:mm:ss)'}}
-        </p>
-        <p ng-show="summary.completed != -1">
-            Completed: {{summary.completed | date:'dd-MM-yyyy (HH:mm:ss) '}}
-        </p>
-        <p ng-show="summary.duration != 0">
-            Duration: {{summary.duration}} ms
-        </p>
-        <div>
-            Progress:
-            <div class="progress">
-                <div class="progress-bar" role="progressbar" aria-valuenow="{{summary.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{summary.progress}}%;">
-                    {{summary.progress}}
+<div class="row">
+    <div class="form-group">
+        <a href="api/v1/tests/SAMPLE1/runs/RUN01/results/csv" class="btn btn-default pull-right" id="createTestRunBtn">
+            <span class="glyphicon glyphicon-download" alt="Add New Test Run"></span>
+        </a>
+    </div>
+</div>
+<div class="row row-offcanvas row-offcanvas-right">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <h3>
+                {{summary.name}}
+                <small ng-show="summary.description">,{{summary.description}}</small>
+            </h3>
+            <p>
+                State: {{summary.state}}
+            </p>
+            <p ng-show="summary.scheduled != -1">
+                Scheduled: {{summary.scheduled | date:'dd-MM-yyyy (HH:mm:ss)'}}
+            </p>
+            <p ng-show="summary.completed != -1">
+                Completed: {{summary.completed | date:'dd-MM-yyyy (HH:mm:ss) '}}
+            </p>
+            <p ng-show="summary.duration != 0">
+                Duration: {{summary.duration}} ms
+            </p>
+            <div>
+                Progress:
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="{{summary.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{summary.progress}}%;">
+                        {{summary.progress}}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="panel panel-default">
-<donut-chart data="[50,50]"></donut-chart>
-{{summary.result}}
-    <bars data="40,50,44"></bars>
-
+    <div class="panel panel-default">
+        <donut-chart data="[50,50]"></donut-chart>
+        {{summary.result}}
+        <bars data="40,50,44"></bars>
+    </div>
 </div>
