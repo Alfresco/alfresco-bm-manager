@@ -793,8 +793,8 @@
             /*
              * Run summary controller
              */
-            .controller('TestRunSummaryCtrl', ['$scope', '$location', 'TestRunService',
-                function($scope, $location, TestRunService) {
+            .controller('TestRunSummaryCtrl', ['$scope', '$location', 'TestRunService',function($scope, $location, TestRunService){
+                $scope.getSummary = function() {
                     $scope.summary = {};
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
@@ -809,10 +809,12 @@
                         var da = response
                         $scope.summary = da;
                         $scope.summary.progress = da.progress * 100;
-                        $scope.summary.result = [$scope.summary.resultsSuccess, $scope.summary.resultsFail];
+                        $scope.summary.result = [da.resultsSuccess, da.resultsFail];
                     });
                 }
-            ])
+                //Get the summary now!
+                $scope.getSummary();
+            }])
             /*
              * Copy test form controller
              */
