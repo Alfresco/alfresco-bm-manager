@@ -793,27 +793,29 @@
             /*
              * Run summary controller
              */
-            .controller('TestRunSummaryCtrl', ['$scope', '$location', 'TestRunService',function($scope, $location, TestRunService){
-                $scope.getSummary = function() {
-                    $scope.summary = {};
-                    var path = $location.path();
-                    var names = path.replace("/tests/", "").split("/");
-                    $scope.testname = names[0];
-                    var runname = names[1];
-
-                    TestRunService.getTestRunSummary({
-                        id: names[0],
-                        runname: names[1]
-                    }, function(response) {
-                        var da = response
-                        $scope.summary = da;
-                        $scope.summary.progress = da.progress * 100;
-                        $scope.summary.result = [da.resultsSuccess, da.resultsFail];
-                    });
+            .controller('TestRunSummaryCtrl', ['$scope', '$location', 'TestRunService',
+                function($scope, $location, TestRunService) {
+                    $scope.getSummary = function() {
+                        var path = $location.path();
+                        var names = path.replace("/tests/", "").split("/");
+                        $scope.summary = {};
+                        $scope.testname = names[0];
+                        //inital chart display.
+                        $scope.summary.result =[0,100];
+                        TestRunService.getTestRunSummary({
+                            id: names[0],
+                            runname: names[1]
+                        }, function(response) {
+                            var da = response
+                            $scope.summary = da;
+                            $scope.summary.progress = da.progress * 100;
+                            $scope.summary.result = [da.resultsSuccess, da.resultsFail];
+                        });
+                    }
+                    //Get the summary now!
+                    $scope.getSummary();
                 }
-                //Get the summary now!
-                $scope.getSummary();
-            }])
+            ])
             /*
              * Copy test form controller
              */
