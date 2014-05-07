@@ -523,13 +523,13 @@
                     getData.apply();
 
                     //Refresh data every 2.5 seconds.
-                    var poll = function() {
-                        $timeout(function() {
-                            getData();
-                            poll();
-                        }, 2500);
-                    };
-                    poll();
+                    // var poll = function() {
+                    //     $timeout(function() {
+                    //         getData();
+                    //         poll();
+                    //     }, 2500);
+                    // };
+                    // poll();
 
                     //Call back to delete run
                     $scope.deleteRun = function(runname, testname) {
@@ -798,7 +798,8 @@
                     $scope.summary = {};
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
-                    var runname = names[1]
+                    var runname = names[1];
+                    $scope.summary.result =[50,40];
 
                     TestRunService.getTestRunSummary({
                         id: names[0],
@@ -807,6 +808,7 @@
                         var da = response
                         $scope.summary = da;
                         $scope.summary.progress = da.progress * 100;
+                        $scope.summary.result = [$scope.summary.resultsSuccess, $scope.summary.resultsFail];
                     });
                 }
             ])

@@ -11,6 +11,12 @@ h1, h2, h3 {
     margin-top: 2px;
     margin-bottom: 10px;
 }
+donut-chart{
+    width: 450px;
+    height: 450px;
+    display:inline-block;
+    cursor: pointer;
+  }
 .row {
     margin-left: -20px;
     *zoom: 1;
@@ -58,11 +64,7 @@ h1, h2, h3 {
     background-color: #d9534f;
     border-color: #d43f3a
 }
-.donut-chart {
-    width: 250px;
-    height: 250px;
-    display:inline-block;
-}
+
 .chart {
     background: #eee;
     padding: 3px;

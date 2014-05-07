@@ -1,10 +1,14 @@
 'use strict';
-
 // create module for custom directives to display d3.js based charts
 var d3Benchmark = angular.module('d3benchmark', []);
-
+/**
+ * Directive that displays the donutChart.
+ * Sample useage:
+ * <donut-chart data="[50,50]"></donut-chart>
+ * </di>
+ * @return {[type]} [description]
+ */
 d3Benchmark.directive('donutChart', function() {
-
     // isolate scope
     return {
         scope: {
@@ -68,6 +72,7 @@ d3Benchmark.directive('donutChart', function() {
         // our data changed! update the arcs, adding, updating, or removing
         // elements as needed
         scope.$watch('data', function(newData, oldData) {
+            if(typeof newData != "undefined"){
             var data = newData.slice(0); // copy
             var duration = 500;
             var PI = Math.PI;
@@ -99,10 +104,18 @@ d3Benchmark.directive('donutChart', function() {
                     d.endAngle = 2 * PI;
                 })
                 .attrTween('d', arcTween).remove();
+        }
         });
     }
 });
-
+/**
+ * Directive that displays bar chart.
+ * Useage:
+ * <bars data="50,40,40"></bars>
+ *
+ * @param  {[type]} $parse [description]
+ * @return {[type]}        [description]
+ */
 d3Benchmark.directive('bars', function($parse) {
     return {
         restrict: 'E',

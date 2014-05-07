@@ -2,17 +2,20 @@
     <div class="panel-body">
         <h3>
             {{summary.name}}
-            <small ng-show="summary.description"> ,{{summary.description}}</small>
+            <small ng-show="summary.description">,{{summary.description}}</small>
         </h3>
         <p>
             State: {{summary.state}}
         </p>
-        <div ng-show="summary.completed != -1">
-            <p>Completed: {{summary.completed | date:'dd-MM-yyyy (HH:mm:ss) '}}</p>
-        </div>
-        <div ng-show="summary.duration != 0">
-            <p>Duration: {{summary.duration}} ms</p>
-        </div>
+        <p ng-show="summary.scheduled != -1">
+            Scheduled: {{summary.scheduled | date:'dd-MM-yyyy (HH:mm:ss)'}}
+        </p>
+        <p ng-show="summary.completed != -1">
+            Completed: {{summary.completed | date:'dd-MM-yyyy (HH:mm:ss) '}}
+        </p>
+        <p ng-show="summary.duration != 0">
+            Duration: {{summary.duration}} ms
+        </p>
         <div>
             Progress:
             <div class="progress">
@@ -21,8 +24,11 @@
                 </div>
             </div>
         </div>
-        <span ng-show="summary.scheduled != -1">
-            Scheduled: {{summary.scheduled | date:'dd-MM-yyyy (HH:mm:ss)'}}
-        </span>
     </div>
+</div>
+<div class="panel panel-default">
+<donut-chart data="[50,50]"></donut-chart>
+{{summary.result}}
+    <bars data="40,50,44"></bars>
+
 </div>

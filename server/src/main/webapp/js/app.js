@@ -1,5 +1,5 @@
 'use strict';
-angular.module('benchmark', ['benchtest','d3benchmark','modal','breadcrumbs'])
+angular.module('benchmark', ['benchtest', 'd3benchmark', 'modal','breadcrumbs'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.
      when('/home', {templateUrl: 'testdef/list-tests.html',   controller:'ListTestsCtrl'}).
