@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row" ng-show="summary.started > 0">
     <div class="form-group">
         <a download="{{testname}}-{{summary.name}}.csv" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/csv" class="btn btn-default pull-right" id="downloadCSVBtn">
             <span class="glyphicon glyphicon-download" alt="Download CSV result"></span>
@@ -34,7 +34,7 @@
             </div>
         </div>
     </div>
-    <div class="panel panel-default">
+    <div class="panel panel-default" ng-show="summary.started > 0" >
         <donut-chart data="summary.result"></donut-chart>
     </div>
 </div>
