@@ -495,14 +495,15 @@
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
                     $scope.data.testname = names[0];
-
                     /**
                      * Get data gets test run collection from backend.
                      */
                     $scope.getData = function() {
+
                         TestRunService.getTestRuns({
                             id: $scope.data.testname
                         }, function(response) {
+                            var foundRunning = false;
                             var runs = response;
                             for (var i = 0; i < runs.length; i++) {
                                 var run = runs[i];
@@ -516,6 +517,14 @@
                                 } else {
                                     run.run = false;
                                 }
+                                //foundRunning if has running test
+                                var stillrunning = !run.run
+                                if (run.hasStarted && stillrunning) {
+                                    foundRunning = true;
+                                }
+                            }
+                            if (!foundRunning) {
+                                $timeout.cancel(timer);
                             }
                             $scope.data.runs = runs;
                         });
@@ -584,6 +593,7 @@
                             run = response;
                             run.hasStarted = true;
                             $scope.data.runs[index] = run;
+                            $scope.poll();
                         })
                     }
                     //call back to stop run
@@ -636,8 +646,6 @@
                                     $location.path("/tests/" + $scope.testname);
                                     TestRunService.getTestRuns({
                                         id: $scope.testname
-                                    }, function(response) {
-                                        $scope.data.runs = response;
                                     });
                                 }
                             },
@@ -771,38 +779,10 @@
                 }
             ])
 
-            /**
-             * Test run status controller
-             */
-            .controller('TestRunStateCtrl', ['$scope', '$location', 'TestRunService',
-                function($scope, $location, TestRunService) {
-                    $scope.data = {};
-                    var path = $location.path();
-                    var names = path.replace("/tests/", "").split("/");
-                    var testname = names[0];
-                    var runname = names[1];
-                    $scope.data.testname = testname;
-                    $scope.data.runname = runname;
-                    TestRunService.getRunState({
-                        id: testname,
-                        runname: runname,
-                        more: "state"
-                    }, function(response) {
-                        console.log(response);
-                        $scope.data.scheduled = response.scheduled;
-                        $scope.data.started = response.started;
-                        $scope.data.duration = response.duration;
-                        $scope.data.resultsTotal = response.resultsTotal;
-                        $scope.data.resultsFail = response.resultsFail;
-                        $scope.data.successRate = response.successRate;
-                        $scope.data.progress = response.progress;
-                    });
-                }
-            ])
             /*
              * Run summary controller
              */
-            .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout','TestRunService',
+            .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService',
                 function($scope, $location, $timeout, TestRunService) {
                     var timer;
                     $scope.getSummary = function() {
@@ -820,7 +800,7 @@
                             var da = response
                             $scope.summary = da;
                             //Stop polling.
-                            if(da.progress == 1){
+                            if (da.progress == 1) {
                                 $timeout.cancel(timer);
                             }
                             $scope.summary.progress = da.progress * 100;
