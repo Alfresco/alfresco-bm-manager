@@ -1,42 +1,47 @@
 <div class="row" ng-show="summary.started > 0">
-    <div class="form-group">
+    <div class="form-group col-sm-12 col-xs-12" >
         <a download="{{testname}}-{{summary.name}}.csv" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/csv" class="btn btn-default pull-right" id="downloadCSVBtn">
             <span class="glyphicon glyphicon-download" alt="Download CSV result"></span>
         </a>
     </div>
 </div>
 <div class="row row-offcanvas row-offcanvas-right">
-    <div class="panel panel-default">
-        <div class="panel-body">
-            <h3>
-                {{summary.name}}
-                <small ng-show="summary.description">,{{summary.description}}</small>
-            </h3>
-            <p>
-                State: {{summary.state}}
-            </p>
-            <p ng-show="summary.scheduled != -1">
-                Scheduled: {{summary.scheduled | date:'dd-MM-yyyy (HH:mm:ss)'}}
-            </p>
-            <p ng-show="summary.completed != -1">
-                Completed: {{summary.completed | date:'dd-MM-yyyy (HH:mm:ss) '}}
-            </p>
-            <p ng-show="summary.duration != 0">
-                Duration: {{summary.duration}} ms
-            </p>
-            <div>
-                Progress:
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="{{summary.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{summary.progress}}%;">
-                        {{summary.progress}}
+    <div class="col-md-6 col-sm-12 col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h3>
+                    {{summary.name}}
+                    <small ng-show="summary.description">,{{summary.description}}</small>
+                </h3>
+                <p>
+                    State: {{summary.state}}
+                </p>
+                <p ng-show="summary.scheduled != -1">
+                    Scheduled: {{summary.scheduled | date:'dd-MM-yyyy (HH:mm:ss)'}}
+                </p>
+                <p ng-show="summary.completed != -1">
+                    Completed: {{summary.completed | date:'dd-MM-yyyy (HH:mm:ss) '}}
+                </p>
+                <p ng-show="summary.duration != 0">
+                    Duration: {{summary.duration}} ms
+                </p>
+                <div>
+                    Progress:
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="{{summary.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{summary.progress}}%;">
+                            {{summary.progress}}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+<div class="col-md-6 col-sm-12 col-xs-12">
     <div class="panel panel-default" ng-show="summary.started > 0">
-        <div class="text-center">
-            <donut-chart data="summary.result"></donut-chart>
+        
+            <div class="text-center">
+                <donut-chart data="summary.result"></donut-chart>
+            </div>
         </div>
     </div>
 </div>
