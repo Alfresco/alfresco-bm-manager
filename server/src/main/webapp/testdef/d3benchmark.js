@@ -20,9 +20,10 @@ d3Benchmark.directive('donutChart', function() {
 
     function link(scope, element) {
         // the d3 bits
-        // var color = d3.scale.category20();
 
-        var color = d3.scale.ordinal().range(["#323949", "red"]);
+        // var color = d3.scale.category20();
+        // Colors of the donut.
+        var color = d3.scale.ordinal().range(["#e7e7e7","#323949"]);
         var el = element[0];
         var width = el.clientWidth;
         var height = el.clientHeight;
