@@ -84,3 +84,16 @@ donut-chart{
     color: white;
     box-shadow: 2px 2px 2px #666;
 }
+.progress-meter .background {
+  fill: #ccc;
+}
+
+.progress-meter .foreground {
+  fill: #000;
+}
+
+.progress-meter text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+}

@@ -38,6 +38,7 @@ d3Benchmark.directive('donutChart', function() {
                 height: height
             })
             .append('g')
+            .attr('class','progress-meter')
             .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
         //add label in the middle of the donut.
 
@@ -80,10 +81,10 @@ d3Benchmark.directive('donutChart', function() {
                 if(newData[0] != "0"){
                     var total = newData[0] + newData[1];
                     svg.insert("text", "g")
-                    .attr("dy",10)
                     .text(total)
                     .attr("class", "bold")
-                    .attr("text-anchor", "middle");
+                    .attr("text-anchor", "middle")
+                    .attr("dy", ".35em");;
                 } 
 
                 var data = newData.slice(0); // copy
