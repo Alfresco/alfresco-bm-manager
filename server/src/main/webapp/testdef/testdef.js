@@ -802,8 +802,9 @@
             /*
              * Run summary controller
              */
-            .controller('TestRunSummaryCtrl', ['$scope', '$location', 'TestRunService',
-                function($scope, $location, TestRunService) {
+            .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout','TestRunService',
+                function($scope, $location, $timeout, TestRunService) {
+                    var timer;
                     $scope.getSummary = function() {
                         var path = $location.path();
                         var names = path.replace("/tests/", "").split("/");
@@ -818,12 +819,33 @@
                         }, function(response) {
                             var da = response
                             $scope.summary = da;
+                            //Stop polling.
+                            if(da.progress == 1){
+                                $timeout.cancel(timer);
+                            }
                             $scope.summary.progress = da.progress * 100;
                             $scope.summary.result = [da.resultsSuccess, da.resultsFail];
                         });
                     }
                     //Get the summary now!
                     $scope.getSummary();
+
+                    //Refresh data every 2.5 seconds.
+                    $scope.summaryPoll = function() {
+                        timer = $timeout(function() {
+                            $scope.getSummary();
+                            $scope.summaryPoll();
+                        }, 2500);
+                    };
+                    $scope.summaryPoll();
+
+                    //Cancel timer action
+                    $scope.$on(
+                        "$destroy",
+                        function(event) {
+                            $timeout.cancel(timer);
+                        }
+                    );
                 }
             ])
             /*
