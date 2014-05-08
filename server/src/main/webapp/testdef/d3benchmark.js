@@ -12,8 +12,7 @@ d3Benchmark.directive('donutChart', function() {
     // isolate scope
     return {
         scope: {
-            'data': '=',
-            'onClick': '&'
+            'data': '='
         },
         restrict: 'E',
         link: link
@@ -21,7 +20,9 @@ d3Benchmark.directive('donutChart', function() {
 
     function link(scope, element) {
         // the d3 bits
-        var color = d3.scale.category20();
+        // var color = d3.scale.category20();
+
+        var color = d3.scale.ordinal().range(["#323949", "red"]);
         var el = element[0];
         var width = el.clientWidth;
         var height = el.clientHeight;
@@ -38,6 +39,7 @@ d3Benchmark.directive('donutChart', function() {
             })
             .append('g')
             .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
+        //add label in the middle of the donut.
 
         svg.on('mousedown', function(d) {
             // yo angular, the code in this callback might make a change to the scope!
@@ -72,40 +74,53 @@ d3Benchmark.directive('donutChart', function() {
         // our data changed! update the arcs, adding, updating, or removing
         // elements as needed
         scope.$watch('data', function(newData, oldData) {
-            if(typeof newData != "undefined"){
-            var data = newData.slice(0); // copy
-            var duration = 500;
-            var PI = Math.PI;
-            while (data.length < oldData.length) data.push(0);
-            arcs = svg.selectAll('.arc').data(pie(data));
-            arcs.transition().duration(duration).attrTween('d', arcTween);
-            // transition in any new slices
-            arcs.enter().append('path')
-                .style('stroke', 'white')
-                .attr('class', 'arc')
-                .attr('fill', function(d, i) {
-                    return color(i)
+
+            if (typeof newData != "undefined") {
+                //Add label to middle of donut.
+                if(newData[0] != "0"){
+                    var total = newData[0] + newData[1];
+                    svg.insert("text", "g")
+                    .attr("dy",10)
+                    .text(total)
+                    .attr("class", "bold")
+                    .attr("text-anchor", "middle");
+                } 
+
+                var data = newData.slice(0); // copy
+                var duration = 500;
+                var PI = Math.PI;
+                while (data.length < oldData.length) data.push(0);
+                arcs = svg.selectAll('.arc').data(pie(data));
+                arcs.transition().duration(duration).attrTween('d', arcTween);
+                // transition in any new slices
+                arcs.enter().append('path')
+                    .style('stroke', 'white')
+                    .attr('class', 'arc')
+                    .attr('fill', function(d, i) {
+                        return color(i)
+                    })
+                    .each(function(d) {
+                        this._current = {
+                            startAngle: 2 * PI - 0.001,
+                            endAngle: 2 * PI
+                        }
+                    })
+                    .transition().duration(duration).attrTween('d', arcTween);
+                // transition out any slices with size = 0
+                arcs.filter(function(d) {
+                    return d.data === 0
                 })
-                .each(function(d) {
-                    this._current = {
-                        startAngle: 2 * PI - 0.001,
-                        endAngle: 2 * PI
-                    }
-                })
-                .transition().duration(duration).attrTween('d', arcTween);
-            // transition out any slices with size = 0
-            arcs.filter(function(d) {
-                return d.data === 0
-            })
-                .transition()
-                .duration(duration)
-                .each(function(d) {
-                    d.startAngle = 2 * PI - 0.001;
-                    d.endAngle = 2 * PI;
-                })
+                    .transition()
+                    .duration(duration)
+                    .each(function(d) {
+                        d.startAngle = 2 * PI - 0.001;
+                        d.endAngle = 2 * PI;
+                    })
                 .attrTween('d', arcTween).remove();
-        }
+                //Update label
+            }
         });
+
     }
 });
 /**

@@ -802,6 +802,7 @@
                         $scope.testname = names[0];
                         //inital chart display.
                         $scope.summary.result =[0,100];
+                        $scope.summary.total = 0;
                         TestRunService.getTestRunSummary({
                             id: names[0],
                             runname: names[1]
