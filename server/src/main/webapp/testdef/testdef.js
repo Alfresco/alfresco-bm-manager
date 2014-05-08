@@ -489,16 +489,17 @@
              */
             .controller('TestRunListCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService',
                 function($scope, $location, $timeout, TestRunService, ModalService) {
+                    var timer;
                     $scope.data = {};
+                    $scope.data.runs = {};
                     var path = $location.path();
                     var names = path.replace("/tests/", "").split("/");
                     $scope.data.testname = names[0];
-                    $scope.data.runs = {};
 
                     /**
                      * Get data gets test run collection from backend.
                      */
-                    var getData = function() {
+                    $scope.getData = function() {
                         TestRunService.getTestRuns({
                             id: $scope.data.testname
                         }, function(response) {
@@ -520,16 +521,24 @@
                         });
                     };
                     //Prepare data for inital page load.
-                    getData.apply();
+                    $scope.getData();
 
                     //Refresh data every 2.5 seconds.
-                    // var poll = function() {
-                    //     $timeout(function() {
-                    //         getData();
-                    //         poll();
-                    //     }, 2500);
-                    // };
-                    // poll();
+                    $scope.poll = function() {
+                        timer = $timeout(function() {
+                            $scope.getData();
+                            $scope.poll();
+                        }, 2500);
+                    };
+                    $scope.poll();
+
+                    //Cancel timer action
+                    $scope.$on(
+                        "$destroy",
+                        function(event) {
+                            $timeout.cancel(timer);
+                        }
+                    );
 
                     //Call back to delete run
                     $scope.deleteRun = function(runname, testname) {
@@ -801,7 +810,7 @@
                         $scope.summary = {};
                         $scope.testname = names[0];
                         //inital chart display.
-                        $scope.summary.result =[0,100];
+                        $scope.summary.result = [0, 100];
                         $scope.summary.total = 0;
                         TestRunService.getTestRunSummary({
                             id: names[0],
