@@ -18,23 +18,22 @@
  */
 package org.alfresco.bm.api.v1;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.report.SummaryReporter;
 import org.alfresco.bm.test.TestRunServicesCache;
-import org.apache.commons.io.IOUtils;
 
 /**
  * <b>REST API V1</b><br/>
@@ -54,22 +53,25 @@ import org.apache.commons.io.IOUtils;
 public class ResultsRestAPI extends AbstractRestResource
 {
     private final TestRunServicesCache services;
+    private final String test;
+    private final String run;
     
     /**
      * @param services                  object providing access to necessary test run services
+     * @param test                      the name of the test
+     * @param run                       the name of the run
      */
-    public ResultsRestAPI(TestRunServicesCache services)
+    public ResultsRestAPI(TestRunServicesCache services, String test, String run)
     {
         this.services = services;
+        this.test = test;
+        this.run = run;
     }
     
     @Path("/csv")
     @GET
     @Produces("text/csv")
-    public StreamingOutput getResultsSummaryCSV(
-            @QueryParam("test") String test,
-            @QueryParam("run") String run
-            )
+    public StreamingOutput getResultsSummaryCSV()
     {
         if (logger.isDebugEnabled())
         {
@@ -79,28 +81,26 @@ public class ResultsRestAPI extends AbstractRestResource
                     ",run:" + run +
                     "]");
         }
+        final ResultService resultService = services.getResultService(test, run);
+        if (resultService == null)
+        {
+            throwAndLogException(
+                    Status.NOT_FOUND,
+                    "Unable to find results for test run " + test + "." + run + ".  Check that the run was configured properly and started.");
+        }
+        
         try
         {
-//            ResultService resultService = services.getResultService(test, run);
-            final String csv = "test," + test + "\n" + "run," + run;
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("Outbound: " + csv);
-            }
+            // Construct the utility that aggregates the results
             StreamingOutput so = new StreamingOutput()
             {
                 @Override
                 public void write(OutputStream output) throws IOException, WebApplicationException
                 {
-                    InputStream is = new ByteArrayInputStream(csv.getBytes("UTF-8"));
-                    try
-                    {
-                        IOUtils.copy(is, output);
-                    }
-                    finally
-                    {
-                        try { is.close(); } catch (IOException e) {}
-                    }
+                    Writer writer = new OutputStreamWriter(output);
+
+                    SummaryReporter summaryReporter = new SummaryReporter(resultService);
+                    summaryReporter.export(writer, "TODO: Allow editing of notes");
                 }
             };
             return so;

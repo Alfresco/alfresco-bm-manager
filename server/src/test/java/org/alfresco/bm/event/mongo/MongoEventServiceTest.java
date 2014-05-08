@@ -30,10 +30,9 @@ import java.util.Set;
 
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -42,10 +41,6 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-
-import de.flapdoodle.embedmongo.distribution.Version;
-import de.flapdoodle.embedmongo.tests.MongodForTestsFactory;
 
 /**
  * @see MongoEventService
@@ -56,38 +51,26 @@ import de.flapdoodle.embedmongo.tests.MongodForTestsFactory;
 @RunWith(JUnit4.class)
 public class MongoEventServiceTest
 {
-    private static MongodForTestsFactory mongoFactory;
+    private static MongoDBForTestsFactory mongoFactory;
     private MongoEventService eventService;
     private DB db;
     private DBCollection es;
     
-    @BeforeClass
-    public static void setUpMongo() throws Exception
-    {
-        mongoFactory = MongodForTestsFactory.with(Version.Main.V2_2);
-    }
-    
-    @AfterClass
-    public static void tearDownMongo()
-    {
-        mongoFactory.shutdown();
-    }
-    
     @Before
-    public void setUpService() throws Exception
+    public void setUp() throws Exception
     {
-        final Mongo mongo = mongoFactory.newMongo();
-        db = mongoFactory.newDB(mongo);
+        mongoFactory = new MongoDBForTestsFactory();
+        db = mongoFactory.getObject();
         eventService = new MongoEventService(db, "es");
         eventService.start();
         es = db.getCollection("es");
     }
     
     @After
-    public void tearDownDao() throws Exception
+    public void tearDown() throws Exception
     {
         eventService.stop();
-        db.dropDatabase();
+        mongoFactory.destroy();
     }
     
     @Test

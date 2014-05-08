@@ -39,9 +39,9 @@ import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.prop.TestProperty;
 import org.alfresco.bm.test.prop.TestPropertyFactory;
 import org.alfresco.bm.test.prop.TestPropertyOrigin;
+import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.bson.types.ObjectId;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -53,10 +53,6 @@ import com.mongodb.BasicDBList;
 import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-
-import de.flapdoodle.embedmongo.distribution.Version;
-import de.flapdoodle.embedmongo.tests.MongodForTestsFactory;
 
 /**
  * @see MongoTestDAO
@@ -70,16 +66,10 @@ public class MongoTestDAOTest implements TestConstants
     private static final Set<String> capabilities = Collections.singleton(CAPABILITY_JAVA7);
 
     private static Properties properties;
-    private static MongodForTestsFactory mongoFactory;
+    private MongoDBForTestsFactory mongoFactory;
     private MongoTestDAO dao;
     private DB db;
 
-    @BeforeClass
-    public static void setUpMongo() throws Exception
-    {
-        mongoFactory = MongodForTestsFactory.with(Version.Main.V2_2);
-    }
-    
     @BeforeClass
     public static void setUpProperties() throws Exception
     {
@@ -96,25 +86,24 @@ public class MongoTestDAOTest implements TestConstants
         }
     }
     
-    @AfterClass
-    public static void tearDownMongo()
-    {
-        mongoFactory.shutdown();
-    }
-    
     @Before
-    public void setUpDao() throws Exception
+    public void setUp() throws Exception
     {
-        final Mongo mongo = mongoFactory.newMongo();
-        db = mongoFactory.newDB(mongo);
+        mongoFactory = new MongoDBForTestsFactory();
+        db = mongoFactory.getObject();
         dao = new MongoTestDAO(db);
         dao.start();
     }
     
     @After
-    public void tearDownDao() throws Exception
+    public void tearDown() throws Exception
     {
         dao.stop();
+        mongoFactory.destroy();
+        
+        mongoFactory = null;
+        db = null;
+        dao = null;
     }
     
     @Test

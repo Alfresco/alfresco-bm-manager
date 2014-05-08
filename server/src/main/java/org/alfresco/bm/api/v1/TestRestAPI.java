@@ -1271,10 +1271,10 @@ public class TestRestAPI extends AbstractRestResource
     }
     
     @Path("/{test}/runs/{run}/results")
-    public ResultsRestAPI results(
+    public ResultsRestAPI getTestRunResultsAPI(
             @PathParam("test") String test,
             @PathParam("run") String run)
     {
-        return new ResultsRestAPI(testRunServices);
+        return new ResultsRestAPI(testRunServices, test, run);
     }
 }

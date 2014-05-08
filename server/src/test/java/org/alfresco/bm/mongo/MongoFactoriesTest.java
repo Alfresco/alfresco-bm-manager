@@ -30,6 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.MongoException.Network;
 
 /**
  * @see MongoDBFactory
@@ -72,7 +73,7 @@ public class MongoFactoriesTest
             db.getCollectionNames();
             Assert.fail("DB must be closed.");
         }
-        catch (IllegalStateException e)
+        catch (Network e)
         {
             // Expected
         }

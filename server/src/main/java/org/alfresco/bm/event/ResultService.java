@@ -22,23 +22,40 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 /**
  * Service interface providing methods to store and query for event results.
  * 
  * @author Derek Hulley
- * @author Frederik Heremans
  * @since 1.0
  */
 public interface ResultService
 {
+    /**
+     * @return                  a string giving the location of the raw data
+     */
+    String getDataLocation();
+    
     /**
      * Simply store an event for later use
      * 
      * @param result            the result to store
      */
     void recordResult(EventRecord result);
+    
+    /**
+     * Retrieve the first result by start time
+     * 
+     * @return                  the first result or <tt>null</tt> if there are none
+     */
+    EventRecord getFirstResult();
+    
+    /**
+     * Retrieve the last result by start time
+     * 
+     * @return                  the last result or <tt>null</tt> if there are none
+     */
+    EventRecord getLastResult();
     
     /**
      * Retrieve a page of event results by event name
@@ -62,96 +79,6 @@ public interface ResultService
             String eventName,
             Boolean successOrFail,
             int skip, int limit);
-    
-    /**
-     * Summary of event times and failures for a given event name
-     * 
-     * @author Derek Hulley
-     * @since 1.2
-     */
-    public static class EventSummary
-    {
-        private final String name;
-        private SummaryStatistics statsSuccess;
-        private SummaryStatistics statsFailure;
-
-        public EventSummary(String name)
-        {
-            this.name = name;
-            this.statsSuccess = new SummaryStatistics();
-            this.statsFailure = new SummaryStatistics();
-        }
-        
-        /**
-         * Add another sample to the event
-         */
-        public void addSample(EventRecord eventRecord)
-        {
-            if (!eventRecord.getEvent().getName().equals(name))
-            {
-                throw new IllegalArgumentException("Incorrect event name: " + eventRecord);
-            }
-            if (eventRecord.isSuccess())
-            {
-                statsSuccess.addValue(eventRecord.getTime());
-            }
-            else
-            {
-                statsFailure.addValue(eventRecord.getTime());
-            }
-        }
-        
-        public String getName()
-        {
-            return name;
-        }
-
-        /**
-         * Get the statistics for the event
-         * 
-         * @param success           <tt>true</tt> to return statistics for successs or
-         *                          <tt>false</tt> to return failure statistics
-         * @return                  the statics for success or failure
-         */
-        public SummaryStatistics getStats(boolean success)
-        {
-            if (success)
-            {
-                return statsSuccess;
-            }
-            else
-            {
-                return statsFailure;
-            }
-        }
-        
-        /**
-         * Get the total number of results (success and failure)
-         */
-        public long getTotalResults()
-        {
-            return statsSuccess.getN() + statsFailure.getN();
-        }
-        
-        /**
-         * @return          the percentage of successful results or {@link Double#NaN Nan}
-         *                  if there were no results
-         */
-        public double getSuccessPercentage()
-        {
-            long successes = statsSuccess.getN();
-            long total = getTotalResults();
-            if (total == 0)
-            {
-                return Double.NaN;
-            }
-            else
-            {
-                double percent = (double)successes / (double)total * 100.0;
-                return percent;
-            }
-        }
-    }
     
     /**
      * Callback handler for aggregated results
