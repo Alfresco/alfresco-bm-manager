@@ -39,7 +39,7 @@ d3Benchmark.directive('donutChart', function() {
                 height: height
             })
             .append('g')
-            .attr('class','progress-meter')
+            .attr('class', 'progress-meter')
             .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
         //add label in the middle of the donut.
 
@@ -79,14 +79,18 @@ d3Benchmark.directive('donutChart', function() {
 
             if (typeof newData != "undefined") {
                 //Add label to middle of donut.
-                if(newData[0] != "0"){
+                if (newData[0] != "0") {
                     var total = newData[0] + newData[1];
-                    svg.insert("text", "g")
-                    .text(total)
-                    .attr("class", "bold")
-                    .attr("text-anchor", "middle")
-                    .attr("dy", ".35em");;
-                } 
+                    var label = svg.select('#donut-label');
+                    if (typeof label !== 'undefined') {
+                        svg.insert("text", "g")
+                            .text(total)
+                            .attr("id", "donut-label")
+                            .attr("class", "bold")
+                            .attr("text-anchor", "middle")
+                            .attr("dy", ".35em");
+                    } 
+                }
 
                 var data = newData.slice(0); // copy
                 var duration = 500;
@@ -118,7 +122,7 @@ d3Benchmark.directive('donutChart', function() {
                         d.startAngle = 2 * PI - 0.001;
                         d.endAngle = 2 * PI;
                     })
-                .attrTween('d', arcTween).remove();
+                    .attrTween('d', arcTween).remove();
                 //Update label
             }
         });
