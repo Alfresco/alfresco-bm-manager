@@ -80,7 +80,6 @@
             <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.1</version>
                 <configuration>
                     <port>9081</port>
                     <path>/alfresco-benchmark-sample</path>

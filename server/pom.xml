@@ -213,7 +213,6 @@
             <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.1</version>
                 <configuration>
                      <url>http://localhost:9080/manager/text</url>
                     <!-- Refer to the server settings in your ~/.m2/settings.xml -->
