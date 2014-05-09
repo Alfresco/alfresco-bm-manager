@@ -512,7 +512,7 @@
                                 } else {
                                     run.hasStarted = true;
                                 }
-                                if ("COMPLETED" == run.state || "STOPED" == run.state) {
+                                if ("COMPLETED" == run.state || "STOPPED" == run.state) {
                                     run.run = true;
                                 } else {
                                     run.run = false;
@@ -601,7 +601,7 @@
                         TestRunService.stopTestRun({
                             id: $scope.data.testname,
                             runname: runname
-                        }, json, function(response) {
+                        }, {}, function(response) {
                             $location.path("/tests/" + testname);
                         })
                     }
