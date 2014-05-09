@@ -26,6 +26,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -894,9 +895,16 @@ public class RestAPITest implements TestConstants
         // Force another ping, which will deactivate the test run
         test.forcePing();
         
-        // Get the results API
+        // Get the results CSV
         ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T1", "01");
         StreamingOutput resultsOutput = resultsAPI.getResultsSummaryCSV();
-        // TODO: Stream it
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        resultsOutput.write(bos);
+        String resultsCsv = new String(bos.toByteArray());
+        // Check
+        assertTrue(resultsCsv.contains("Data:,bm20-data.T1.01.results"));
+        assertTrue(resultsCsv.contains("Started"));
+        assertTrue(resultsCsv.contains("Finished"));
+        assertTrue(resultsCsv.contains("Duration"));
     }
 }

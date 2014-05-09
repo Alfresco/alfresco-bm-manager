@@ -94,7 +94,7 @@ public abstract class AbstractEventReporter implements EventReporter
         EventRecord firstResult = resultService.getFirstResult();
         long firstEventTime = firstResult == null ? System.currentTimeMillis() : firstResult.getStartTime();
         Date firstEventDate = new Date(firstEventTime);
-        EventRecord lastResult = resultService.getFirstResult();
+        EventRecord lastResult = resultService.getLastResult();
         long lastEventTime = lastResult == null ? System.currentTimeMillis() : lastResult.getStartTime();
         Date lastEventDate = new Date(lastEventTime);
         String durationStr = DurationFormatUtils.formatDurationHMS(lastEventTime - firstEventTime);
