@@ -101,6 +101,8 @@ public class ResultsRestAPI extends AbstractRestResource
 
                     SummaryReporter summaryReporter = new SummaryReporter(resultService);
                     summaryReporter.export(writer, "TODO: Allow editing of notes");
+                    writer.flush();
+                    writer.close();
                 }
             };
             return so;
