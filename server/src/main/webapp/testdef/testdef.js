@@ -612,8 +612,8 @@
             /**
              * Controller to create test run
              */
-            .controller('TestRunCreateCtrl', ['$scope', '$location', 'TestRunService',
-                function($scope, $location, TestRunService) {
+            .controller('TestRunCreateCtrl', ['$scope', '$location', '$window' , 'TestRunService',
+                function($scope, $location, $window, TestRunService) {
                     $scope.master = {};
                     $scope.testname = {};
                     var path = $location.path();
@@ -643,10 +643,7 @@
                             }, postData,
                             function success(res) {
                                 if (res.name === postData.name) {
-                                    $location.path("/tests/" + $scope.testname);
-                                    TestRunService.getTestRuns({
-                                        id: $scope.testname
-                                    });
+                                    $window.location.reload();
                                 }
                             },
                             function error(error) {
