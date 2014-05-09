@@ -161,12 +161,6 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
         this.running = running;
     }
 
-    @Override
-    public Log getLogger()
-    {
-        return logger;
-    }
-
     /**
      * Kick the thread off
      */

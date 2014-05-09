@@ -67,6 +67,7 @@
                 <ref bean="testDAO" />
                 <ref bean="testDefaults" />
                 <ref bean="test" />
+                <ref bean="testRunServices" />
             </array>
         </constructor-arg>
     </bean>

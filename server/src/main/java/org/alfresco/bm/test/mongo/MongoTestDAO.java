@@ -102,12 +102,6 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         return db;
     }
 
-    @Override
-    public Log getLogger()
-    {
-        return logger;
-    }
-
     /**
      * Initialize indexes
      */

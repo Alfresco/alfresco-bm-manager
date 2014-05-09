@@ -57,12 +57,6 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     }
     
     @Override
-    public Log getLogger()
-    {
-        return logger;
-    }
-
-    @Override
     public void start() throws Exception
     {
         // Initialize indexes

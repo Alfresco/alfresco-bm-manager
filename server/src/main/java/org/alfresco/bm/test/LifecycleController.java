@@ -27,6 +27,7 @@ import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
@@ -39,11 +40,12 @@ import org.springframework.context.event.ApplicationContextEvent;
  * @since 2.0
  */
 public class LifecycleController
-        implements ApplicationListener<ApplicationContextEvent>, ApplicationContextAware
+        implements ApplicationListener<ApplicationContextEvent>, ApplicationContextAware, BeanNameAware
 {
     private static Log logger = LogFactory.getLog(LifecycleController.class);
 
     private ApplicationContext ctx;
+    private String name;
     private boolean started = false;
     private final List<LifecycleListener> lifecycleListeners;
     private boolean forceStart;
@@ -79,6 +81,12 @@ public class LifecycleController
     public void setApplicationContext(ApplicationContext ctx) throws BeansException
     {
         this.ctx = ctx;
+    }
+
+    @Override
+    public void setBeanName(String beanName)
+    {
+        this.name = beanName;
     }
 
     @Override
@@ -128,20 +136,22 @@ public class LifecycleController
         StringBuffer sb = new StringBuffer(1024);
         sb.append("\nStarting ...");
         
-        logger.debug("Lifecycle 'start' ...");
+        logger.debug("Starting components: " + name);
         for (LifecycleListener listener : lifecycleListeners)
         {
-            Log listenerLogger = listener.getLogger();
-            listenerLogger.debug("   Lifecycle 'start' ...");
+            String listenerName = listener.getClass().getName();
+            logger.debug("   Starting component: " + listenerName);
             try
             {
                 listener.start();
-                sb.append("\n   Started component: " + listener.getClass().getName());
+                logger.debug("   Started component: " + listenerName);
+                sb.append("\n   Started component: " + listenerName);
             }
             catch (Exception e)
             {
                 // Absorb the exception
-                sb.append("\n   Failed to start component: " + listener.getClass().getName());
+                logger.error("   Failed to start component: " + listenerName, e);
+                sb.append("\n   Failed to start component: " + listenerName);
                 StringWriter stackWriter = new StringWriter(1024);
                 WriterOutputStream wos = new WriterOutputStream(stackWriter);
                 PrintWriter pw = new PrintWriter(wos);
@@ -154,16 +164,14 @@ public class LifecycleController
                     try { pw.close(); } catch (Exception ee) {}
                 }
                 sb.append("\n").append(stackWriter.getBuffer().toString());
-                listenerLogger.error("   Failed to issue 'start'", e);
                 // Now respect the forceStart option
                 if (!forceStart)
                 {
-                    throw new RuntimeException("Component failed to start: " + listener.getClass().getName(), e);
+                    throw new RuntimeException("Component failed to start: " + listenerName, e);
                 }
             }
-            listenerLogger.debug("Lifecycle 'start' complete");
         }
-        logger.debug("Lifecycle 'start' complete");
+        logger.debug("Started components: " + name);
         log.append(sb.toString());
     }
     
@@ -183,20 +191,22 @@ public class LifecycleController
         StringBuffer sb = new StringBuffer(1024);
         sb.append("\nStopping ...");
         
-        logger.debug("Lifecycle 'stop' ...");
+        logger.debug("Stopping components: " + name);
         for (LifecycleListener listener : lifecycleListeners)
         {
-            Log listenerLogger = listener.getLogger();
-            listenerLogger.debug("Lifecycle 'stop' ...");
+            String listenerName = listener.getClass().getName();
+            logger.debug("   Stopping component: " + listenerName);
             try
             {
                 listener.stop();
-                sb.append("\n   Stopped component: " + listener.getClass().getName());
+                logger.debug("   Stopped component: " + listenerName);
+                sb.append("\n   Stopped component: " + listenerName);
             }
             catch (Exception e)
             {
                 // Absorb the exception
-                sb.append("\n   Failed to stop component: " + listener.getClass().getName());
+                logger.error("   Failed to stop component: " + listenerName, e);
+                sb.append("\n   Failed to stop component: " + listenerName);
                 StringWriter stackWriter = new StringWriter(1024);
                 WriterOutputStream wos = new WriterOutputStream(stackWriter);
                 PrintWriter pw = new PrintWriter(wos);
@@ -209,11 +219,9 @@ public class LifecycleController
                     try { pw.close(); } catch (Exception ee) {}
                 }
                 sb.append("\n").append(stackWriter.getBuffer().toString());
-                listenerLogger.error("Failed to issue 'stop'", e);
             }
-            listenerLogger.debug("Lifecycle 'stop' complete");
         }
-        logger.debug("Lifecycle 'stop' complete");
+        logger.debug("Stopped components: " + name);
         log.append(sb.toString());
     }
     

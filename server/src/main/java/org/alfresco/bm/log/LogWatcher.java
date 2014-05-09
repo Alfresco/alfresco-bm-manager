@@ -27,7 +27,6 @@ import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 /**
  * Service to watch logs
  * 
@@ -43,12 +42,6 @@ public class LogWatcher implements LifecycleListener
     public LogWatcher(String logDir)
     {
         this.logDir = new File(logDir);
-    }
-
-    @Override
-    public Log getLogger()
-    {
-        return logger;
     }
 
     /**

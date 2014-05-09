@@ -78,12 +78,6 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
     }
     
     @Override
-    public Log getLogger()
-    {
-        return logger;
-    }
-
-    @Override
     public void start() throws Exception
     {
         Timer timer = new Timer("TestServicesCache", true);
@@ -139,6 +133,9 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
                 new PropertiesPropertySource(
                         "run-props",
                         testRunProps));
+        // Bind to shutdown
+        testRunCtx.registerShutdownHook();
+        
         // Attempt to start the context
         try
         {
@@ -171,16 +168,13 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
             testRunCtx = null;
         }
         // Done
-        if (logger.isDebugEnabled())
+        if (testRunCtx == null)
         {
-            if (testRunCtx == null)
-            {
-                logger.warn("Failed to start test run services context: " + testRunFqn);
-            }
-            else
-            {
-                logger.warn("Failed to start test run services context: " + testRunFqn);
-            }
+            logger.warn("Failed to start test run services context: " + testRunFqn);
+        }
+        else if (logger.isDebugEnabled())
+        {
+            logger.debug("Started test run services context: " + testRunFqn);
         }
         return testRunCtx;
     }

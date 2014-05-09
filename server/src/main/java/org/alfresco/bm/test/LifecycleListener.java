@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2013 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -18,8 +18,6 @@
  */
 package org.alfresco.bm.test;
 
-import org.apache.commons.logging.Log;
-
 /**
  * Interface for listeners that listen to lifecycle events
  * 
@@ -28,11 +26,6 @@ import org.apache.commons.logging.Log;
  */
 public interface LifecycleListener
 {
-    /**
-     * Utility method to provide infrastructure with a logger to represent the instance
-     */
-    Log getLogger();
-    
     void start() throws Exception;
     void stop() throws Exception;
 }

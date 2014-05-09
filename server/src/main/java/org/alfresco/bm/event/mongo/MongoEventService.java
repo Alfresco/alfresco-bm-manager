@@ -54,12 +54,6 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
     }
     
     @Override
-    public Log getLogger()
-    {
-        return logger;
-    }
-
-    @Override
     public void start() throws Exception
     {
         // Initialize indexes

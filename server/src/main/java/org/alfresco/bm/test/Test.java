@@ -140,12 +140,6 @@ public class Test implements
         this.systemCapabilities = Collections.unmodifiableSet(capabilitiesTmp);
     }
     
-    @Override
-    public Log getLogger()
-    {
-        return logger;
-    }
-
     /**
      * @return              the build-supplied release name
      */

@@ -19,8 +19,6 @@
 package org.alfresco.bm.session;
 
 import org.alfresco.bm.test.LifecycleListener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
@@ -43,8 +41,6 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
     public static final String FIELD_END_TIME = "endTime";
     public static final String FIELD_ELAPSED_TIME = "elapsedTime";
     
-    private static Log logger = LogFactory.getLog(MongoSessionService.class);
-
     private DBCollection collection;
     
     /**
@@ -55,12 +51,6 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
         this.collection = db.getCollection(collection);
     }
     
-    @Override
-    public Log getLogger()
-    {
-        return logger;
-    }
-
     @Override
     public void start() throws Exception
     {

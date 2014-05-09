@@ -24,8 +24,6 @@ import java.util.Properties;
 
 import org.alfresco.bm.test.prop.TestProperty;
 import org.alfresco.bm.test.prop.TestPropertyFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Class that stores and is able to answer questions about the test configuration
@@ -38,8 +36,6 @@ import org.apache.commons.logging.LogFactory;
  */
 public class TestDefaults implements LifecycleListener
 {
-    private static Log logger = LogFactory.getLog(TestDefaults.class);
-    
     private final Properties rawProperties;
     
     private List<TestProperty> testProperties;
@@ -58,12 +54,6 @@ public class TestDefaults implements LifecycleListener
             throw new IllegalArgumentException("rawProperties cannot be null");
         }
         this.rawProperties = rawProperties;
-    }
-
-    @Override
-    public Log getLogger()
-    {
-        return logger;
     }
 
     @Override

@@ -80,6 +80,8 @@ public class WebApp implements WebApplicationInitializer, TestConstants
                 new PropertiesPropertySource(
                         "system",
                         System.getProperties()));
+        // Bind to shutdown
+        ctx.registerShutdownHook();
         // Start the context now
         ctx.refresh();
         
