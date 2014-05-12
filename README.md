@@ -53,5 +53,5 @@ alfresco-benchmark
 
 10. Download results
 
-    At any time - usually when the test run completes - click through on the test run.
+    At any time - usually when the test run completes - click through on the test run.  
     Click the download button and open the CSV file in a spreadsheet.
