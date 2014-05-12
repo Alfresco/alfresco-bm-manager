@@ -49,8 +49,9 @@ alfresco-benchmark
 9. Start the Test Run
 
     Click "Play" button next to Test Run "01".  
-    Refresh to see progress (TODO: auto-refresh)
+    The progress bar will auto-refresh as the test run completion estimate changes.
 
 10. Download results
 
-    (TODO: details)
+    At any time - usually when the test run completes - click through on the test run.
+    Click the download button and open the CSV file in a spreadsheet.
