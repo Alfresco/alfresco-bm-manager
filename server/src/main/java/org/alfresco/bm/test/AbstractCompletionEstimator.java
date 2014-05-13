@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.test;
 
+import org.alfresco.bm.event.EventService;
+
 /**
  * General support and controls for a {@link CompletionEstimator} implementation.
  * <p/>
@@ -34,11 +36,20 @@ public abstract class AbstractCompletionEstimator implements CompletionEstimator
      */
     private static final long DEFAULT_CHECK_PERIOD = 5000L;
 
+    private final EventService eventService;
     private long checkPeriod = DEFAULT_CHECK_PERIOD;
     private long lastCheck = 0L;                        // Never checked
     private double completion = 0.0;
     private long resultsSuccess = 0L;
     private long resultsFail = 0L;
+    
+    /**
+     * @param eventService              used to do the final check when completion reachers 1.0
+     */
+    protected AbstractCompletionEstimator(EventService eventService)
+    {
+        this.eventService = eventService;
+    }
 
     /**
      * @return              the minimum time between real completion checks
@@ -72,6 +83,15 @@ public abstract class AbstractCompletionEstimator implements CompletionEstimator
         this.resultsSuccess = getResultsSuccessImpl();
         this.resultsFail = getResultsFailImpl();
         this.completion = getCompletionImpl();
+        // Double check when  the completion reaches 1.0
+        if (completion >= 1.0)
+        {
+            if (eventService.count() > 0)
+            {
+                // There is still stuff going on
+                completion = 0.99;              // No complete ... hopefully soon, though.
+            }
+        }
     }
 
     @Override

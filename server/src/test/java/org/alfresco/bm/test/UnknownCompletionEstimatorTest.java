@@ -36,14 +36,14 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public class UnknownCompletionEstimatorTest
 {
-    private ResultService resultService = Mockito.mock(ResultService.class);
     private EventService eventService = Mockito.mock(EventService.class);
+    private ResultService resultService = Mockito.mock(ResultService.class);
     private UnknownCompletionEstimator estimator;
     
     @Before
     public void beforeTest()
     {
-        estimator = new UnknownCompletionEstimator(resultService, eventService);
+        estimator = new UnknownCompletionEstimator(eventService, resultService);
         // Ensure that we only hit the underlying services once per test
         estimator.setCheckPeriod(120000L);
         // Reset Mockito
@@ -103,13 +103,13 @@ public class UnknownCompletionEstimatorTest
         Mockito.verify(resultService, Mockito.times(1)).countResults();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(2)).count();
 
         // Make sure that we cache correctly
         estimator.getCompletion();
         Mockito.verify(resultService, Mockito.times(1)).countResults();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(2)).count();
     }
 }

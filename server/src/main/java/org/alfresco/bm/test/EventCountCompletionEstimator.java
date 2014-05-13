@@ -18,7 +18,10 @@
  */
 package org.alfresco.bm.test;
 
+import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Measure the completion ratio based on the number of a specific type of event.
@@ -28,6 +31,8 @@ import org.alfresco.bm.event.ResultService;
  */
 public class EventCountCompletionEstimator extends AbstractCompletionEstimator
 {
+    private static Log logger = LogFactory.getLog(EventCountCompletionEstimator.class);
+    
     private final ResultService resultService;
     private final String eventName;
     private final long eventCount;
@@ -35,14 +40,17 @@ public class EventCountCompletionEstimator extends AbstractCompletionEstimator
     /**
      * Constructor with required dependencies
      * 
+     * @param eventService                  used to do final checks of event counts
      * @param resultService                 used to count results
      * @param eventName                     the name of the event to count
      * @param eventCount                    the total number of events expected
      */
     public EventCountCompletionEstimator(
+            EventService eventService,
             ResultService resultService,
             String eventName, long eventCount)
     {
+        super(eventService);
         this.resultService = resultService;
         this.eventName = eventName;
         this.eventCount = eventCount;
@@ -74,6 +82,13 @@ public class EventCountCompletionEstimator extends AbstractCompletionEstimator
             return 1.0;
         }
         long results = resultService.countResultsByEventName(eventName);
+        // Check if the event count values were chosen correctly.
+        if (results > eventCount)
+        {
+            logger.warn("The number of results for event '" + eventName + "' exceeds the target: " + results + " exceeds " + eventCount);
+            results = eventCount;       // Make sure it's 1.0 again
+        }
+        // If we have hit the completion phase, switch to the event count
         return (double) results/eventCount;
     }
 }

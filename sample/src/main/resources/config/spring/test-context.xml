@@ -33,6 +33,7 @@
 
     <!-- The CompletionEstimator looking at the process count results -->
     <bean id="completionEstimator" class="org.alfresco.bm.test.EventCountCompletionEstimator">
+        <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="eventName" value="process" />
         <constructor-arg name="eventCount" value="${proc.processCount}" />
