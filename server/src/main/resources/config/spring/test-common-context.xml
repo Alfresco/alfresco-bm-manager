@@ -50,8 +50,8 @@
 
     <!-- The CompletionEstimator must exist for the application -->
     <bean id="completionEstimator" class="org.alfresco.bm.test.UnknownCompletionEstimator">
-        <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="eventService" ref="eventService" />
+        <constructor-arg name="resultService" ref="resultService" />
     </bean>
 
     <!--                 -->

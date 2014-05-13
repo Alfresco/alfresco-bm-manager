@@ -35,13 +35,14 @@ public class UnknownCompletionEstimator extends AbstractCompletionEstimator
     /**
      * Constructor with required dependencies
      * 
-     * @param resultService                 used to count results
      * @param eventService                  used to count remaining events
+     * @param resultService                 used to count results
      */
-    public UnknownCompletionEstimator(ResultService resultService, EventService eventService)
+    public UnknownCompletionEstimator(EventService eventService, ResultService resultService)
     {
-        this.resultService = resultService;
+        super(eventService);
         this.eventService = eventService;
+        this.resultService = resultService;
     }
 
     @Override

@@ -18,6 +18,7 @@
  */
 package org.alfresco.bm.test;
 
+import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,22 +39,25 @@ public class EventCountCompletionEstimatorTest
     private static final String EVENT = "xEVENTx";
     private static final long EVENT_TOTAL = 31L;
     
+    private EventService eventService = Mockito.mock(EventService.class);
     private ResultService resultService = Mockito.mock(ResultService.class);
     private EventCountCompletionEstimator estimator;
     
     @Before
     public void beforeTest()
     {
-        estimator = new EventCountCompletionEstimator(resultService, EVENT, EVENT_TOTAL);
+        estimator = new EventCountCompletionEstimator(eventService, resultService, EVENT, EVENT_TOTAL);
         // Ensure that we only hit the underlying services once per test
         estimator.setCheckPeriod(120000L);
         // Reset Mockito
+        Mockito.reset(eventService);
         Mockito.reset(resultService);
     }
     
     @Test
     public void testNotStarted() throws Exception
     {
+        Mockito.when(eventService.count()).thenReturn(0L);                                      //  0 events
         Mockito.when(resultService.countResultsBySuccess()).thenReturn(0L);                     //  0 successful results
         Mockito.when(resultService.countResultsByFailure()).thenReturn(0L);                     //  0 failed results
         Mockito.when(resultService.countResultsByEventName(EVENT)).thenReturn(0L);              //  0 specific results
@@ -61,6 +65,7 @@ public class EventCountCompletionEstimatorTest
         Assert.assertTrue("Completion was: " + completion, completion <= 0.0);
         Assert.assertEquals(0L, estimator.getResultsSuccess());
         Assert.assertEquals(0L, estimator.getResultsFail());
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -69,6 +74,7 @@ public class EventCountCompletionEstimatorTest
         estimator.getCompletion();
         estimator.getResultsSuccess();
         estimator.getResultsFail();
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -77,6 +83,7 @@ public class EventCountCompletionEstimatorTest
     @Test
     public void testInProgress01() throws Exception
     {
+        Mockito.when(eventService.count()).thenReturn(23L);                                 //  some events still in queue
         Mockito.when(resultService.countResultsBySuccess()).thenReturn(76L);                //  76 successful results
         Mockito.when(resultService.countResultsByFailure()).thenReturn(23L);                //  23 failed results
         Mockito.when(resultService.countResultsByEventName(EVENT)).thenReturn(5L);          //  5 specific results
@@ -84,6 +91,7 @@ public class EventCountCompletionEstimatorTest
         Assert.assertTrue("Completion was: " + completion, completion > 0.15 && completion < 0.17);
         Assert.assertEquals(76L, estimator.getResultsSuccess());
         Assert.assertEquals(23L, estimator.getResultsFail());
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -92,6 +100,7 @@ public class EventCountCompletionEstimatorTest
         estimator.getCompletion();
         estimator.getResultsSuccess();
         estimator.getResultsFail();
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -100,13 +109,15 @@ public class EventCountCompletionEstimatorTest
     @Test
     public void testDoneWithAllMonitoredEvents() throws Exception
     {
+        Mockito.when(eventService.count()).thenReturn(1L);                                      //  1 other event
         Mockito.when(resultService.countResultsBySuccess()).thenReturn(103L);                   //  103 successful results
         Mockito.when(resultService.countResultsByFailure()).thenReturn(89L);                    //  89 failed results
         Mockito.when(resultService.countResultsByEventName(EVENT)).thenReturn(EVENT_TOTAL);     //  31 specific results
         double completion = estimator.getCompletion();
-        Assert.assertTrue("Completion was: " + completion, completion >= 1.0);
+        Assert.assertTrue("Completion was: " + completion, completion == 0.99);
         Assert.assertEquals(103L, estimator.getResultsSuccess());
         Assert.assertEquals(89L, estimator.getResultsFail());
+        Mockito.verify(eventService, Mockito.times(1)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -115,6 +126,7 @@ public class EventCountCompletionEstimatorTest
         estimator.getCompletion();
         estimator.getResultsSuccess();
         estimator.getResultsFail();
+        Mockito.verify(eventService, Mockito.times(1)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -123,6 +135,7 @@ public class EventCountCompletionEstimatorTest
     @Test
     public void testDoneWithAllEvents() throws Exception
     {
+        Mockito.when(eventService.count()).thenReturn(0L);                                      //  no other event
         Mockito.when(resultService.countResultsBySuccess()).thenReturn(109L);                   //  109 successful results
         Mockito.when(resultService.countResultsByFailure()).thenReturn(91L);                    //  91 failed results
         Mockito.when(resultService.countResultsByEventName(EVENT)).thenReturn(EVENT_TOTAL);     //  31 specific results
@@ -130,6 +143,7 @@ public class EventCountCompletionEstimatorTest
         Assert.assertTrue("Completion was: " + completion, completion >= 1.0);
         Assert.assertEquals(109L, estimator.getResultsSuccess());
         Assert.assertEquals(91L, estimator.getResultsFail());
+        Mockito.verify(eventService, Mockito.times(1)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -138,6 +152,7 @@ public class EventCountCompletionEstimatorTest
         estimator.getCompletion();
         estimator.getResultsSuccess();
         estimator.getResultsFail();
+        Mockito.verify(eventService, Mockito.times(1)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
