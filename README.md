@@ -1,11 +1,24 @@
-alfresco-benchmark
-==================
+### alfresco-benchmark
 
-1. Build
+### Get the code
+
+Git:
+
+    git clone https://github.com/derekhulley/alfresco-benchmark.git
+    cd alfresco-benchmark
+
+Subversion:
+
+    svn checkout https://github.com/derekhulley/alfresco-benchmark.git
+    cd alfresco-benchmark
+
+### Use Maven
+
+1.Build
 
     mvn clean install
 
-2. Check availability of MongoDB server
+2.Check availability of MongoDB server
 
     mongo \<mongo-host\>    
     exit
