@@ -14,11 +14,11 @@ Subversion:
 
 ### Use Maven
 
-1.Build
+1. Build
 
     mvn clean install
 
-2.Check availability of MongoDB server
+2. Check availability of MongoDB server
 
     mongo \<mongo-host\>    
     exit
