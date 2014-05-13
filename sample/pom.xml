@@ -29,35 +29,8 @@
     <scm>
         <connection>scm:svn:SomeURL></connection>
     </scm>
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>test.properties</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>*</include>
-                </includes>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <tagNameFormat>V@{project.version}</tagNameFormat>
-                    <tagBase>URL-to-tags</tagBase>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     -->
-    <!-- Delete this after creating your project -->
+    <!-- Reconfigure this for your project -->
     <build>
         <resources>
             <resource>
