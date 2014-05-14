@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2012 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -138,16 +138,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         userData.setLastName((String) userDataObj.get(FIELD_LAST_NAME));
         userData.setEmail((String) userDataObj.get(FIELD_EMAIL));
         userData.setDomain((String) userDataObj.get(FIELD_DOMAIN));
-        
-        DBObject csDataObj = (DBObject) userDataObj.get(FIELD_CLOUD_SIGNUP);
-        if (csDataObj != null)
-        {
-            CloudSignUpData csData = new CloudSignUpData();
-            csData.setComplete((Boolean) csDataObj.get(FIELD_COMPLETE));
-            csData.setId((String) csDataObj.get(FIELD_ID));
-            csData.setKey((String) csDataObj.get(FIELD_KEY));
-            userData.setCloudSignUp(csData);
-        }
         // Done
         return userData;
     }
@@ -191,15 +181,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .add(FIELD_LAST_NAME, data.getLastName())
                 .add(FIELD_EMAIL, data.getEmail())
                 .add(FIELD_DOMAIN, data.getDomain());
-        if (data.getCloudSignUp() != null)
-        {
-            CloudSignUpData csData = data.getCloudSignUp();
-            insertObjBuilder.push(FIELD_CLOUD_SIGNUP)
-                    .add(FIELD_ID, csData.getId())
-                    .add(FIELD_KEY, csData.getKey())
-                    .add(FIELD_COMPLETE, csData.isComplete())
-                    .pop();
-        }
         insertObjBuilder
                 .add(FIELD_TICKET, data.getTicket())
                 .add(FIELD_NODE_ID, data.getNodeId());
@@ -441,77 +422,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         
         DBObject userDataObj = collection.findOne(queryObj);
         return fromDBObject(userDataObj);
-    }
-    
-    /*
-     * CLOUD USER SERVICES
-     */
-
-    /**
-     * Set the registration data for a user
-     * 
-     * @param username                  the username
-     * @param cloudSignUp               the new registration data to set
-     */
-    @Override
-    public void setUserCloudSignUp(String username, CloudSignUpData cloudSignUp)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_USERNAME, username)
-                .get();
-        DBObject updateObj = BasicDBObjectBuilder.start()
-                .push("$set")
-                    .push(FIELD_CLOUD_SIGNUP)
-                        .add(FIELD_ID, cloudSignUp.getId())
-                        .add(FIELD_KEY, cloudSignUp.getKey())
-                        .add(FIELD_COMPLETE, cloudSignUp.isComplete())
-                    .pop()
-                .pop()
-                .get();
-        
-        WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() != 1)
-        {
-            throw new RuntimeException(
-                    "Failed to update user cloud signup data: \n" +
-                    "   User:    " + username + "\n" +
-                    "   Data:    " + cloudSignUp + "\n" +
-                    "   Result:  " + result);
-        }
-    }
-    
-    /**
-     * Count the number of cloud-enabled users, regardless of signup state
-     * 
-     * @return              the number of users that have cloud registration details, regardless of state
-     */
-    @Override
-    public long countCloudAwareUsers()
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .push(FIELD_CLOUD_SIGNUP)
-                    .add("$exists", Boolean.TRUE)
-                .pop()
-                .get();
-        return collection.count(queryObj);
-    }
-    
-    /**
-     * Retrieves a selection of users that have no cloud signup details.  Note they must also
-     * not be created in any instance of Alfresco.
-     */
-    @Override
-    public List<UserData> getUsersWithoutCloudSignUp(int startIndex, int count)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .push(FIELD_CLOUD_SIGNUP)
-                    .add("$exists", Boolean.FALSE)
-                .pop()
-                .add(FIELD_CREATED, Boolean.FALSE)
-                .get();
-        DBCursor cursor = collection.find(queryObj).skip(startIndex).limit(count);
-        
-        return fromDBCursor(cursor);
     }
     
     /*

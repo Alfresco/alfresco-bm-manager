@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2012 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -19,7 +19,6 @@
 package org.alfresco.bm.user;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
 
 import org.junit.After;
@@ -185,45 +184,8 @@ public class UserDataServiceTest
     }
     
     @Test
-    public void testUserCloudSignUpData()
-    {
-        List<UserData> datas = userDataService.getUsersWithoutCloudSignUp(0, 20);
-        Assert.assertEquals("No users should have Cloud signup data", USERS.length, datas.size());
-
-        UserData data = userDataService.findUserByUsername(USERS[0]);
-        Assert.assertNotNull(data);
-        Assert.assertNull(data.getCloudSignUp());
-        String email = data.getEmail();
-        
-        CloudSignUpData csData = new CloudSignUpData();
-        csData.setComplete(false);
-        csData.setId("blah");
-        csData.setKey("sdlkwoeijrjwf");
-        userDataService.setUserCloudSignUp(USERS[0], csData);
-        
-        datas = userDataService.getUsersWithoutCloudSignUp(0, 20);
-        Assert.assertEquals("1 user should have Cloud signup data", USERS.length-1, datas.size());
-        Assert.assertEquals(1, userDataService.countCloudAwareUsers());
-
-        data = userDataService.findUserByEmail(email);
-        Assert.assertNotNull(data);
-        Assert.assertNotNull("Cloud signup data missing", data.getCloudSignUp());
-        Assert.assertEquals("blah", data.getCloudSignUp().getId());
-    }
-    
-    @Test
     public void testUsernameDoesNotExist()
     {
-        CloudSignUpData csData = new CloudSignUpData();
-        try
-        {
-            userDataService.setUserCloudSignUp("Nevyn", csData);
-            Assert.fail("Missing username not detected.");
-        }
-        catch (RuntimeException e)
-        {
-            // Expected
-        }
         try
         {
             userDataService.setUserCreated("Bob", true);

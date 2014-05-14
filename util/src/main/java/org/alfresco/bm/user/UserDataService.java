@@ -104,31 +104,6 @@ public interface UserDataService
     public UserData getRandomUser();
 
     /*
-     * CLOUD USER SERVICES
-     */
-
-    /**
-     * Set the registration data for a user
-     * 
-     * @param username                  the username
-     * @param cloudSignUp               the new registration data to set
-     */
-    public void setUserCloudSignUp(String username, CloudSignUpData cloudSignUp);
-    
-    /**
-     * Count the number of cloud-enabled users, regardless of signup state
-     * 
-     * @return              the number of users that have cloud registration details, regardless of state
-     */
-    public long countCloudAwareUsers();
-    
-    /**
-     * Retrieves a selection of users that have no cloud signup details.  Note they must also
-     * not be created in any instance of Alfresco.
-     */
-    public List<UserData> getUsersWithoutCloudSignUp(int startIndex, int count);
-    
-    /*
      * USER DOMAIN SERVICES
      */
 

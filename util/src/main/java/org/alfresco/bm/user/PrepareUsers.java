@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2012 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -306,7 +306,6 @@ public class PrepareUsers extends AbstractEventProcessor
                 // Create data
                 user = new UserData();
                 user.setCreated(false);
-                user.setCloudSignUp(null);
                 user.setDomain(domain);
                 user.setEmail(email);
                 user.setFirstName(firstName);

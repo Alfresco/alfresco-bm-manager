@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2012 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -24,12 +24,13 @@ import java.io.Serializable;
  * Data representing a single user.
  * 
  * @author Frederik Heremans
+ * @author Derek Hulley
  * @since 1.1
  */
 public class UserData implements Serializable
 {
-    private static final long serialVersionUID = -4741893659787720414L;
-    
+    private static final long serialVersionUID = 6819295613500413737L;
+
     private int randomizer;
     private String username;
     private String password;
@@ -38,7 +39,6 @@ public class UserData implements Serializable
     private String lastName;
     private String email;
     private String domain;
-    private CloudSignUpData cloudSignUp;
     private String ticket;
     private String nodeId;
     
@@ -124,15 +124,6 @@ public class UserData implements Serializable
         this.domain = domain;
     }
     
-    public CloudSignUpData getCloudSignUp()
-    {
-        return cloudSignUp;
-    }
-    public void setCloudSignUp(CloudSignUpData cloudSignUp)
-    {
-        this.cloudSignUp = cloudSignUp;
-    }
-
     public String getTicket()
     {
         return ticket;

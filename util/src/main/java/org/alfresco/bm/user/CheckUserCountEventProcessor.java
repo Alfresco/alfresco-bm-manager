@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2012 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.alfresco.bm.event.user;
+package org.alfresco.bm.user;
 
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
