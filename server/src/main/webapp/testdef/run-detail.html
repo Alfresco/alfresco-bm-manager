@@ -28,22 +28,24 @@
                 </span>
             </div>
         </h3>
-        <div ng-show="readOnly">
-            {{data.description}}
-        </div>
-        <span ng-show="!readOnly">
-            <span ng-hide="runDescEditorEnabled">
-                <span ng-show="data.description">
-                    {{data.description}}
+        <div ng-show="data.description == 'Description'">
+            <div ng-show="readOnly">
+                {{data.description}}
+            </div>
+            <span ng-show="!readOnly">
+                <span ng-hide="runDescEditorEnabled">
+                    <span ng-show="data.description">
+                        {{data.description}}
+                    </span>
+                    <span ng-show="!data.description">
+                        Description
+                    </span>
+                    <a ng-click="runDescEditorEnabled=!runDescEditorEnabled">
+                        <span class="glyphicon glyphicon-edit"></span>
+                    </a>
                 </span>
-                <span ng-show="!data.description">
-                    Description
-                </span>
-                <a ng-click="runDescEditorEnabled=!runDescEditorEnabled">
-                    <span class="glyphicon glyphicon-edit"></span>
-                </a>
             </span>
-        </span>
+        </div>
 
 
         <div class="row" ng-show="runDescEditorEnabled">
