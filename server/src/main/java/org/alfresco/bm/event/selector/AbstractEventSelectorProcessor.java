@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
+ *
+ * This file is part of Alfresco
+ *
+ * Alfresco is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Alfresco is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.alfresco.bm.event.selector;
 
 import java.util.ArrayList;
@@ -13,8 +31,8 @@ import com.google.gson.Gson;
 
 /**
  * Event processor that uses an eventSelector to choose the next event.
- * 
- * @author steveglover
+ *  
+ * @author Steve Glover
  * @since 1.3
  */
 public abstract class AbstractEventSelectorProcessor extends AbstractEventProcessor implements EventDataCreator
@@ -35,10 +53,10 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
 
     public void setMaxSessionTime(long maxSessionTime)
     {
-		this.maxSessionTime = maxSessionTime;
-	}
+        this.maxSessionTime = maxSessionTime;
+    }
 
-	/**
+    /**
      * @param persistResponse          <tt>true</tt> to persist the entire response including the data
      *                                 or <tt>false</tt> just to persist the response message
      */
@@ -96,7 +114,7 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
      */
     protected PersistedSessionData getSessionData(String sessionId)
     {
-    	PersistedSessionData sessionData = null;
+        PersistedSessionData sessionData = null;
 
         String sessionDataJSON = sessionService.getSessionData(sessionId);
         if (sessionDataJSON == null)
@@ -107,7 +125,7 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
         }
         else
         {
-        	sessionData = PersistedSessionData.fromJSON(sessionDataJSON);
+            sessionData = PersistedSessionData.fromJSON(sessionDataJSON);
         }
 
         return sessionData;
@@ -118,14 +136,14 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
     {
         Object input = event.getDataObject();
         List<Event> nextEvents = new ArrayList<Event>();
-    	String sessionId = event.getSessionId();
+        String sessionId = event.getSessionId();
 
         EventProcessorResponse response = processEventImpl(event);
 
         // stop the bm timer for this task, the main event processing that we want to time is complete
         super.stopTimer();
 
-        if(response == null)
+        if (response == null)
         {
             logger.warn("Response is null for event " + event);
         }
@@ -135,30 +153,34 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
             long maxEndTime = sessionData.getMaxEndTime();
             long current = System.currentTimeMillis();
             // if we haven't passed the expected session end time and the previous event was successful
-            if(current < maxEndTime && response.getResult().equals(EventProcessorResult.SUCCESS) && eventSelector != null)
+            if (current < maxEndTime && response.getResult() == EventProcessorResult.SUCCESS && eventSelector != null)
             {
-	            Object responseData = response.getResponseData();
-	            Event evt = eventSelector.nextEvent(input, responseData);
-	            if(evt != null)
-	            {
-	                nextEvents.add(evt);
-	            }
+                Object responseData = response.getResponseData();
+                Event evt = eventSelector.nextEvent(input, responseData);
+                if(evt != null)
+                {
+                    nextEvents.add(evt);
+                }
             }
         }
 
-        if(nextEvents.size() < 1)
+        if (nextEvents.size() < 1)
         {
-        	// belt and braces: no more events, close the session if there is one>>>>>>> .r54943
+            // belt and braces: no more events, close the session if there is one>>>>>>> .r54943
             if(sessionId != null)
             {
                 sessionService.endSession(sessionId);
             }
         }
         
-        Object data = (persistResponse ? getPersistableResponse(response) : response.getMessage());
+        Object data = null;
+        if (response != null)
+        {
+            data = persistResponse ? getPersistableResponse(response) : response.getMessage();
+        }
 
         EventProcessorResult eventProcessorResult = response.getResult();
-        boolean success = !eventProcessorResult.equals(EventProcessorResult.FAIL); 
+        boolean success = eventProcessorResult != EventProcessorResult.FAIL; 
         EventResult result = new EventResult(
                 data,
                 nextEvents,
