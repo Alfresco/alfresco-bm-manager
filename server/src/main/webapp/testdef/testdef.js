@@ -643,7 +643,14 @@
                             }, postData,
                             function success(res) {
                                 if (res.name === postData.name) {
-                                    $window.location.reload();
+                                    var url = "#/tests/" + $scope.testname
+                                    //If the url are same do a reload on the page
+                                    
+                                    if($window.location.hash === url){
+                                        $window.location.reload();
+                                    } else {
+                                        $window.location.hash = url;
+                                    }
                                 }
                             },
                             function error(error) {
