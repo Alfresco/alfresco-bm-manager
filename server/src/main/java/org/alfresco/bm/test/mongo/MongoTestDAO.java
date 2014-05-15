@@ -1601,7 +1601,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 throw new IllegalArgumentException("resultsSuccess and resultsFail must be updated together.");
             }
             long resultsTotal = Long.valueOf(resultsSuccess.longValue() + resultsFail.longValue());
-            double successRate = (resultsTotal == 0) ? 1.0 : resultsSuccess/resultsTotal;
+            double successRate = (resultsTotal == 0) ? 1.0 : (resultsSuccess/(double)resultsTotal);
             setObjBuilder.add(FIELD_RESULTS_SUCCESS, resultsSuccess);
             setObjBuilder.add(FIELD_RESULTS_FAIL, resultsFail);
             setObjBuilder.add(FIELD_RESULTS_TOTAL, resultsTotal);

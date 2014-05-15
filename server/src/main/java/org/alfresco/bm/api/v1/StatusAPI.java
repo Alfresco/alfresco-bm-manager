@@ -24,6 +24,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 
 import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.log.LogWatcher;
@@ -79,7 +80,8 @@ public class StatusAPI extends AbstractRestResource
         catch (Exception e)
         {
             logger.error(e);
-            return e.getStackTrace().toString();
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+            return null;
         }
     }
     
@@ -105,7 +107,8 @@ public class StatusAPI extends AbstractRestResource
         catch (Exception e)
         {
             logger.error(e);
-            return e.getStackTrace().toString();
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+            return null;
         }
     }
 }

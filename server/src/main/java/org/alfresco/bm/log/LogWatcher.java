@@ -21,6 +21,7 @@ package org.alfresco.bm.log;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.alfresco.bm.test.LifecycleListener;
@@ -86,7 +87,7 @@ public class LogWatcher implements LifecycleListener
         // Done
         if (logger.isDebugEnabled())
         {
-            logger.debug("Found log files: " + logFiles);
+            logger.debug("Found log files: " + Arrays.toString(logFiles));
         }
         return logFilenames;
     }
