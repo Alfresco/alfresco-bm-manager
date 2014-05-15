@@ -11,12 +11,12 @@ h1, h2, h3 {
     margin-top: 2px;
     margin-bottom: 10px;
 }
-donut-chart{
+donut-chart {
     width: 350px;
     height: 350px;
     display:inline-block;
     cursor: pointer;
-  }
+}
 .row {
     margin-left: -20px;
     *zoom: 1;
@@ -32,7 +32,6 @@ donut-chart{
 .main {
     margin:10px;
 }
-
 .table .progress {
     margin-top: 5px;
     margin-bottom: 0px;
@@ -46,7 +45,6 @@ donut-chart{
 .progress-bar {
     background-color: #323949;
 }
-
 .btn-dark {
     color: #fff;
     background-color: #323949;
@@ -64,7 +62,6 @@ donut-chart{
     background-color: #d9534f;
     border-color: #d43f3a
 }
-
 .chart {
     background: #eee;
     padding: 3px;
@@ -84,16 +81,32 @@ donut-chart{
     color: white;
     box-shadow: 2px 2px 2px #666;
 }
+//-------- line chart 
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+//---------- 
 .progress-meter .background {
-  fill: #ccc;
+    fill: #ccc;
 }
-
 .progress-meter .foreground {
-  fill: #000;
+    fill: #000;
 }
-
 .progress-meter text {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 24px;
-  font-weight: bold;
+    font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 24px;
+    font-weight: bold;
 }

@@ -645,7 +645,6 @@
                                 if (res.name === postData.name) {
                                     var url = "#/tests/" + $scope.testname
                                     //If the url are same do a reload on the page
-                                    
                                     if($window.location.hash === url){
                                         $window.location.reload();
                                     } else {
@@ -789,6 +788,17 @@
             .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService',
                 function($scope, $location, $timeout, TestRunService) {
                     var timer;
+                    $scope.mockData = [{
+                "date": 20111001,
+                "Login": 63.4,
+                "Search": 62.7,
+                "Logout": 72.2
+            }, {
+                "date": 20111002,
+                "Login": 58,
+                "Search": 59.9,
+                "Logout": 67.7
+            }];
                     $scope.getSummary = function() {
                         var path = $location.path();
                         var names = path.replace("/tests/", "").split("/");
