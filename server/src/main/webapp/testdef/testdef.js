@@ -612,7 +612,7 @@
             /**
              * Controller to create test run
              */
-            .controller('TestRunCreateCtrl', ['$scope', '$location', '$window' , 'TestRunService',
+            .controller('TestRunCreateCtrl', ['$scope', '$location', '$window', 'TestRunService',
                 function($scope, $location, $window, TestRunService) {
                     $scope.master = {};
                     $scope.testname = {};
@@ -645,7 +645,7 @@
                                 if (res.name === postData.name) {
                                     var url = "#/tests/" + $scope.testname
                                     //If the url are same do a reload on the page
-                                    if($window.location.hash === url){
+                                    if ($window.location.hash === url) {
                                         $window.location.reload();
                                     } else {
                                         $window.location.hash = url;
@@ -789,16 +789,176 @@
                 function($scope, $location, $timeout, TestRunService) {
                     var timer;
                     $scope.mockData = [{
-                "date": 20111001,
-                "Login": 63.4,
-                "Search": 62.7,
-                "Logout": 72.2
-            }, {
-                "date": 20111002,
-                "Login": 58,
-                "Search": 59.9,
-                "Logout": 67.7
-            }];
+                        "date": 20111002,
+                        "search": 58,
+                        "Login": 59.9,
+                        "Logout": 67.7
+                    }, {
+                        "date": 20111003,
+                        "search": 53.3,
+                        "Login": 59.1,
+                        "Logout": 69.4
+                    }, {
+                        "date": 20111004,
+                        "search": 55.7,
+                        "Login": 58.8,
+                        "Logout": 68
+                    }, {
+                        "date": 20111005,
+                        "search": 64.2,
+                        "Login": 58.7,
+                        "Logout": 72.4
+                    }, {
+                        "date": 20111006,
+                        "search": 58.8,
+                        "Login": 57,
+                        "Logout": 77
+                    }, {
+                        "date": 20111007,
+                        "search": 57.9,
+                        "Login": 56.7,
+                        "Logout": 82.3
+                    }, {
+                        "date": 20111008,
+                        "search": 61.8,
+                        "Login": 56.8,
+                        "Logout": 78.9
+                    }, {
+                        "date": 20111009,
+                        "search": 69.3,
+                        "Login": 56.7,
+                        "Logout": 68.8
+                    }, {
+                        "date": 20111010,
+                        "search": 71.2,
+                        "Login": 60.1,
+                        "Logout": 68.7
+                    }, {
+                        "date": 20111011,
+                        "search": 68.7,
+                        "Login": 61.1,
+                        "Logout": 70.3
+                    }, {
+                        "date": 20111012,
+                        "search": 61.8,
+                        "Login": 61.5,
+                        "Logout": 75.3
+                    }, {
+                        "date": 20111013,
+                        "search": 63,
+                        "Login": 64.3,
+                        "Logout": 76.6
+                    }, {
+                        "date": 20111014,
+                        "search": 66.9,
+                        "Login": 67.1,
+                        "Logout": 66.6
+                    }, {
+                        "date": 20111015,
+                        "search": 61.7,
+                        "Login": 64.6,
+                        "Logout": 68
+                    }, {
+                        "date": 20111016,
+                        "search": 61.8,
+                        "Login": 61.6,
+                        "Logout": 70.6
+                    }, {
+                        "date": 20111017,
+                        "search": 62.8,
+                        "Login": 61.1,
+                        "Logout": 71.1
+                    }, {
+                        "date": 20111018,
+                        "search": 60.8,
+                        "Login": 59.2,
+                        "Logout": 70
+                    }, {
+                        "date": 20111019,
+                        "search": 62.1,
+                        "Login": 58.9,
+                        "Logout": 61.6
+                    }, {
+                        "date": 20111020,
+                        "search": 65.1,
+                        "Login": 57.2,
+                        "Logout": 57.4
+                    }, {
+                        "date": 20111021,
+                        "search": 55.6,
+                        "Login": 56.4,
+                        "Logout": 64.3
+                    }, {
+                        "date": 20111022,
+                        "search": 54.4,
+                        "Login": 60.7,
+                        "Logout": 72.4
+                    }, {
+                        "date": 20111023,
+                        "search": 54.4,
+                        "Login": 65.1,
+                        "Logout": 72.4
+                    }, {
+                        "date": 20111024,
+                        "search": 54.8,
+                        "Login": 60.9,
+                        "Logout": 72.5
+                    }, {
+                        "date": 20111025,
+                        "search": 57.9,
+                        "Login": 56.1,
+                        "Logout": 72.7
+                    }, {
+                        "date": 20111026,
+                        "search": 54.6,
+                        "Login": 54.6,
+                        "Logout": 73.4
+                    }, {
+                        "date": 20111027,
+                        "search": 54.4,
+                        "Login": 56.1,
+                        "Logout": 70.7
+                    }, {
+                        "date": 20111028,
+                        "search": 42.5,
+                        "Login": 58.1,
+                        "Logout": 56.8
+                    }, {
+                        "date": 20111029,
+                        "search": 40.9,
+                        "Login": 57.5,
+                        "Logout": 51
+                    }, {
+                        "date": 20111030,
+                        "search": 38.6,
+                        "Login": 57.7,
+                        "Logout": 54.9
+                    }, {
+                        "date": 20111031,
+                        "search": 44.2,
+                        "Login": 55.1,
+                        "Logout": 58.8
+                    }, {
+                        "date": 20111101,
+                        "search": 49.6,
+                        "Login": 57.9,
+                        "Logout": 62.6
+                    }, {
+                        "date": 20111102,
+                        "search": 47.2,
+                        "Login": 64.6,
+                        "Logout": 71
+                    }, {
+                        "date": 20111103,
+                        "search": 50.1,
+                        "Login": 56.2,
+                        "Logout": 58.4
+                    }, {
+                        "date": 20111104,
+                        "search": 40.1,
+                        "Login": 50.5,
+                        "Logout": 45.1
+                    }]
                     $scope.getSummary = function() {
                         var path = $location.path();
                         var names = path.replace("/tests/", "").split("/");
