@@ -76,7 +76,7 @@ public class DiscreteTimeReporter extends AbstractEventReporter
         int index = 0;                          // Skip 3 columns before actual results
         for (String header : headers)
         {
-            headerIndexes.put(header, new Integer(index));
+            headerIndexes.put(header, Integer.valueOf(index));
             index++;
         }
 
@@ -172,8 +172,9 @@ public class DiscreteTimeReporter extends AbstractEventReporter
             Map<String, Integer> headerIndexes) throws IOException
     {
         double[] statsRow = new double[headerIndexes.size()];
-        for (String columnName : stats.keySet())
+        for (Map.Entry<String, DescriptiveStatistics> statsEntry : stats.entrySet())
         {
+            String columnName = statsEntry.getKey();
             // What is the column index?
             Integer columnIndex = headerIndexes.get(columnName);
             if (columnIndex == null)
@@ -181,10 +182,10 @@ public class DiscreteTimeReporter extends AbstractEventReporter
                 // It is an unknown event
                 continue;
             }
-            DescriptiveStatistics statsEntry = stats.get(columnName);
-            if (statsEntry != null)
+            DescriptiveStatistics columnStats = statsEntry.getValue();
+            if (columnStats != null)
             {
-                statsRow[columnIndex] = statsEntry.getMean();
+                statsRow[columnIndex] = columnStats.getMean();
             }
             else
             {

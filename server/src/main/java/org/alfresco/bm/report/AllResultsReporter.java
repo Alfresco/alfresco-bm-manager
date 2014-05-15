@@ -59,7 +59,7 @@ public class AllResultsReporter extends AbstractEventReporter
         int index = 0;
         for (String header : headers)
         {
-            headerIndexes.put(header, new Integer(index));
+            headerIndexes.put(header, Integer.valueOf(index));
             index++;
         }
 

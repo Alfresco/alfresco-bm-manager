@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2012 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -61,7 +61,7 @@ public abstract class AbstractResultService implements ResultService
         Map<String, DescriptiveStatistics> statsByEventName = new HashMap<String, DescriptiveStatistics>(7);
         
         // Keep track of the start and end times for the current window
-        long currentWindowStartTime = (long) Math.floor(startTime / windowSize) * windowSize;
+        long currentWindowStartTime = (long) Math.floor(startTime / (double) windowSize) * windowSize;
         long currentWindowEndTime = currentWindowStartTime + windowSize - 1L;    // It must be inclusive
 
         // Iterate over the results
