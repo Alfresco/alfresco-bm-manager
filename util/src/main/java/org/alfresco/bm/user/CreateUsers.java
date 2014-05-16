@@ -28,26 +28,25 @@ import org.alfresco.bm.event.EventResult;
 /**
  * <h1>Input</h1>
  * 
- * None
- * 
- * <h1>Data</h1>
- * 
- * No data requirements.
+ * Skip count for walking the user list
  * 
  * <h1>Actions</h1>
  * 
- * A number of users is scheduled to be created in batches. This event will reschedule
- * itself repeatedly until enough users have been created.
+ * Searches for users pending creation and creates an event for each.
+ * The batch size determines the number of user creation events to schedule for each batch
+ * before it reschedules itself.  It creates two types of events
  * 
  * <h1>Output</h1>
  * {@link #EVENT_NAME_CREATE_USER}: User to create<br/>
- * {@link #EVENT_NAME_CREATE_USERS}: Returned when more users should be scheduled
+ * {@link #EVENT_NAME_CREATE_USERS}: Returned when this issue should reschedule itself
+ * {@link #EVENT_NAME_USERS_CREATED}: Returned when users have been successfully created
  *
- * @author Frederik Heremans
+ * @author Derek Hulley
+ * @since 1.2
  */
 public class CreateUsers extends AbstractEventProcessor
 {
-    private static final int DEFAULT_BATCH_SIZE = 10000;
+    private static final int DEFAULT_BATCH_SIZE = 100;
     private static final long DEFAULT_EXPECTED_CREATE_TIME = 20;
     
     public static final String EVENT_NAME_CREATE_USER = "createUser";

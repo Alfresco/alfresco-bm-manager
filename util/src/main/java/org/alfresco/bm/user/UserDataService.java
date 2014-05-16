@@ -3,6 +3,8 @@ package org.alfresco.bm.user;
 import java.util.Iterator;
 import java.util.List;
 
+import com.mongodb.MongoException.DuplicateKey;
+
 /**
  * Service providing access to {@link UserData} storage. All {@link UserData} returned from and persisted
  * with this service will be testrun-specific. The testrun-identifier is set in the constructor.
@@ -24,6 +26,9 @@ public interface UserDataService
         boolean callback(UserData user);
     };
     
+    /**
+     * @throws DuplicateKey         if the username is already used
+     */
     public void createNewUser(UserData data);
 
     /**
@@ -47,20 +52,31 @@ public interface UserDataService
     public void setUserCreated(String username, boolean created);
     
     /**
-     * @param created               <tt>true</tt> to only count users present in Alfresco
+     * @param created               <tt>true</tt> to only count users that have been created or <tt>false</tt> to count users not created
      */
     public long countUsers(boolean created);
 
     /**
      * @param domain                the domain to search
-     * @param created               <tt>true</tt> to only count users present in Alfresco
+     * @param created               <tt>true</tt> to only count users that have been created,
+     *                              <tt>false</tt> to count users not created
+     *                              or <tt>null</tt> to ignore the created state
      */
-    public long countUsers(String domain, boolean created);
+    public long countUsers(String domain, Boolean created);
 
     /**
      * @return                      a count of all users in any state
      */
     public long countUsers();
+    
+    /**
+     * Delete users by create state
+     * 
+     * @param created               <tt>true</tt> to delete user entries for created users,
+     *                              otherwise <tt>false</tt> to delete user entries for users not yet created
+     * @return                      the number of user entries deleted
+     */
+    public long deleteUsers(boolean created);
     
     /**
      * Find a user by username

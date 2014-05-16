@@ -30,7 +30,8 @@ import org.junit.runners.JUnit4;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
-import org.springframework.dao.DuplicateKeyException;
+
+import com.mongodb.MongoException.DuplicateKey;
 
 /**
  * @see UserDataService
@@ -108,7 +109,7 @@ public class UserDataServiceTest
             userDataService.createNewUser(userDup);
             Assert.fail("Should fail due to duplicate username.");
         }
-        catch (DuplicateKeyException e)
+        catch (DuplicateKey e)
         {
             // Expected
         }
@@ -127,10 +128,29 @@ public class UserDataServiceTest
             userDataService.createNewUser(userDup);
             Assert.fail("Should fail due to duplicate email.");
         }
-        catch (DuplicateKeyException e)
+        catch (DuplicateKey e)
         {
             // Expected
         }
+    }
+    
+    @Test
+    public void testDeletedByCreated()
+    {
+        // Start with 1 created user and 5 uncreated users
+        UserData createdUser = createUserData("testDeletedByCreated.createdUser" + System.nanoTime());
+        createdUser.setCreated(true);
+        userDataService.createNewUser(createdUser);
+        
+        Assert.assertEquals(6, userDataService.countUsers());
+        Assert.assertEquals(1, userDataService.countUsers(true));
+        Assert.assertEquals(5, userDataService.countUsers(false));
+
+        long deleted = userDataService.deleteUsers(false);
+        Assert.assertEquals(5L,  deleted);
+        Assert.assertEquals(1, userDataService.countUsers());
+        Assert.assertEquals(1, userDataService.countUsers(true));
+        Assert.assertEquals(0, userDataService.countUsers(false));
     }
     
     @Test
