@@ -178,122 +178,97 @@ d3Benchmark.directive('line', function() {
             // var data = scope.data;
             var data = scope.data;
 
-            var margin = {
-                top: 20,
-                right: 80,
-                bottom: 30,
-                left: 50
-            },
+            var margin = {top: 25, right: 20, bottom: 35, left: 45},
                 width = scope.width,
                 height = scope.height;
 
-            var parseDate = d3.time.format("%Y%m%d").parse;
-
-            var color = d3.scale.category10();
-
+            var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
             var x = d3.scale.linear().range([0, width]);
-
             var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(10, ",.1s").tickSize(6, 0);
-
             var y = d3.scale.linear().range([height, 0]);
-
             var yAxis = d3.svg.axis().scale(y).orient("left");
-
+            var color = d3.scale.category10();
             var line = d3.svg.line()
-            // .interpolate("basis")
-            // .defined(function(d) { return d.timeTaken != null; })
-            .x(function(d) {
-                return x(d.date);
-            })
-                .y(function(d) {
-                    return y(d.timeTaken);
+                .interpolate("linear")
+                .x(function(d) { return x(d.time); })
+                .y(function(d) { return y(d.value); });
+
+            color.domain(d3.keys(data[0]).filter(function(key) {
+                return key == "series";
+            }));
+
+            data = data.map(function(d) {
+                d.time = parseDate(d.time);
+                d.value = +d.value;
+                return d;
+            });
+
+            data = d3.nest().key(function(d) {
+                return d.series;
+            }).entries(data);
+
+            console.log(data);
+
+            x.domain([d3.min(data, function(d) {
+                    return d3.min(d.values, function(d) {
+                        return d.time;
+                    });
+                }),
+                d3.max(data, function(d) {
+                    return d3.max(d.values, function(d) {
+                        return d.time;
+                    });
+                })
+            ]);
+            y.domain([0, d3.max(data, function(d) {
+                return d3.max(d.values, function(d) {
+                    return d.value;
                 });
+            })]);
 
+            //Angularjs replace html tag
             var el = element[0];
-
             var svg = d3.select(el).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-            //scope.$watch('data', function(newData, oldData) {
 
-            color.domain(d3.keys(data[0]).filter(function(key) {
-                return key !== "date";
-            }));
-            // data.forEach(function(d) {
-            //     d.date = parseDate(d.date);
-            // });
-            var events = color.domain().map(function(name) {
-                return {
-                    name: name,
-                    values: data.map(function(d) {
-                        return {
-                            date: d.date,
-                            timeTaken: +d[name]
-                        };
-                    })
-                };
-            });
-
-            x.domain(d3.extent(data, function(d) {
-                return d.date;
-            }));
-
-            y.domain([
-                d3.min(events, function(c) {
-                    return d3.min(c.values, function(v) {
-                        return v.timeTaken;
-                    });
-                }),
-                d3.max(events, function(c) {
-                    return d3.max(c.values, function(v) {
-                        return v.timeTaken;
-                    });
-                })
-            ]);
-            
             svg.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
+                .call(xAxis)
+                .append("text")
+                .attr("y", margin.bottom / 1.5)
+                .attr("x", width / 2)
+                .text("TODO X axis Label");
 
             svg.append("g")
                 .attr("class", "y axis")
-                .call(yAxis);
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.top * 2.5)
+                .attr("x", -height / 2)
+                .attr("dy", ".71em")
+                .style("text-anchor", "middle")
+                .text("TODO Y axis Label");
 
-
-            var event = svg.selectAll(".event")
-                .data(events)
+            var parameter = svg.selectAll(".parameter")
+                .data(data, function(d) {
+                    return d.key;
+                })
                 .enter().append("g")
-                .attr("class", "event");
+                .attr("class", "parameter");
 
-            event.append("path")
+            parameter.append("path")
                 .attr("class", "line")
                 .attr("d", function(d) {
                     return line(d.values);
                 })
                 .style("stroke", function(d) {
-                    return color(d.name);
+                    return color(d.key);
                 });
-
-            event.append("text")
-                .datum(function(d) {
-                    return {
-                        name: d.name,
-                        value: d.values[d.values.length - 1]
-                    };
-                })
-                .attr("transform", function(d) {
-                    return "translate(" + x(d.value.date) + "," + y(d.value.timeTaken) + ")";
-                })
-                .attr("x", 3)
-                .attr("dy", ".35em")
-                .text(function(d) {
-                    return d.name;
-                });
-                
-
         }
 
     }

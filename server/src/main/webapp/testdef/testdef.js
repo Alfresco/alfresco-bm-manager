@@ -789,45 +789,14 @@
                 function($scope, $location, $timeout, TestRunService) {
                     var timer;
                     $scope.mockData = 
-                    [{
-                        "date": 5,
-                        "Search": 9,
-                        "Login": 4,
-                        "Logout": 8
-                    }
-                    , {
-                        "date": 5,
-                        "Search": 9,
-                        "Login": 4,
-                        "Logout": 8
-                    }, {
-                        "date": 6,
-                        "Search": 7,
-                        "Login": 6,
-                        "Logout": 6
-                    }, {
-                        "date": 7,
-                        "Search": 6,
-                        "Login": 6,
-                        "Logout": 10,
-                    }, {
-                        "date": 8,
-                        "Search": 6,
-                        "Login": 6,
-                        "Logout": 1,
-                    }, {
-                        "date": 9,
-                        "Search": 3,
-                        "Login": 4,
-                        "Logout": 3,
-                    }, {
-                        "date": 10,
-                        "Search": 6,
-                        "Login": 1,
-                        "Logout": 5
-                    }]
-                    
-;
+ [
+    {"time":"2013-02-21 07:39:29","value":"12.2","series":"Search"},
+    {"time":"2013-02-21 07:39:34","value":"12.","series":"Search"},
+    {"time":"2013-02-21 07:39:39","value":"13","series":"Search"},
+    {"time":"2013-02-21 07:39:44","value":"12","series":"Search"},
+    {"time":"2013-02-21 07:38:59","value":"11.7","series":"Login"},
+    {"time":"2013-02-21 07:40:04","value":"11.1","series":"Search"},
+    {"time":"2013-02-21 07:39:04","value":"15","series":"Login"}];
                     $scope.getSummary = function() {
                         var path = $location.path();
                         var names = path.replace("/tests/", "").split("/");
