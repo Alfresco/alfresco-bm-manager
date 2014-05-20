@@ -82,21 +82,15 @@ donut-chart {
     box-shadow: 2px 2px 2px #666;
 }
 //-------- line chart 
+.axis text {
+  font: 10px sans-serif;
+}
+
 .axis path,
 .axis line {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
-}
-
-.x.axis path {
-  display: none;
-}
-
-.line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
 }
 //---------- 
 .progress-meter .background {

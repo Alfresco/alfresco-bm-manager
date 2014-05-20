@@ -162,7 +162,7 @@ d3Benchmark.directive('bars', function($parse) {
 })
 /**
  * Line chart, use as follow:
- * 
+ *
  * @return {[type]} [description]
  */
 d3Benchmark.directive('line', function() {
@@ -177,6 +177,7 @@ d3Benchmark.directive('line', function() {
         link: function link(scope, element) {
             // var data = scope.data;
             var data = scope.data;
+
             var margin = {
                 top: 20,
                 right: 80,
@@ -188,31 +189,26 @@ d3Benchmark.directive('line', function() {
 
             var parseDate = d3.time.format("%Y%m%d").parse;
 
-            var x = d3.time.scale()
-                .range([0, width]);
-
-            var y = d3.scale.linear()
-                .range([height, 0]);
-
             var color = d3.scale.category10();
 
-            var xAxis = d3.svg.axis()
-                .scale(x)
-                .orient("bottom");
+            var x = d3.scale.linear().range([0, width]);
 
-            var yAxis = d3.svg.axis()
-                .scale(y)
-                .orient("left");
+            var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(10, ",.1s").tickSize(6, 0);
+
+            var y = d3.scale.linear().range([height, 0]);
+
+            var yAxis = d3.svg.axis().scale(y).orient("left");
 
             var line = d3.svg.line()
-                .interpolate("basis")
-                .x(function(d) {
-                    return x(d.date);
-                })
+            // .interpolate("basis")
+            // .defined(function(d) { return d.timeTaken != null; })
+            .x(function(d) {
+                return x(d.date);
+            })
                 .y(function(d) {
-                    return y(d.temperature);
+                    return y(d.timeTaken);
                 });
-            
+
             var el = element[0];
 
             var svg = d3.select(el).append("svg")
@@ -222,22 +218,19 @@ d3Benchmark.directive('line', function() {
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             //scope.$watch('data', function(newData, oldData) {
 
-
             color.domain(d3.keys(data[0]).filter(function(key) {
                 return key !== "date";
             }));
-
             // data.forEach(function(d) {
             //     d.date = parseDate(d.date);
             // });
-
             var events = color.domain().map(function(name) {
                 return {
                     name: name,
                     values: data.map(function(d) {
                         return {
                             date: d.date,
-                            temperature: +d[name]
+                            timeTaken: +d[name]
                         };
                     })
                 };
@@ -250,16 +243,16 @@ d3Benchmark.directive('line', function() {
             y.domain([
                 d3.min(events, function(c) {
                     return d3.min(c.values, function(v) {
-                        return v.temperature;
+                        return v.timeTaken;
                     });
                 }),
                 d3.max(events, function(c) {
                     return d3.max(c.values, function(v) {
-                        return v.temperature;
+                        return v.timeTaken;
                     });
                 })
             ]);
-
+            
             svg.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
@@ -267,13 +260,8 @@ d3Benchmark.directive('line', function() {
 
             svg.append("g")
                 .attr("class", "y axis")
-                .call(yAxis)
-                .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text("Count");
+                .call(yAxis);
+
 
             var event = svg.selectAll(".event")
                 .data(events)
@@ -297,13 +285,14 @@ d3Benchmark.directive('line', function() {
                     };
                 })
                 .attr("transform", function(d) {
-                    return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")";
+                    return "translate(" + x(d.value.date) + "," + y(d.value.timeTaken) + ")";
                 })
                 .attr("x", 3)
                 .attr("dy", ".35em")
                 .text(function(d) {
                     return d.name;
                 });
+                
 
         }
 
