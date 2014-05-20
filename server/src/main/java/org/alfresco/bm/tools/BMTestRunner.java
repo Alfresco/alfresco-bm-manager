@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.alfresco.bm.api.v1.PropSetBean;
@@ -146,7 +147,7 @@ public class BMTestRunner implements TestConstants
         try
         {
             BMTestRunner runner = new BMTestRunner(MAX_TEST_TIME);
-            runner.run(mongoConfigHost, mongoTestHost);
+            runner.run(mongoConfigHost, mongoTestHost, null);
         }
         catch (Exception e)
         {
@@ -160,8 +161,9 @@ public class BMTestRunner implements TestConstants
      * 
      * @param mongoConfigHost           the MongoDB host to connect to for configuraton data or <tt>null</tt> to use an in-memory version
      * @param mongoTestHost             the MongoDB host to connect to for test data data or <tt>null</tt> to use the same database as the config
+     * @param testProperties            any properties to specifically set for the test or <tt>null</tt> if there are none
      */
-    public void run(String mongoConfigHost, String mongoTestHost) throws Exception
+    public void run(String mongoConfigHost, String mongoTestHost, Properties testProperties) throws Exception
     {
         // Secure the listeners against modification
         List<BMTestRunnerListener> listeners = new ArrayList<BMTestRunnerListener>(this.listeners);
@@ -198,10 +200,12 @@ public class BMTestRunner implements TestConstants
                     false);
             // Push cluster properties into the context (must be done AFTER setting parent context)
             ConfigurableEnvironment ctxEnv = ctx.getEnvironment();
+            // Mongo properties come first
             ctxEnv.getPropertySources().addFirst(
                     new PropertiesPropertySource(
                             "mongo-props",
                             mongoProps));
+            // Finally, system properties overrule them all
             ctxEnv.getPropertySources().addFirst(
                     new PropertiesPropertySource(
                             "system-props",
@@ -244,6 +248,22 @@ public class BMTestRunner implements TestConstants
             propSet.setValue(mongoTestHost);
             propSet.setVersion(0);
             api.setTestProperty(testName, PROP_MONGO_TEST_HOST, propSet);
+            
+            // Now set any properties that have been explicitly passed in for the test
+            if (testProperties != null)
+            {
+                int version = 1;
+                for (Map.Entry<Object, Object> entry : testProperties.entrySet())
+                {
+                    String propKey = (String) entry.getKey();
+                    String propVal = (String) entry.getValue();
+
+                    propSet.setValue(propVal);
+                    propSet.setVersion(version);
+                    api.setTestProperty(testName, propKey, propSet);
+                    version++;
+                }
+            }
             
             // Call listeners: the test has been created
             for (BMTestRunnerListener listener : listeners)

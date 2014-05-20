@@ -53,7 +53,7 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
     {
         BMTestRunner runner = new BMTestRunner(60000L);         // Should be done in 60s
         runner.addListener(this);
-        runner.run(null, null);
+        runner.run(null, null, null);
     }
 
     /**

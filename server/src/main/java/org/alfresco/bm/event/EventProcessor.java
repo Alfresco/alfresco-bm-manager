@@ -21,7 +21,6 @@ package org.alfresco.bm.event;
 import org.alfresco.bm.session.SessionService;
 import org.apache.commons.lang3.time.StopWatch;
 
-
 /**
  * Basic interface that test runner code needs to implement in order to be processed
  * by the Benchmark Server framework.
@@ -49,7 +48,7 @@ import org.apache.commons.lang3.time.StopWatch;
  *                 event 'share.advancedSearch' ... etc.
  * 
  * @see SessionService
- *                 
+ *
  * @author Derek Hulley
  * @since 1.0
  */

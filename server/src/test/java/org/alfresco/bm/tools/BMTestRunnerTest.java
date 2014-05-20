@@ -19,6 +19,7 @@
 package org.alfresco.bm.tools;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.report.SummaryReporter;
@@ -91,7 +92,7 @@ public class BMTestRunnerTest implements TestConstants
         runner.addListener(listener);
         try
         {
-            runner.run(null, null);
+            runner.run(null, null, null);
         }
         catch (RuntimeException e)
         {
@@ -119,7 +120,7 @@ public class BMTestRunnerTest implements TestConstants
         BMTestRunner runner = new BMTestRunner(60000L);
         BMTestRunnerListener listener = Mockito.mock(BMTestRunnerListener.class);
         runner.addListener(listener);
-        runner.run(null, null);
+        runner.run(null, null, null);
         Mockito.verify(listener, Mockito.times(1)).testReady(Mockito.any(ClassPathXmlApplicationContext.class), Mockito.any(String.class));
         Mockito.verify(listener, Mockito.times(1)).testRunReady(Mockito.any(ClassPathXmlApplicationContext.class), Mockito.any(String.class), Mockito.any(String.class));
         Mockito.verify(listener, Mockito.times(1)).testRunStarted(Mockito.any(ClassPathXmlApplicationContext.class), Mockito.any(String.class), Mockito.any(String.class));
@@ -142,7 +143,7 @@ public class BMTestRunnerTest implements TestConstants
             // Extract the Mongo DB details
             ServerAddress serverAddress = mongoDBForTestsFactory.getServerAddress();
             String host = serverAddress.getHost() + ":" + serverAddress.getPort();
-            runner.run(host, null);
+            runner.run(host, null, null);
         }
         finally
         {
@@ -170,7 +171,7 @@ public class BMTestRunnerTest implements TestConstants
             // Extract the Mongo DB details
             ServerAddress serverAddress = mongoDBForTestsFactory.getServerAddress();
             String host = serverAddress.getHost() + ":" + serverAddress.getPort();
-            runner.run(null, host);
+            runner.run(null, host, null);
         }
         finally
         {
@@ -250,11 +251,37 @@ public class BMTestRunnerTest implements TestConstants
             // Extract the Mongo DB details
             ServerAddress serverAddress = mongoDBForTestsFactory.getServerAddress();
             String host = serverAddress.getHost() + ":" + serverAddress.getPort();
-            runner.run(null, host);
+            runner.run(null, host, null);
         }
         finally
         {
             try { mongoDBForTestsFactory.destroy(); } catch (Exception e) {}
         }
+    }
+    
+    @Test
+    public void testWithProperties() throws Throwable
+    {
+        // Override the Mongo configuration host to something that fails
+        final Properties testProperties = new Properties();
+        testProperties.setProperty(PROP_MONGO_TEST_DATABASE, "testWithProperties");
+        
+        /**
+         * A listener that ensures that we've pushed the test run results into the correct database
+         */
+        BMTestRunnerListener listener = new BMTestRunnerListenerAdaptor()
+        {
+            @Override
+            public void testRunStarted(ApplicationContext testCtx, String test, String run)
+            {
+                TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
+                ResultService rsCheck = services.getResultService(test, run);
+                String expectedDataLocation = testProperties.get(PROP_MONGO_TEST_DATABASE) + "." + test + "." + run + ".results";
+                Assert.assertEquals("Data location was not changed for test.", expectedDataLocation, rsCheck.getDataLocation());
+            }
+        };
+        BMTestRunner runner = new BMTestRunner(60000L);
+        runner.addListener(listener);
+        runner.run(null, null, testProperties);
     }
 }

@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.dao.DuplicateKeyException;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
@@ -199,8 +198,8 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         }
         catch (DuplicateKey e)
         {
-            // Specifically throw the Spring version
-            throw new DuplicateKeyException("User already exists: " + data, e);
+            // We just rethrow as per the API
+            throw e;
         }
     }
     
@@ -297,16 +296,13 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         if (result.getError() != null || result.getN() != 1)
         {
             throw new RuntimeException(
-                    "Failed to update user ticket: \n" +
+                    "Failed to update user creation state: \n" +
                     "   Username: " + username + "\n" +
                     "   Created:  " + created + "\n" +
                     "   Result:   " + result);
         }
     }
     
-    /**
-     * @param created               <tt>true</tt> to only count users present in Alfresco
-     */
     @Override
     public long countUsers(boolean created)
     {
@@ -314,17 +310,18 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     }
     
     @Override
-    public long countUsers(String domain, boolean created)
+    public long countUsers(String domain, Boolean created)
     {
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start();
         if (domain != null)
         {
             queryObjBuilder.add(FIELD_DOMAIN, domain);
         }
-        if (created)
+        if (created != null)
         {
-            queryObjBuilder.add(FIELD_CREATED, true);
+            queryObjBuilder.add(FIELD_CREATED, created);
         }
+        
         DBObject queryObj = queryObjBuilder.get();
         return collection.count(queryObj);
     }
@@ -335,9 +332,19 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     @Override
     public long countUsers()
     {
-        return countUsers(null, false);
+        return countUsers(null, null);
     }
     
+    @Override
+    public long deleteUsers(boolean created)
+    {
+        DBObject queryObj = BasicDBObjectBuilder.start()
+                .add(FIELD_CREATED, created)
+                .get();
+        WriteResult result = collection.remove(queryObj);
+        return result.getN();
+    }
+
     /**
      * Find a user by username
      * 

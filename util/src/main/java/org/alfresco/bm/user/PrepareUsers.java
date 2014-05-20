@@ -22,11 +22,20 @@ import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
 
+import com.mongodb.MongoException.DuplicateKey;
+
 /**
  * Prepare a specific number of users for interaction with Alfresco.
  * This does not actually create users in Alfresco but merely creates
  * a population of users (email addresses, names, etc) that can be used
  * by subsequent operations.</br>
+ * The user collection will be cleaned of any user entries where the
+ * 'created' flag is false i.e. users already created will be preserved.
+ * Once cleaned up, the preparation will check all users including those
+ * created.</br>
+ * In this way, the number of users can be extended but never decreased.
+ * If users already exist and you wish to ensure that all users are new
+ * users, change the username pattern or use a new user mirror name.
  * <p/>
  * Numerical-based values can be used in:
  * <ul>
@@ -51,15 +60,14 @@ import org.alfresco.bm.event.EventResult;
  * User data will be similar to this:<pre>
  *      {
  *        "_id" : ObjectId("504f19ce4ece382c484d3dc1"),
- *        "_class" : "org.alfresco.bm.user.UserData",
  *        "randomizer" : 774971,
- *        "username" : "0000001.test@00000.test",
- *        "password" : "0000001.test@00000.test",
+ *        "username" : "0000001.test@00000.example.com",
+ *        "password" : "0000001.test@00000.example.com",
  *        "created" : false,
  *        "firstName" : "0000001",
  *        "lastName" : "Test",
- *        "email" : "0000001.test@00000.test",
- *        "domain" : "00000.test"
+ *        "email" : "0000001.test@00000.example.com",
+ *        "domain" : "00000.example.com"
  *      }
  * </pre> where the "randomizer" field is used to return users in a random order when
  * querying for lists of users.<br/>
@@ -196,7 +204,7 @@ public class PrepareUsers extends AbstractEventProcessor
 
     /**
      * Override the {@link #DEFAULT_EMAIL_ADDRESS_PATTERN default} pattern for the email address.
-     * Values <b>${firstName}</b>, <b>${lastName}</b> and <b>${emailDomain}</b> will be substituted
+     * Values <b>[firstName]</b>, <b>[lastName]</b> and <b>[emailDomain]</b> will be substituted
      * with values generated for the fist name, last name and email domain respectively.
      * 
      * @param emailAddressPattern       a pattern containing the placeholders to change.
@@ -208,7 +216,7 @@ public class PrepareUsers extends AbstractEventProcessor
 
     /**
      * Override the {@link #DEFAULT_USERNAME_PATTERN default} pattern for the username.
-     * Values <b>${firstName}</b>, <b>${lastName}</b>, <b>${emailDomain}</b> and <b>${emailAddress}
+     * Values <b>[firstName]</b>, <b>[lastName]</b>, <b>[emailDomain]</b> and <b>[emailAddress]
      * will be substituted with values generated for the fist name, last name, email domain
      * and email address respectively.
      * 
@@ -221,7 +229,7 @@ public class PrepareUsers extends AbstractEventProcessor
 
     /**
      * Override the {@link #DEFAULT_PASSWORD_PATTERN default} pattern for the password.
-     * Values <b>${firstName}</b>, <b>${lastName}</b>, <b>${emailDomain}</b> and <b>${emailAddress}
+     * Values <b>[firstName]</b>, <b>[lastName]</b>, <b>[emailDomain]</b> and <b>[emailAddress]
      * will be substituted with values generated for the fist name, last name, email domain
      * and email address respectively.
      * 
@@ -244,10 +252,9 @@ public class PrepareUsers extends AbstractEventProcessor
 
     public EventResult processEvent(Event event) throws Exception
     {
-        // How many users must we create?
-        long userCount = userDataService.countUsers(true);
-        long usersToCreate = numberOfUsers - userCount;
-
+        // First wipe out any users that were not created
+        userDataService.deleteUsers(false);
+        
         // How many domains must we create?
         long domainsToCreate = (long) (Math.ceil((double)numberOfUsers/(double)usersPerDomain));
         
@@ -265,7 +272,7 @@ public class PrepareUsers extends AbstractEventProcessor
             String domain = domainPattern;
             domain = domain.replace(PATTERN_EMAIL_DOMAIN, emailDomain);
             // Build users for the domain
-            for (int j = 0; count < usersToCreate && j < usersPerDomain; j++)
+            for (int j = 0; count < numberOfUsers && j < usersPerDomain; j++)
             {
                 // Numerical pattern for first name
                 String firstName = firstNamePattern;
@@ -300,6 +307,11 @@ public class PrepareUsers extends AbstractEventProcessor
                 UserData user = userDataService.findUserByUsername(username);
                 if (user != null)
                 {
+                    // Double check that the user has NOT been created
+                    if (!user.isCreated())
+                    {
+                        logger.warn("Found a user that was NOT created even though we cleared those out: " + user);
+                    }
                     // User already exists
                     continue;
                 }
@@ -320,15 +332,24 @@ public class PrepareUsers extends AbstractEventProcessor
                     user.setCreated(true);
                 }
                 // Persist
-                userDataService.createNewUser(user);
+                try
+                {
+                    userDataService.createNewUser(user);
+                }
+                catch (DuplicateKey e)
+                {
+                    // We checked if the user existed and it didn't ... but now it does
+                    logger.warn("User data has been created by a separate process.  Ignoring: " + username);
+                    continue;
+                }
                 count++;
             }
         }
         // Raise an event saying we're done
-        String msg = "Created " + count + " users.";
-        Event doneEvent = new Event(eventNameUsersPrepared, System.currentTimeMillis(), msg);
+        Event doneEvent = new Event(eventNameUsersPrepared, null);
         // Done
-        EventResult result = new EventResult("", doneEvent);
+        String msg = "Created " + count + " users.";
+        EventResult result = new EventResult(msg, doneEvent);
         return result;
     }
 }
