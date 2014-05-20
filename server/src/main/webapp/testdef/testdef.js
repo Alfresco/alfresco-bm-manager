@@ -789,14 +789,14 @@
                 function($scope, $location, $timeout, TestRunService) {
                     var timer;
                     $scope.mockData = 
- [
-    {"time":"2013-02-21 07:39:29","value":"12.2","series":"Search"},
-    {"time":"2013-02-21 07:39:34","value":"12.","series":"Search"},
+   [
+    {"time":"2013-02-21 07:35:29","value":"12.2","series":"Search"},
+    {"time":"2013-02-21 07:36:34","value":"12.","series":"Search"},
     {"time":"2013-02-21 07:39:39","value":"13","series":"Search"},
     {"time":"2013-02-21 07:39:44","value":"12","series":"Search"},
-    {"time":"2013-02-21 07:38:59","value":"11.7","series":"Login"},
+    {"time":"2013-02-21 07:22:59","value":"11.7","series":"Login"},
     {"time":"2013-02-21 07:40:04","value":"11.1","series":"Search"},
-    {"time":"2013-02-21 07:39:04","value":"15","series":"Login"}];
+    {"time":"2013-02-21 07:36:04","value":"15","series":"Login"}];
                     $scope.getSummary = function() {
                         var path = $location.path();
                         var names = path.replace("/tests/", "").split("/");

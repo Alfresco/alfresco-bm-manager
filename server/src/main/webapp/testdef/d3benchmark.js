@@ -193,6 +193,7 @@ d3Benchmark.directive('line', function() {
                 .x(function(d) { return x(d.time); })
                 .y(function(d) { return y(d.value); });
 
+
             color.domain(d3.keys(data[0]).filter(function(key) {
                 return key == "series";
             }));
@@ -240,8 +241,8 @@ d3Benchmark.directive('line', function() {
                 .call(xAxis)
                 .append("text")
                 .attr("y", margin.bottom / 1.5)
-                .attr("x", width / 2)
-                .text("TODO X axis Label");
+                // .attr("x", width / 2)
+                // .text("TODO X axis Label");
 
             svg.append("g")
                 .attr("class", "y axis")
