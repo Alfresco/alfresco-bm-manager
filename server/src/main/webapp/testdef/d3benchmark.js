@@ -175,16 +175,16 @@ d3Benchmark.directive('line', function() {
             id: '@',
         },
         link: function link(scope, element) {
+
             // var data = scope.data;
             var data = scope.data;
-
-            var margin = {top: 25, right: 20, bottom: 35, left: 45},
+            var margin = {top: 30, right: 40, bottom: 50, left: 50},
                 width = scope.width,
                 height = scope.height;
 
             var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
             var x = d3.scale.linear().range([0, width]);
-            var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(10, ",.1s").tickSize(6, 0);
+            var xAxis = d3.svg.axis().scale(x).orient("bottom");
             var y = d3.scale.linear().range([height, 0]);
             var yAxis = d3.svg.axis().scale(y).orient("left");
             var color = d3.scale.category10();
@@ -198,6 +198,7 @@ d3Benchmark.directive('line', function() {
                 return key == "series";
             }));
 
+
             data = data.map(function(d) {
                 d.time = parseDate(d.time);
                 d.value = +d.value;
@@ -210,22 +211,9 @@ d3Benchmark.directive('line', function() {
 
             console.log(data);
 
-            x.domain([d3.min(data, function(d) {
-                    return d3.min(d.values, function(d) {
-                        return d.time;
-                    });
-                }),
-                d3.max(data, function(d) {
-                    return d3.max(d.values, function(d) {
-                        return d.time;
-                    });
-                })
-            ]);
-            y.domain([0, d3.max(data, function(d) {
-                return d3.max(d.values, function(d) {
-                    return d.value;
-                });
-            })]);
+            x.domain([d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.time; }); }),
+            d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.time; }); })]);
+            y.domain([0, d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.value; }); })]);
 
             //Angularjs replace html tag
             var el = element[0];
@@ -234,15 +222,19 @@ d3Benchmark.directive('line', function() {
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
+            //paint xaxis and rotate label to 65 degrees
             svg.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
                 .call(xAxis)
-                .append("text")
-                .attr("y", margin.bottom / 1.5)
-                // .attr("x", width / 2)
-                // .text("TODO X axis Label");
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("transform", function(d) {
+                    return "rotate(-65)"
+                });
+            
 
             svg.append("g")
                 .attr("class", "y axis")
