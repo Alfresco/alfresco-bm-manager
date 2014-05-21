@@ -177,13 +177,22 @@ d3Benchmark.directive('line', function() {
         link: function link(scope, element) {
 
             // var data = scope.data;
-            var data = scope.data;
+            var data =
+    [
+    {"time":"2013-02-21 07:35:29","value":"12.2","series":"Search"},
+    {"time":"2013-02-21 07:36:34","value":"12.","series":"Search"},
+    {"time":"2013-02-21 07:39:39","value":"13","series":"Search"},
+    {"time":"2013-02-21 07:39:44","value":"12","series":"Search"},
+    {"time":"2013-02-21 07:22:59","value":"11.7","series":"Login"},
+    {"time":"2013-02-21 07:40:04","value":"11.1","series":"Search"},
+    {"time":"2013-02-21 07:36:04","value":"15","series":"Login"}];
             var margin = {top: 30, right: 40, bottom: 50, left: 50},
                 width = scope.width,
                 height = scope.height;
 
             var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
-            var x = d3.scale.linear().range([0, width]);
+            // var x = d3.scale.linear().range([0, width]);
+            var x = d3.time.scale().range([0, width]);
             var xAxis = d3.svg.axis().scale(x).orient("bottom");
             var y = d3.scale.linear().range([height, 0]);
             var yAxis = d3.svg.axis().scale(y).orient("left");
@@ -193,7 +202,7 @@ d3Benchmark.directive('line', function() {
                 .x(function(d) { return x(d.time); })
                 .y(function(d) { return y(d.value); });
 
-
+            //Assign color to each event type
             color.domain(d3.keys(data[0]).filter(function(key) {
                 return key == "series";
             }));
@@ -233,7 +242,8 @@ d3Benchmark.directive('line', function() {
                 .attr("dy", ".15em")
                 .attr("transform", function(d) {
                     return "rotate(-65)"
-                });
+                })
+                ;
             
 
             svg.append("g")
@@ -245,7 +255,7 @@ d3Benchmark.directive('line', function() {
                 .attr("x", -height / 2)
                 .attr("dy", ".71em")
                 .style("text-anchor", "middle")
-                .text("TODO Y axis Label");
+                .text("Y");
 
             var parameter = svg.selectAll(".parameter")
                 .data(data, function(d) {
