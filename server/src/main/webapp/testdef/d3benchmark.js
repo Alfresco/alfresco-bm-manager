@@ -161,9 +161,9 @@ d3Benchmark.directive('bars', function($parse) {
     };
 })
 /**
- * Line chart, use as follow:
- *
- * @return {[type]} [description]
+ * Line chart directive, replaces line tag with an svg generated line chart.
+ * To use as follow:
+ * <line data="mockData" width="430" height="260"   x="xFunction()" y="yFunction()"></line>
  */
 d3Benchmark.directive('line', function() {
     return {
@@ -174,24 +174,14 @@ d3Benchmark.directive('line', function() {
             height: '=',
             id: '@',
         },
-        link: function link(scope, element) {
 
-            // var data = scope.data;
-            var data =
-    [
-    {"time":"2013-02-21 07:35:29","value":"12.2","series":"Search"},
-    {"time":"2013-02-21 07:36:34","value":"12.","series":"Search"},
-    {"time":"2013-02-21 07:39:39","value":"13","series":"Search"},
-    {"time":"2013-02-21 07:39:44","value":"12","series":"Search"},
-    {"time":"2013-02-21 07:22:59","value":"11.7","series":"Login"},
-    {"time":"2013-02-21 07:40:04","value":"11.1","series":"Search"},
-    {"time":"2013-02-21 07:36:04","value":"15","series":"Login"}];
-            var margin = {top: 30, right: 40, bottom: 50, left: 50},
+        link: function link(scope, element) {
+            var data = scope.data;
+            var margin = {top: 30, right: 40, bottom: 100, left: 50},
                 width = scope.width,
                 height = scope.height;
-
             var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
-            // var x = d3.scale.linear().range([0, width]);
+            // Using time range instead of scale to display date and time on axis.
             var x = d3.time.scale().range([0, width]);
             var xAxis = d3.svg.axis().scale(x).orient("bottom");
             var y = d3.scale.linear().range([height, 0]);
@@ -232,6 +222,8 @@ d3Benchmark.directive('line', function() {
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             //paint xaxis and rotate label to 65 degrees
+            
+
             svg.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
@@ -240,9 +232,14 @@ d3Benchmark.directive('line', function() {
                 .style("text-anchor", "end")
                 .attr("dx", "-.8em")
                 .attr("dy", ".15em")
+                
                 .attr("transform", function(d) {
                     return "rotate(-65)"
                 })
+                .append("text")
+                .attr("y", margin.bottom/1.5)
+                .attr("x",width/2)
+                .text("Date Taken");
                 ;
             
 
