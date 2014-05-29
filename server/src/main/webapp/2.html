@@ -1,0 +1,213 @@
+<html>
+<style>
+body {
+    width: 960px;
+    margin: auto;
+    position: relative;
+}
+svg {
+    font: 11px"Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+.axis--y path {
+    display: none;
+}
+.cities {
+    fill: none;
+    stroke: #aaa;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-width: 1.5px;
+}
+.city--hover {
+    stroke: #000;
+}
+.focus text {
+    text-anchor: middle;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+}
+.voronoi path {
+    fill: none;
+    pointer-events: all;
+}
+.voronoi--show path {
+    stroke: red;
+    stroke-opacity: .2;
+}
+#form {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+}
+</style>
+
+<body>
+
+    <section id="graph">
+        <section id="historic"></section>
+    </section>
+
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+    var data = [{
+        "time": "2013-02-21 07:35:29",
+        "value": "12.2",
+        "series": "Search"
+    }, {
+        "time": "2013-02-21 07:36:34",
+        "value": "12.",
+        "series": "Search"
+    }, {
+        "time": "2013-02-21 07:39:39",
+        "value": "13",
+        "series": "Search"
+    }, {
+        "time": "2013-02-21 07:39:44",
+        "value": "12",
+        "series": "Search"
+    }, {
+        "time": "2013-02-21 07:22:59",
+        "value": "11.7",
+        "series": "Login"
+    }, {
+        "time": "2013-02-21 07:40:04",
+        "value": "11.1",
+        "series": "Search"
+    }, {
+        "time": "2013-02-21 07:36:04",
+        "value": "15",
+        "series": "Login"
+    }];
+
+    var margin = {
+        top: 30,
+        right: 40,
+        bottom: 100,
+        left: 50
+    },
+        width = 600,
+        height = 300;
+
+    var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+    // Using time range instead of scale to display date and time on axis.
+    var x = d3.time.scale().range([0, width]);
+    var xAxis = d3.svg.axis().scale(x).orient("bottom");
+    var y = d3.scale.linear().range([height, 0]);
+    var yAxis = d3.svg.axis().scale(y).orient("left");
+    var color = d3.scale.category10();
+    var line = d3.svg.line()
+        .interpolate("linear")
+        .x(function(d) {
+            return x(d.time);
+        })
+        .y(function(d) {
+            return y(d.value);
+        });
+
+
+
+    //Assign color to each event type
+    // color.domain(d3.keys(data[0]).filter(function(key) {
+    //     return key == "series";
+    // }));
+
+
+    data = data.map(function(d) {
+        d.time = parseDate(d.time);
+        d.value = +d.value;
+        return d;
+    });
+
+    data = d3.nest().key(function(d) {
+        return d.series;
+    }).entries(data);
+
+    console.log(data);
+
+    x.domain([d3.min(data, function(d) {
+            return d3.min(d.values, function(d) {
+                return d.time;
+            });
+        }),
+        d3.max(data, function(d) {
+            return d3.max(d.values, function(d) {
+                return d.time;
+            });
+        })
+    ]);
+    y.domain([0, d3.max(data, function(d) {
+        return d3.max(d.values, function(d) {
+            return d.value;
+        });
+    })]);
+
+    //Angularjs replace html tag
+    // var el = element[0];
+    // var svg = d3.select(el).append("svg")
+    var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    //paint xaxis and rotate label to 65 degrees
+
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em")
+
+    .attr("transform", function(d) {
+        return "rotate(-65)"
+    })
+        .append("text")
+        .attr("y", margin.bottom / 1.5)
+        .attr("x", width / 2)
+        .text("Date Taken");;
+
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.top * 2.5)
+        .attr("x", -height / 2)
+        .attr("dy", ".71em")
+        .style("text-anchor", "middle")
+        .text("Y");
+
+
+    svg.append("g")
+        .attr("class", "cities")
+        .selectAll("path")
+        .data(data)
+        .enter().append("path")
+        .attr("d", function(d) {
+            d.line = this;
+            var res = line(d.values);
+            return res
+        });
+
+    var focus = svg.append("g")
+        .attr("transform", "translate(-100,-100)")
+        .attr("class", "focus");
+
+    focus.append("circle")
+        .attr("r", 3.5);
+
+    focus.append("text")
+        .attr("y", -10);
+    </script>
+</body>
+
+</html>
