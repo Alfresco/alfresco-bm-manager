@@ -1,4 +1,8 @@
 <html>
+<head>
+  <meta charset="UTF-8">
+  <meta content="utf-8" http-equiv="encoding">  
+</head>
 <style>
 body {
     width: 960px;
@@ -44,46 +48,63 @@ svg {
     right: 30px;
 }
 </style>
-
+   <script src="d3.js"></script>
 <body>
-
+<label id="form" for="show-voronoi">
+    Show Voronoi
+    <input type="checkbox" id="show-voronoi" disabled>
+</label>
     <section id="graph">
         <section id="historic"></section>
     </section>
 
 
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+ 
     <script>
     var data = [{
-        "time": "2013-02-21 07:35:29",
+        "time": "2013-02-21",
         "value": "12.2",
-        "series": "Search"
+        "name": "Search"
     }, {
-        "time": "2013-02-21 07:36:34",
+        "time": "2013-02-22",
         "value": "12.",
-        "series": "Search"
+        "name": "Search"
     }, {
-        "time": "2013-02-21 07:39:39",
+        "time": "2013-02-23",
         "value": "13",
-        "series": "Search"
+        "name": "Search"
     }, {
-        "time": "2013-02-21 07:39:44",
+        "time": "2013-02-24",
         "value": "12",
-        "series": "Search"
-    }, 
+        "name": "Search"
+    },{
+        "time": "2013-02-25",
+        "value": "15.1",
+        "name": "Search"
+    },
+    //
     {
-        "time": "2013-02-21 07:22:59",
-        "value": "11.7",
-        "series": "Login"
+        "time": "2013-02-22",
+        "value": "1.2",
+        "name": "Navigate"
     }, {
-        "time": "2013-02-21 07:40:04",
-        "value": "11.1",
-        "series": "Search"
+        "time": "2013-02-23",
+        "value": "5",
+        "name": "Navigate"
     }, {
-        "time": "2013-02-21 07:36:04",
-        "value": "15",
-        "series": "Login"
-    }
+        "time": "2013-02-28",
+        "value": "3",
+        "name": "Navigate"
+    }, {
+        "time": "2013-02-29",
+        "value": "5",
+        "name": "Navigate"
+    },{
+        "time": "2013-02-30",
+        "value": "3.1",
+        "name": "Navigate"
+    }  
+    
     ];
 
     var margin = {
@@ -95,7 +116,8 @@ svg {
         width = 600,
         height = 300;
 
-    var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+    // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+    var parseDate = d3.time.format("%Y-%m-%d").parse;
     // Using time range instead of scale to display date and time on axis.
     var x = d3.time.scale().range([0, width]);
     var xAxis = d3.svg.axis().scale(x).orient("bottom");
@@ -118,20 +140,31 @@ svg {
     //     return key == "series";
     // }));
 
-
     data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
         return d;
     });
-
+    //sort data by name
     data = d3.nest().key(function(d) {
-        return d.series;
+        return d.name;
     }).entries(data);
+    //nest data
+    console.log(data);
+    var cities = data.map(function(d){
+    console.log(d);
+    var city = {
+        name: d.key,
+        values: d };
+    return city;
+    });
+    
+    
+
 
     var voronoi = d3.geom.voronoi()
         .x(function(d) {
-            return x(d.date);
+            return x(d.time);
         })
         .y(function(d) {
             return y(d.value);
@@ -227,12 +260,13 @@ svg {
     voronoiGroup.selectAll("path")
         .data(voronoi(d3.nest()
             .key(function(d) {
-                return x(d.date) + "," + y(d.value);
+                return x(d.time) + "," + y(d.value);
             })
             .rollup(function(v) {
                 return v[0];
             })
-            .entries(d3.merge(data.map(function(d) {
+            .entries(d3.merge(
+                data.map(function(d) {
                 return d.values;
             })))
             .map(function(d) {
@@ -255,6 +289,7 @@ svg {
         });
 
     function mouseover(d) {
+        console.log(d.value);
         d3.select(d.city.line).classed("city--hover", true);
         d.city.line.parentNode.appendChild(d.city.line);
         focus.attr("transform", "translate(" + x(d.date) + "," + y(d.value) + ")");
@@ -265,6 +300,7 @@ svg {
         d3.select(d.city.line).classed("city--hover", false);
         focus.attr("transform", "translate(-100,-100)");
     }
+
     </script>
 </body>
 
