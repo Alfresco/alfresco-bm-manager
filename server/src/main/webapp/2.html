@@ -61,7 +61,7 @@ svg {
 
  
     <script>
-    var data = [{
+    var dataori = [{
         "time": "2013-02-21",
         "value": "12.2",
         "name": "Search"
@@ -140,25 +140,27 @@ svg {
     //     return key == "series";
     // }));
 
-    data = data.map(function(d) {
+    dataori = dataori.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
+        d.city = d;
         return d;
     });
     //sort data by name
-    data = d3.nest().key(function(d) {
+    dataori = d3.nest().key(function(d) {
         return d.name;
-    }).entries(data);
+    }).entries(dataori);
     //nest data
-    console.log(data);
-    var cities = data.map(function(d){
+    console.log(dataori);
+    console.log("above is dataori");
+    var data = dataori.map(function(d){
     console.log(d);
     var city = {
         name: d.key,
-        values: d };
+        values: d.values };
     return city;
     });
-    
+    console.log(data);
     
 
 
@@ -243,7 +245,8 @@ svg {
             var res = line(d.values);
             return res
         });
-
+            console.log("cities");
+    console.log(data);
     var focus = svg.append("g")
         .attr("transform", "translate(-100,-100)")
         .attr("class", "focus");
@@ -257,30 +260,30 @@ svg {
     var voronoiGroup = svg.append("g")
         .attr("class", "voronoi");
 
-    voronoiGroup.selectAll("path")
-        .data(voronoi(d3.nest()
-            .key(function(d) {
-                return x(d.time) + "," + y(d.value);
+        voronoiGroup.selectAll("path")
+            .data(voronoi(d3.nest()
+                .key(function(d) {
+                    return x(d.time) + "," + y(d.value);
+                })
+                .rollup(function(v) {
+                    return v[0];
+                })
+                .entries(d3.merge(
+                    data.map(function(d) {
+                    return d.values;
+                })))
+                .map(function(d) {
+                    return d.values;
+                })))
+            .enter().append("path")
+            .attr("d", function(d) {
+                return "M" + d.join("L") + "Z";
             })
-            .rollup(function(v) {
-                return v[0];
+            .datum(function(d) {
+                return d.point;
             })
-            .entries(d3.merge(
-                data.map(function(d) {
-                return d.values;
-            })))
-            .map(function(d) {
-                return d.values;
-            })))
-        .enter().append("path")
-        .attr("d", function(d) {
-            return "M" + d.join("L") + "Z";
-        })
-        .datum(function(d) {
-            return d.point;
-        })
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout);
+            .on("mouseover", mouseover)
+            .on("mouseout", mouseout);
 
     d3.select("#show-voronoi")
         .property("disabled", false)
