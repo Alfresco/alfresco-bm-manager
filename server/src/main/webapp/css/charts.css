@@ -1,105 +1,40 @@
-#pieChart {
-    position:absolute;
-    top:10px;
-    left:10px;
-    width:400px;
-    height: 400px;
+//-------- line chart 
+svg {
+    font: 11px"Helvetica Neue", Helvetica, Arial, sans-serif;
 }
-#lineChart {
-    position:absolute;
-    top:10px;
-    left:410px;
-    height: 150px;
-}
-#barChart {
-    position:absolute;
-    top:160px;
-    left:410px;
-    height: 250px;
-}
-.slice {
-    font-size: 12pt;
-    font-family: Verdana;
-    fill: white;
-    //svg specific - instead of color font-weight: bold;
-}
-/*for line chart*/
- .axis path, .axis line {
+.axis path, .axis line {
     fill: none;
-    stroke: black;
+    stroke: #000;
     shape-rendering: crispEdges;
-    //The shape-rendering property is an SVG attribute, used here to make sure our axis and its tick mark lines are pixel-perfect.
 }
-.line {
+.axis--y path {
+    display: none;
+}
+.cities {
     fill: none;
-    /*stroke: steelblue;*/
-    stroke-width: 3px;
-}
-.dot {
-    /*fill: white;*/
-    /*stroke: steelblue;*/
+    stroke: #aaa;
+    stroke-linejoin: round;
+    stroke-linecap: round;
     stroke-width: 1.5px;
 }
-.axis text {
-    font-family: Verdana;
-    font-size: 11px;
+.event--hover {
+    stroke: #000;
 }
-.title {
-    font-family: Verdana;
-    font-size: 15px;
-}
-.xAxis {
-    font-family: verdana;
-    font-size: 11px;
-    fill: black;
-}
-.yAxis {
-    font-family: verdana;
-    font-size: 11px;
-    fill: white;
-}
-table {
-    border-collapse:collapse;
-    border: 0px;
-    font-family: Verdana;
-    color: #5C5558;
-    font-size: 12px;
-    text-align: right;
-}
-td {
-    padding-left: 10px;
-}
-#lineChartTitle1 {
-    font-family: Verdana;
-    font-size : 14px;
-    fill : lightgrey;
-    font-weight: bold;
+.focus text {
     text-anchor: middle;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 }
-#lineChartTitle2 {
-    font-family: Verdana;
-    font-size : 72px;
-    fill : grey;
-    text-anchor: middle;
-    font-weight: bold;
-    /*font-style: italic;*/
+.voronoi path {
+    fill: none;
+    pointer-events: all;
 }
-//basic demo bars chart. .chart {
-    background: #eee;
-    padding: 3px;
+.voronoi--show path {
+    stroke: red;
+    stroke-opacity: .2;
 }
-.chart div {
-    width: 0;
-    transition: all 1s ease-out;
-    -moz-transition: all 1s ease-out;
-    -webkit-transition: all 1s ease-out;
+#form {
+    position: absolute;
+    top: 20px;
+    right: 30px;
 }
-.chart div {
-    font: 10px sans-serif;
-    background-color: steelblue;
-    text-align: right;
-    padding: 3px;
-    margin: 5px;
-    color: white;
-    box-shadow: 2px 2px 2px #666;
-}
+//---------- line chart end

@@ -177,10 +177,17 @@ d3Benchmark.directive('line', function() {
 
         link: function link(scope, element) {
             var data = scope.data;
-            var margin = {top: 30, right: 40, bottom: 100, left: 50},
-                width = scope.width,
-                height = scope.height;
+            var margin = {
+                top: 30,
+                right: 40,
+                bottom: 100,
+                left: 50
+            },
+                width = 600,
+                height = 300;
+
             var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+            // var parseDate = d3.time.format("%Y-%m-%d").parse;
             // Using time range instead of scale to display date and time on axis.
             var x = d3.time.scale().range([0, width]);
             var xAxis = d3.svg.axis().scale(x).orient("bottom");
@@ -189,40 +196,86 @@ d3Benchmark.directive('line', function() {
             var color = d3.scale.category10();
             var line = d3.svg.line()
                 .interpolate("linear")
-                .x(function(d) { return x(d.time); })
-                .y(function(d) { return y(d.value); });
-
-            //Assign color to each event type
-            color.domain(d3.keys(data[0]).filter(function(key) {
-                return key == "series";
-            }));
-
+                .x(function(d) {
+                    return x(d.time);
+                })
+                .y(function(d) {
+                    return y(d.value);
+                });
 
             data = data.map(function(d) {
                 d.time = parseDate(d.time);
                 d.value = +d.value;
                 return d;
             });
-
+            //nest data by event
             data = d3.nest().key(function(d) {
                 return d.series;
             }).entries(data);
 
-            console.log(data);
+            //rename key property to name
+            data = data.map(function(z) {
+                if (z.hasOwnProperty("key")) {
+                    z.name = z.key;
+                    delete z.key;
+                }
+                return z;
+            })
+            var data = data.map(function(d) {
+                var event = {
+                    name: d.name,
+                    values: null
+                };
+                event.values = d.values.map(function(f) {
+                    return {
+                        "event": event,
+                        "time": f.time,
+                        "value": f.value
+                    };
+                });
+                return event;
+            });
 
-            x.domain([d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.time; }); }),
-            d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.time; }); })]);
-            y.domain([0, d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.value; }); })]);
+            var voronoi = d3.geom.voronoi()
+                .x(function(d) {
+                    return x(d.time);
+                })
+                .y(function(d) {
+                    return y(d.value);
+                })
+                .clipExtent([
+                    [-margin.left, -margin.top],
+                    [width + margin.right, height + margin.bottom]
+                ]);
+
+
+            x.domain([d3.min(data, function(d) {
+                    return d3.min(d.values, function(d) {
+                        return d.time;
+                    });
+                }),
+                d3.max(data, function(d) {
+                    return d3.max(d.values, function(d) {
+                        return d.time;
+                    });
+                })
+            ]);
+            y.domain([0, d3.max(data, function(d) {
+                return d3.max(d.values, function(d) {
+                    return d.value;
+                });
+            })]);
 
             //Angularjs replace html tag
-            var el = element[0];
-            var svg = d3.select(el).append("svg")
+            // var el = element[0];
+            // var svg = d3.select(el).append("svg")
+            var svg = d3.select("body").append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             //paint xaxis and rotate label to 65 degrees
-            
+
 
             svg.append("g")
                 .attr("class", "x axis")
@@ -232,16 +285,15 @@ d3Benchmark.directive('line', function() {
                 .style("text-anchor", "end")
                 .attr("dx", "-.8em")
                 .attr("dy", ".15em")
-                
-                .attr("transform", function(d) {
-                    return "rotate(-65)"
-                })
+
+            .attr("transform", function(d) {
+                return "rotate(-65)"
+            })
                 .append("text")
-                .attr("y", margin.bottom/1.5)
-                .attr("x",width/2)
-                .text("Date Taken");
-                ;
-            
+                .attr("y", margin.bottom / 1.5)
+                .attr("x", width / 2)
+                .text("Date Taken");;
+
 
             svg.append("g")
                 .attr("class", "y axis")
@@ -254,22 +306,72 @@ d3Benchmark.directive('line', function() {
                 .style("text-anchor", "middle")
                 .text("Y");
 
-            var parameter = svg.selectAll(".parameter")
-                .data(data, function(d) {
-                    return d.key;
-                })
-                .enter().append("g")
-                .attr("class", "parameter");
-
-            parameter.append("path")
-                .attr("class", "line")
-                .attr("d", function(d) {
-                    return line(d.values);
-                })
-                .style("stroke", function(d) {
-                    return color(d.key);
+            svg.append("g")
+                .attr("class", "cities")
+                .selectAll("path")
+                .data(data)
+                .enter().append("path")
+                .attr("d", function(ci) {
+                    ci.line = this;
+                    var res = line(ci.values);
+                    return res
                 });
-        }
 
+            var focus = svg.append("g")
+                .attr("transform", "translate(-100,-100)")
+                .attr("class", "focus");
+
+            focus.append("circle")
+                .attr("r", 3.5);
+
+            focus.append("text")
+                .attr("y", -10);
+
+            var voronoiGroup = svg.append("g")
+                .attr("class", "voronoi");
+
+            voronoiGroup.selectAll("path")
+                .data(voronoi(d3.nest()
+                    .key(function(d) {
+                        return x(d.time) + "," + y(d.value);
+                    })
+                    .rollup(function(v) {
+                        return v[0];
+                    })
+                    .entries(d3.merge(
+                        data.map(function(d) {
+                            return d.values;
+                        })))
+                    .map(function(d) {
+                        return d.values;
+                    })))
+                .enter().append("path")
+                .attr("d", function(d) {
+                    return "M" + d.join("L") + "Z";
+                })
+                .datum(function(d) {
+                    return d.point;
+                })
+                .on("mouseover", mouseover)
+                .on("mouseout", mouseout);
+
+            d3.select("#show-voronoi")
+                .property("disabled", false)
+                .on("change", function() {
+                    voronoiGroup.classed("voronoi--show", this.checked);
+                });
+
+            function mouseover(d) {
+                d3.select(d.event.line).classed("event--hover", true);
+                d.event.line.parentNode.appendChild(d.event.line);
+                focus.attr("transform", "translate(" + x(d.time) + "," + y(d.value) + ")");
+                focus.select("text").text(d.event.name);
+            }
+
+            function mouseout(d) {
+                d3.select(d.event.line).classed("event--hover", false);
+                focus.attr("transform", "translate(-100,-100)");
+            }
+        }
     }
 });

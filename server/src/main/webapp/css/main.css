@@ -81,18 +81,7 @@ donut-chart {
     color: white;
     box-shadow: 2px 2px 2px #666;
 }
-//-------- line chart 
-.axis text {
-  font: 10px sans-serif;
-}
 
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-//---------- 
 .progress-meter .background {
     fill: #ccc;
 }
