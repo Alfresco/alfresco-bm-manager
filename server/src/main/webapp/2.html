@@ -61,7 +61,7 @@ svg {
 
  
     <script>
-    var response = [{
+    var data = [{
         "time": "2013-02-21",
         "value": "12.2",
         "name": "Search"
@@ -154,25 +154,25 @@ svg {
             return y(d.value);
         });
 
-    response = response.map(function(d) {
+    data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
         return d;
     });
     //nest data by event
-    response = d3.nest().key(function(d) {
+    data = d3.nest().key(function(d) {
         return d.name;
-    }).entries(response);
+    }).entries(data);
     
     //rename key property to name
-    response = response.map(function(z){
+    data = data.map(function(z){
         if(z.hasOwnProperty("key")){
             z.name = z.key;
             delete z.key;
         }
         return z;
     })
-    var data = response.map(function(d){
+    var data = data.map(function(d){
         var event = {
             name: d.name,
             values: null
