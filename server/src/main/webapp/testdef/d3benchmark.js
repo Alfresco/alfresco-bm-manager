@@ -267,9 +267,9 @@ d3Benchmark.directive('line', function() {
             })]);
 
             //Angularjs replace html tag
-            // var el = element[0];
-            // var svg = d3.select(el).append("svg")
-            var svg = d3.select("body").append("svg")
+            var el = element[0];
+            var svg = d3.select(el).append("svg")
+            // var svg = d3.select("body").append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
