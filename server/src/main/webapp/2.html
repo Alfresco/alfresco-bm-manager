@@ -27,7 +27,7 @@ svg {
     stroke-linecap: round;
     stroke-width: 1.5px;
 }
-.city--hover {
+.event--hover {
     stroke: #000;
 }
 .focus text {
@@ -154,25 +154,17 @@ svg {
             return y(d.value);
         });
 
-
-
-    //Assign color to each event type
-    // color.domain(d3.keys(data[0]).filter(function(key) {
-    //     return key == "series";
-    // }));
-
     response = response.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
         return d;
     });
-    //List of dates
+    //nest data by event
     response = d3.nest().key(function(d) {
         return d.name;
     }).entries(response);
-    //nest data
     
-    //rename key to name
+    //rename key property to name
     response = response.map(function(z){
         if(z.hasOwnProperty("key")){
             z.name = z.key;
@@ -180,24 +172,20 @@ svg {
         }
         return z;
     })
-
-    console.log(response);
     var data = response.map(function(d){
-        var city = {
+        var event = {
             name: d.name,
             values: null
         };
-        city.values = d.values.map(function(f){
+        event.values = d.values.map(function(f){
             return {
-                "city":city,
+                "event":event,
                 "time":f.time, 
                 "value" : f.value 
             };
         });
-        return city;
+        return event;
     });
-    console.log("======");
-    console.log(data);
 
     var voronoi = d3.geom.voronoi()
         .x(function(d) {
@@ -269,8 +257,6 @@ svg {
         .style("text-anchor", "middle")
         .text("Y");
 
-    console.log("ci");
-    console.log(data);
     svg.append("g")
         .attr("class", "cities")
         .selectAll("path")
@@ -281,8 +267,7 @@ svg {
             var res = line(ci.values);
             return res
         });
-    console.log("cities after");
-    console.log(data);
+
     var focus = svg.append("g")
         .attr("transform", "translate(-100,-100)")
         .attr("class", "focus");
@@ -328,15 +313,14 @@ svg {
         });
 
     function mouseover(d) {
-        console.log(d);
-        d3.select(d.city.line).classed("city--hover", true);
-        d.city.line.parentNode.appendChild(d.city.line);
+        d3.select(d.event.line).classed("event--hover", true);
+        d.event.line.parentNode.appendChild(d.event.line);
         focus.attr("transform", "translate(" + x(d.time) + "," + y(d.value) + ")");
-        focus.select("text").text(d.city.name);
+        focus.select("text").text(d.event.name);
     }
 
     function mouseout(d) {
-        d3.select(d.city.line).classed("city--hover", false);
+        d3.select(d.event.line).classed("event--hover", false);
         focus.attr("transform", "translate(-100,-100)");
     }
 
