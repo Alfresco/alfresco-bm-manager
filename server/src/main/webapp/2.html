@@ -61,7 +61,7 @@ svg {
 
  
     <script>
-    var dataori = [{
+    var response = [{
         "time": "2013-02-21",
         "value": "12.2",
         "name": "Search"
@@ -103,8 +103,29 @@ svg {
         "time": "2013-02-30",
         "value": "3.1",
         "name": "Navigate"
+    } , 
+    //
+       {
+        "time": "2013-02-22",
+        "value": "3",
+        "name": "Find People"
+    }, {
+        "time": "2013-02-23",
+        "value":"2",
+        "name": "Find People"
+    }, {
+        "time": "2013-02-28",
+        "value":"1",
+        "name": "Find People"
+    }, {
+        "time": "2013-02-29",
+        "value":"1",
+        "name": "Find People"
+    },{
+        "time": "2013-02-30",
+        "value": "1",
+        "name": "Find People"
     }  
-    
     ];
 
     var margin = {
@@ -140,29 +161,43 @@ svg {
     //     return key == "series";
     // }));
 
-    dataori = dataori.map(function(d) {
+    response = response.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
-        d.city = d;
         return d;
     });
-    //sort data by name
-    dataori = d3.nest().key(function(d) {
+    //List of dates
+    response = d3.nest().key(function(d) {
         return d.name;
-    }).entries(dataori);
+    }).entries(response);
     //nest data
-    console.log(dataori);
-    console.log("above is dataori");
-    var data = dataori.map(function(d){
-    console.log(d);
-    var city = {
-        name: d.key,
-        values: d.values };
-    return city;
-    });
-    console.log(data);
     
+    //rename key to name
+    response = response.map(function(z){
+        if(z.hasOwnProperty("key")){
+            z.name = z.key;
+            delete z.key;
+        }
+        return z;
+    })
 
+    console.log(response);
+    var data = response.map(function(d){
+        var city = {
+            name: d.name,
+            values: null
+        };
+        city.values = d.values.map(function(f){
+            return {
+                "city":city,
+                "time":f.time, 
+                "value" : f.value 
+            };
+        });
+        return city;
+    });
+    console.log("======");
+    console.log(data);
 
     var voronoi = d3.geom.voronoi()
         .x(function(d) {
@@ -234,18 +269,19 @@ svg {
         .style("text-anchor", "middle")
         .text("Y");
 
-
+    console.log("ci");
+    console.log(data);
     svg.append("g")
         .attr("class", "cities")
         .selectAll("path")
         .data(data)
         .enter().append("path")
-        .attr("d", function(d) {
-            d.line = this;
-            var res = line(d.values);
+        .attr("d", function(ci) {
+            ci.line = this;
+            var res = line(ci.values);
             return res
         });
-            console.log("cities");
+    console.log("cities after");
     console.log(data);
     var focus = svg.append("g")
         .attr("transform", "translate(-100,-100)")
@@ -292,10 +328,10 @@ svg {
         });
 
     function mouseover(d) {
-        console.log(d.value);
+        console.log(d);
         d3.select(d.city.line).classed("city--hover", true);
         d.city.line.parentNode.appendChild(d.city.line);
-        focus.attr("transform", "translate(" + x(d.date) + "," + y(d.value) + ")");
+        focus.attr("transform", "translate(" + x(d.time) + "," + y(d.value) + ")");
         focus.select("text").text(d.city.name);
     }
 
