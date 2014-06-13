@@ -307,7 +307,7 @@ d3Benchmark.directive('line', function() {
                 .text("Y");
 
             svg.append("g")
-                .attr("class", "cities")
+                .attr("class", "events")
                 .selectAll("path")
                 .data(data)
                 .enter().append("path")

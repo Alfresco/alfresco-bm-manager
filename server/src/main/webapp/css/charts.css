@@ -10,7 +10,7 @@ svg {
 .axis--y path {
     display: none;
 }
-.cities {
+.events {
     fill: none;
     stroke: #aaa;
     stroke-linejoin: round;
