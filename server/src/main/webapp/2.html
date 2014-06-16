@@ -48,10 +48,7 @@ svg {
     top: 20px;
     right: 30px;
 }
-.area {
-  fill: steelblue;
-  clip-path: url(#clip);
-}
+
 </style>
 <script src="d3.js"></script>
 
@@ -137,7 +134,7 @@ svg {
             "name": "Search"
         }, {
             "time": "2014-02-22",
-            "value": "12.",
+            "value": "12",
             "name": "Search"
         }, {
             "time": "2014-02-23",
@@ -145,17 +142,22 @@ svg {
             "name": "Search"
         }, {
             "time": "2014-02-24",
-            "value": "12",
+            "value": "15",
             "name": "Search"
         }, {
-            "time": "2014-02-25",
+            "time": "2014-04-25",
             "value": "15.1",
             "name": "Search"
         },
         //
         {
+            "time": "2015-02-20",
+            "value": "1.8",
+            "name": "Navigate"
+        },
+        {
             "time": "2015-02-22",
-            "value": "1.2",
+            "value": "3.2",
             "name": "Navigate"
         }, {
             "time": "2016-02-23",
@@ -163,21 +165,22 @@ svg {
             "name": "Navigate"
         }
     ];
-var margin = {top: 10, right: 10, bottom: 100, left: 40},
-    margin2 = {top: 430, right: 10, bottom: 30, left: 0},
+
+    var margin = {top: 20, right: 80, bottom: 110, left: 40},
+    mini_margin = {top: 430, right: 80, bottom: 40, left: 10},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
-    height2 = 500 - margin2.top - margin2.bottom;
+    mini_height = 500 - mini_margin.top - mini_margin.bottom;
 
     // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
     var parseDate = d3.time.format("%Y-%m-%d").parse;
     // Using time range instead of scale to display date and time on axis.
     var x = d3.time.scale().range([0, width]),
-        x2 = d3.time.scale().range([0, width]),
+        mini_x = d3.time.scale().range([0, width]),
         xAxis = d3.svg.axis().scale(x).orient("bottom"),
-        xAxis2 = d3.svg.axis().scale(x2).orient("bottom"),
+        xAxis2 = d3.svg.axis().scale(mini_x).orient("bottom"),
         y = d3.scale.linear().range([height, 0]),
-        y2 = d3.scale.linear().range([height2, 0])
+        mini_y = d3.scale.linear().range([mini_height, 0])
         yAxis = d3.svg.axis().scale(y).orient("left"),
         color = d3.scale.category10(),
         line = d3.svg.line()
@@ -189,7 +192,7 @@ var margin = {top: 10, right: 10, bottom: 100, left: 40},
                 return y(d.value);
             }),
         brush = d3.svg.brush()
-            .x(x2)
+            .x(mini_x)
             .on("brush", brushed);
 
     var area = d3.svg.area()
@@ -205,7 +208,7 @@ var margin = {top: 10, right: 10, bottom: 100, left: 40},
     var area2 = d3.svg.area()
         .interpolate("monotone")
         .x(function(d) {
-            return x2(d.time);
+            return mini_x(d.time);
         })
     data = data.map(function(d) {
         d.time = parseDate(d.time);
@@ -270,8 +273,8 @@ var margin = {top: 10, right: 10, bottom: 100, left: 40},
         });
     })]);
 
-    x2.domain(x.domain());
-    y2.domain(y.domain());
+    mini_x.domain(x.domain());
+    mini_y.domain(y.domain());
 
     //Angularjs replace html tag
     // var el = element[0];
@@ -366,7 +369,8 @@ var margin = {top: 10, right: 10, bottom: 100, left: 40},
     //Zoom brush
     var context = svg.append("g")
         .attr("class", "context")
-        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+        .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")");
+    
     context.append("path")
         .datum(data)
         .attr("class", "area")
@@ -374,7 +378,7 @@ var margin = {top: 10, right: 10, bottom: 100, left: 40},
 
     context.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + height2 + ")")
+        .attr("transform", "translate(0," + mini_height + ")")
         .call(xAxis2);
 
     context.append("g")
@@ -382,7 +386,7 @@ var margin = {top: 10, right: 10, bottom: 100, left: 40},
         .call(brush)
         .selectAll("rect")
         .attr("y", -6)
-        .attr("height", height2 + 7);
+        .attr("height", mini_height + 7);
 
     d3.select("#show-voronoi")
         .property("disabled", false)
@@ -403,7 +407,7 @@ var margin = {top: 10, right: 10, bottom: 100, left: 40},
     }
 
     function brushed() {
-        x.domain(brush.empty() ? x2.domain() : brush.extent());
+        x.domain(brush.empty() ? mini_x.domain() : brush.extent());
         focus.select(".area").attr("d", area);
         focus.select(".x.axis").call(xAxis);
     }
