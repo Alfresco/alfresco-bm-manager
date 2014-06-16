@@ -1,7 +1,8 @@
 <html>
+
 <head>
-  <meta charset="UTF-8">
-  <meta content="utf-8" http-equiv="encoding">  
+    <meta charset="UTF-8">
+    <meta content="utf-8" http-equiv="encoding">
 </head>
 <style>
 body {
@@ -47,113 +48,165 @@ svg {
     top: 20px;
     right: 30px;
 }
+.area {
+  fill: steelblue;
+  clip-path: url(#clip);
+}
 </style>
-   <script src="d3.js"></script>
+<script src="d3.js"></script>
+
 <body>
-<label id="form" for="show-voronoi">
-    Show Voronoi
-    <input type="checkbox" id="show-voronoi" disabled>
-</label>
+    <label id="form" for="show-voronoi">
+        Show Voronoi
+        <input type="checkbox" id="show-voronoi" disabled>
+    </label>
     <section id="graph">
         <section id="historic"></section>
     </section>
 
 
- 
+
     <script>
     var data = [{
-        "time": "2013-02-21",
-        "value": "12.2",
-        "name": "Search"
-    }, {
-        "time": "2013-02-22",
-        "value": "12.",
-        "name": "Search"
-    }, {
-        "time": "2013-02-23",
-        "value": "13",
-        "name": "Search"
-    }, {
-        "time": "2013-02-24",
-        "value": "12",
-        "name": "Search"
-    },{
-        "time": "2013-02-25",
-        "value": "15.1",
-        "name": "Search"
-    },
-    //
-    {
-        "time": "2013-02-22",
-        "value": "1.2",
-        "name": "Navigate"
-    }, {
-        "time": "2013-02-23",
-        "value": "5",
-        "name": "Navigate"
-    }, {
-        "time": "2013-02-28",
-        "value": "3",
-        "name": "Navigate"
-    }, {
-        "time": "2013-02-29",
-        "value": "5",
-        "name": "Navigate"
-    },{
-        "time": "2013-02-30",
-        "value": "3.1",
-        "name": "Navigate"
-    } , 
-    //
-       {
-        "time": "2013-02-22",
-        "value": "3",
-        "name": "Find People"
-    }, {
-        "time": "2013-02-23",
-        "value":"2",
-        "name": "Find People"
-    }, {
-        "time": "2013-02-28",
-        "value":"1",
-        "name": "Find People"
-    }, {
-        "time": "2013-02-29",
-        "value":"1",
-        "name": "Find People"
-    },{
-        "time": "2013-02-30",
-        "value": "1",
-        "name": "Find People"
-    }  
+            "time": "2013-02-21",
+            "value": "12.2",
+            "name": "Search"
+        }, {
+            "time": "2013-02-22",
+            "value": "12.",
+            "name": "Search"
+        }, {
+            "time": "2013-02-23",
+            "value": "13",
+            "name": "Search"
+        }, {
+            "time": "2013-02-24",
+            "value": "12",
+            "name": "Search"
+        }, {
+            "time": "2013-02-25",
+            "value": "15.1",
+            "name": "Search"
+        },
+        //
+        {
+            "time": "2013-02-22",
+            "value": "1.2",
+            "name": "Navigate"
+        }, {
+            "time": "2013-02-23",
+            "value": "5",
+            "name": "Navigate"
+        }, {
+            "time": "2013-02-28",
+            "value": "3",
+            "name": "Navigate"
+        }, {
+            "time": "2013-02-29",
+            "value": "5",
+            "name": "Navigate"
+        }, {
+            "time": "2013-02-30",
+            "value": "3.1",
+            "name": "Navigate"
+        },
+        //
+        {
+            "time": "2013-02-22",
+            "value": "3",
+            "name": "Find People"
+        }, {
+            "time": "2013-02-23",
+            "value": "2",
+            "name": "Find People"
+        }, {
+            "time": "2013-02-28",
+            "value": "1",
+            "name": "Find People"
+        }, {
+            "time": "2013-02-29",
+            "value": "1",
+            "name": "Find People"
+        }, {
+            "time": "2013-02-30",
+            "value": "1",
+            "name": "Find People"
+        },{
+            "time": "2014-02-21",
+            "value": "12.2",
+            "name": "Search"
+        }, {
+            "time": "2014-02-22",
+            "value": "12.",
+            "name": "Search"
+        }, {
+            "time": "2014-02-23",
+            "value": "13",
+            "name": "Search"
+        }, {
+            "time": "2014-02-24",
+            "value": "12",
+            "name": "Search"
+        }, {
+            "time": "2014-02-25",
+            "value": "15.1",
+            "name": "Search"
+        },
+        //
+        {
+            "time": "2015-02-22",
+            "value": "1.2",
+            "name": "Navigate"
+        }, {
+            "time": "2016-02-23",
+            "value": "5",
+            "name": "Navigate"
+        }
     ];
-
-    var margin = {
-        top: 30,
-        right: 40,
-        bottom: 100,
-        left: 50
-    },
-        width = 600,
-        height = 300;
+var margin = {top: 10, right: 10, bottom: 100, left: 40},
+    margin2 = {top: 430, right: 10, bottom: 30, left: 0},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom,
+    height2 = 500 - margin2.top - margin2.bottom;
 
     // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
     var parseDate = d3.time.format("%Y-%m-%d").parse;
     // Using time range instead of scale to display date and time on axis.
-    var x = d3.time.scale().range([0, width]);
-    var xAxis = d3.svg.axis().scale(x).orient("bottom");
-    var y = d3.scale.linear().range([height, 0]);
-    var yAxis = d3.svg.axis().scale(y).orient("left");
-    var color = d3.scale.category10();
-    var line = d3.svg.line()
-        .interpolate("linear")
+    var x = d3.time.scale().range([0, width]),
+        x2 = d3.time.scale().range([0, width]),
+        xAxis = d3.svg.axis().scale(x).orient("bottom"),
+        xAxis2 = d3.svg.axis().scale(x2).orient("bottom"),
+        y = d3.scale.linear().range([height, 0]),
+        y2 = d3.scale.linear().range([height2, 0])
+        yAxis = d3.svg.axis().scale(y).orient("left"),
+        color = d3.scale.category10(),
+        line = d3.svg.line()
+            .interpolate("linear")
+            .x(function(d) {
+                return x(d.time);
+            })
+            .y(function(d) {
+                return y(d.value);
+            }),
+        brush = d3.svg.brush()
+            .x(x2)
+            .on("brush", brushed);
+
+    var area = d3.svg.area()
+        .interpolate("monotone")
         .x(function(d) {
             return x(d.time);
         })
-        .y(function(d) {
+        .y0(height)
+        .y1(function(d) {
             return y(d.value);
         });
 
+    var area2 = d3.svg.area()
+        .interpolate("monotone")
+        .x(function(d) {
+            return x2(d.time);
+        })
     data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
@@ -163,25 +216,25 @@ svg {
     data = d3.nest().key(function(d) {
         return d.name;
     }).entries(data);
-    
+
     //rename key property to name
-    data = data.map(function(z){
-        if(z.hasOwnProperty("key")){
+    data = data.map(function(z) {
+        if (z.hasOwnProperty("key")) {
             z.name = z.key;
             delete z.key;
         }
         return z;
     })
-    var data = data.map(function(d){
+    var data = data.map(function(d) {
         var event = {
             name: d.name,
             values: null
         };
-        event.values = d.values.map(function(f){
+        event.values = d.values.map(function(f) {
             return {
-                "event":event,
-                "time":f.time, 
-                "value" : f.value 
+                "event": event,
+                "time": f.time,
+                "value": f.value
             };
         });
         return event;
@@ -216,6 +269,9 @@ svg {
             return d.value;
         });
     })]);
+
+    x2.domain(x.domain());
+    y2.domain(y.domain());
 
     //Angularjs replace html tag
     // var el = element[0];
@@ -257,6 +313,7 @@ svg {
         .style("text-anchor", "middle")
         .text("Y");
 
+
     svg.append("g")
         .attr("class", "cities")
         .selectAll("path")
@@ -281,30 +338,51 @@ svg {
     var voronoiGroup = svg.append("g")
         .attr("class", "voronoi");
 
-        voronoiGroup.selectAll("path")
-            .data(voronoi(d3.nest()
-                .key(function(d) {
-                    return x(d.time) + "," + y(d.value);
-                })
-                .rollup(function(v) {
-                    return v[0];
-                })
-                .entries(d3.merge(
-                    data.map(function(d) {
+    voronoiGroup.selectAll("path")
+        .data(voronoi(d3.nest()
+            .key(function(d) {
+                return x(d.time) + "," + y(d.value);
+            })
+            .rollup(function(v) {
+                return v[0];
+            })
+            .entries(d3.merge(
+                data.map(function(d) {
                     return d.values;
                 })))
-                .map(function(d) {
-                    return d.values;
-                })))
-            .enter().append("path")
-            .attr("d", function(d) {
-                return "M" + d.join("L") + "Z";
-            })
-            .datum(function(d) {
-                return d.point;
-            })
-            .on("mouseover", mouseover)
-            .on("mouseout", mouseout);
+            .map(function(d) {
+                return d.values;
+            })))
+        .enter().append("path")
+        .attr("d", function(d) {
+            return "M" + d.join("L") + "Z";
+        })
+        .datum(function(d) {
+            return d.point;
+        })
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout);
+
+    //Zoom brush
+    var context = svg.append("g")
+        .attr("class", "context")
+        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+    context.append("path")
+        .datum(data)
+        .attr("class", "area")
+        .attr("d", area2);
+
+    context.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height2 + ")")
+        .call(xAxis2);
+
+    context.append("g")
+        .attr("class", "x brush")
+        .call(brush)
+        .selectAll("rect")
+        .attr("y", -6)
+        .attr("height", height2 + 7);
 
     d3.select("#show-voronoi")
         .property("disabled", false)
@@ -324,6 +402,11 @@ svg {
         focus.attr("transform", "translate(-100,-100)");
     }
 
+    function brushed() {
+        x.domain(brush.empty() ? x2.domain() : brush.extent());
+        focus.select(".area").attr("d", area);
+        focus.select(".x.axis").call(xAxis);
+    }
     </script>
 </body>
 
