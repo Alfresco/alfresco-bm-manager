@@ -61,14 +61,14 @@ public class UnknownCompletionEstimatorTest
         Mockito.verify(resultService, Mockito.times(1)).countResults();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(0)).count();
+        Mockito.verify(eventService, Mockito.times(1)).count();
 
         // Make sure that we cache correctly
         estimator.getCompletion();
         Mockito.verify(resultService, Mockito.times(1)).countResults();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(0)).count();
+        Mockito.verify(eventService, Mockito.times(1)).count();
     }
     
     @Test
@@ -82,14 +82,14 @@ public class UnknownCompletionEstimatorTest
         Mockito.verify(resultService, Mockito.times(1)).countResults();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(2)).count();
 
         // Make sure that we cache correctly
         estimator.getCompletion();
         Mockito.verify(resultService, Mockito.times(1)).countResults();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(2)).count();
     }
     
     @Test
