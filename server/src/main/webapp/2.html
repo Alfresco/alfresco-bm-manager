@@ -195,6 +195,17 @@ svg {
             .x(mini_x)
             .on("brush", brushed);
 
+    var area = d3.svg.area()
+        .interpolate("monotone")
+        .x(function(d) {
+            return x(d.time);
+        })
+        .y0(height)
+        .y1(function(d) {
+            return y(d.value);
+        });
+
+    
     data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
@@ -356,10 +367,10 @@ svg {
         .attr("class", "context")
         .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")");
     
-    context.append("path")
-        .datum(data)
-        .attr("class", "area")
-        .attr("d", area2);
+    // context.append("path")
+    //     .datum(data)
+    //     .attr("class", "area")
+    //     .attr("d", area2);
 
     context.append("g")
         .attr("class", "x axis")
