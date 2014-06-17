@@ -65,23 +65,6 @@ public class UserDataAutheticationDetailsProvider implements AuthenticationDetai
     }
 
     @Override
-    public String getTicketForUser(String userName)
-    {
-        UserData user = userDataService.findUserByUsername(userName);
-        if(user != null)
-        {
-            return user.getTicket();
-        }
-        return null;
-    }
-
-    @Override
-    public void updateTicketForUser(String username, String ticket) throws IllegalArgumentException
-    {
-        userDataService.setUserTicket(username, ticket);
-    }
-
-    @Override
     public String getAdminUsername()
     {
         return this.adminUserName;

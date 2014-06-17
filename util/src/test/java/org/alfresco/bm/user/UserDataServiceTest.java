@@ -218,25 +218,7 @@ public class UserDataServiceTest
         }
         try
         {
-            userDataService.setUserNodeId("Fred", "abc-123");
-            Assert.fail("Missing username not detected.");
-        }
-        catch (RuntimeException e)
-        {
-            // Expected
-        }
-        try
-        {
             userDataService.setUserPassword("Joe", "pwd");
-            Assert.fail("Missing username not detected.");
-        }
-        catch (RuntimeException e)
-        {
-            // Expected
-        }
-        try
-        {
-            userDataService.setUserTicket("Jackie", "fjwelfiwsifihhf883");
             Assert.fail("Missing username not detected.");
         }
         catch (RuntimeException e)

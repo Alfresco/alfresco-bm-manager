@@ -56,8 +56,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     public static final String FIELD_LAST_NAME = "lastName";
     public static final String FIELD_EMAIL = "email";
     public static final String FIELD_DOMAIN = "domain";
-    public static final String FIELD_TICKET = "ticket";
-    public static final String FIELD_NODE_ID = "nodeId";
 
     public static final String FIELD_ID = "id";
     public static final String FIELD_KEY = "key";
@@ -182,9 +180,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .add(FIELD_LAST_NAME, data.getLastName())
                 .add(FIELD_EMAIL, data.getEmail())
                 .add(FIELD_DOMAIN, data.getDomain());
-        insertObjBuilder
-                .add(FIELD_TICKET, data.getTicket())
-                .add(FIELD_NODE_ID, data.getNodeId());
         DBObject insertObj = insertObjBuilder.get();
         
         try
@@ -209,31 +204,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
      * {@inheritDoc}
      */
     @Override
-    public void setUserTicket(String username, String ticket)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_USERNAME, username)
-                .get();
-        DBObject updateObj = BasicDBObjectBuilder.start()
-                .push("$set")
-                    .add(FIELD_TICKET, ticket)
-                .pop()
-                .get();
-        WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() != 1)
-        {
-            throw new RuntimeException(
-                    "Failed to update user ticket: \n" +
-                    "   Username: " + username + "\n" +
-                    "   Ticket:   " + ticket + "\n" +
-                    "   Result:   " + result);
-        }
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void setUserPassword(String username, String password)
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
@@ -251,31 +221,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                     "Failed to update user ticket: \n" +
                     "   Username: " + username + "\n" +
                     "   Password: " + password + "\n" +
-                    "   Result:   " + result);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setUserNodeId(String username, String nodeId)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_USERNAME, username)
-                .get();
-        DBObject updateObj = BasicDBObjectBuilder.start()
-                .push("$set")
-                    .add(FIELD_NODE_ID, nodeId)
-                .pop()
-                .get();
-        WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() != 1)
-        {
-            throw new RuntimeException(
-                    "Failed to update user ticket: \n" +
-                    "   Username: " + username + "\n" +
-                    "   NodeId:   " + nodeId + "\n" +
                     "   Result:   " + result);
         }
     }

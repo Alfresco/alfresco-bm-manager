@@ -34,19 +34,9 @@ public interface UserDataService
     public void createNewUser(UserData data);
 
     /**
-     * Store an authentication token (ticket) against a username
-     */
-    public void setUserTicket(String username, String ticket);
-    
-    /**
      * Update a user's password
      */
     public void setUserPassword(String username, String password);
-
-    /**
-     * Store a node ID associated with the username
-     */
-    public void setUserNodeId(String username, String nodeId);
 
     /**
      * Change the 'created' state of the user i.e. whether the user exists on the server or not

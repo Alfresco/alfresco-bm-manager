@@ -329,9 +329,7 @@ public class PrepareUsers extends AbstractEventProcessor
                 user.setEmail(email);
                 user.setFirstName(firstName);
                 user.setLastName(lastName);
-                user.setNodeId(null);
                 user.setPassword(password);
-                user.setTicket(null);
                 user.setUsername(username);
                 // Check if the user must be assumed to exist
                 if (assumeCreated)

@@ -54,8 +54,6 @@ public class UserData implements Serializable
     private String lastName;
     private String email;
     private String domain;
-    private String ticket;
-    private String nodeId;
     
     public UserData()
     {
@@ -139,24 +137,6 @@ public class UserData implements Serializable
         this.domain = domain;
     }
     
-    public String getTicket()
-    {
-        return ticket;
-    }
-    public void setTicket(String ticket)
-    {
-        this.ticket = ticket;
-    }
-
-    public String getNodeId()
-    {
-        return nodeId;
-    }
-    public void setNodeId(String nodeId)
-    {
-        this.nodeId = nodeId;
-    }
-
     @Override
     public String toString()
     {
