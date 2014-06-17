@@ -79,17 +79,33 @@ public abstract class AbstractCompletionEstimator implements CompletionEstimator
             // We checked quite recently
             return;
         }
+        // Keep track of the last completion
+        double lastCompletion = this.completion;
+        
         this.lastCheck = now;
         this.resultsSuccess = getResultsSuccessImpl();
         this.resultsFail = getResultsFailImpl();
         this.completion = getCompletionImpl();
+        
         // Double check when  the completion reaches 1.0
         if (completion >= 1.0)
         {
-            if (eventService.count() > 0)
+            long eventCount = eventService.count();
+            if (eventCount > 0L)
             {
                 // There is still stuff going on
                 completion = 0.99;              // No complete ... hopefully soon, though.
+            }
+        }
+        else if (lastCompletion >= this.completion)
+        {
+            long eventCount = eventService.count();
+            boolean haveResults = resultsSuccess > 0L || resultsFail > 0L;
+            // We have not advanced.  Check against the event count
+            if (eventCount == 0L && haveResults)
+            {
+                // We're done
+                completion = 1.0;
             }
         }
     }

@@ -65,7 +65,7 @@ public class EventCountCompletionEstimatorTest
         Assert.assertTrue("Completion was: " + completion, completion <= 0.0);
         Assert.assertEquals(0L, estimator.getResultsSuccess());
         Assert.assertEquals(0L, estimator.getResultsFail());
-        Mockito.verify(eventService, Mockito.times(0)).count();
+        Mockito.verify(eventService, Mockito.times(1)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -74,7 +74,7 @@ public class EventCountCompletionEstimatorTest
         estimator.getCompletion();
         estimator.getResultsSuccess();
         estimator.getResultsFail();
-        Mockito.verify(eventService, Mockito.times(0)).count();
+        Mockito.verify(eventService, Mockito.times(1)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -143,6 +143,32 @@ public class EventCountCompletionEstimatorTest
         Assert.assertTrue("Completion was: " + completion, completion >= 1.0);
         Assert.assertEquals(109L, estimator.getResultsSuccess());
         Assert.assertEquals(91L, estimator.getResultsFail());
+        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
+        Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
+        Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
+
+        // Make sure that we cache correctly
+        estimator.getCompletion();
+        estimator.getResultsSuccess();
+        estimator.getResultsFail();
+        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
+        Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
+        Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
+    }
+    
+    @Test
+    public void testDoneWithoutTotalReached() throws Exception
+    {
+        Mockito.when(eventService.count()).thenReturn(0L);                                      //  no other event
+        Mockito.when(resultService.countResultsBySuccess()).thenReturn(1L);                     //  1 successful results
+        Mockito.when(resultService.countResultsByFailure()).thenReturn(0L);                     //  0 failed results
+        Mockito.when(resultService.countResultsByEventName(EVENT)).thenReturn(0L);              //  2 specific results
+        double completion = estimator.getCompletion();
+        Assert.assertTrue("Completion was: " + completion, completion >= 1.0);
+        Assert.assertEquals(1L, estimator.getResultsSuccess());
+        Assert.assertEquals(0L, estimator.getResultsFail());
         Mockito.verify(eventService, Mockito.times(1)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
