@@ -141,4 +141,39 @@ public class UserEventHandlingTest
         result = checkUsers.processEvent(event);
         Assert.assertEquals("Found 1 created users.  Minimum was 1.", result.getData().toString());
     }
+    
+    @Test
+    public void createUsers() throws Exception
+    {
+        PrepareUsers prep = new PrepareUsers(userDataService, 200);
+        prep.setUsersPerDomain(20);
+        prep.setDomainPattern("[emailDomain]");
+        
+        Event event = new Event("X", null);
+        EventResult result = prep.processEvent(event);
+        Assert.assertTrue(result.getData().toString().contains("200"));
+        
+        // Now schedule in batches of 99
+        CreateUsers create = new CreateUsers(userDataService, 200);
+        create.setBatchSize(99);
+
+        result = create.processEvent(event);
+        Assert.assertEquals(100, result.getNextEvents().size());
+        Assert.assertEquals(CreateUsers.EVENT_NAME_CREATE_USER, result.getNextEvents().get(98).getName());
+        Assert.assertEquals(CreateUsers.EVENT_NAME_CREATE_USERS, result.getNextEvents().get(99).getName());
+
+        result = create.processEvent(event);
+        Assert.assertEquals(100, result.getNextEvents().size());
+        Assert.assertEquals(CreateUsers.EVENT_NAME_CREATE_USER, result.getNextEvents().get(98).getName());
+        Assert.assertEquals(CreateUsers.EVENT_NAME_CREATE_USERS, result.getNextEvents().get(99).getName());
+
+        result = create.processEvent(event);
+        Assert.assertEquals(3, result.getNextEvents().size());
+        Assert.assertEquals(CreateUsers.EVENT_NAME_CREATE_USER, result.getNextEvents().get(1).getName());
+        Assert.assertEquals(CreateUsers.EVENT_NAME_CREATE_USERS, result.getNextEvents().get(2).getName());
+
+        result = create.processEvent(event);
+        Assert.assertEquals(1, result.getNextEvents().size());
+        Assert.assertEquals(CreateUsers.EVENT_NAME_USERS_CREATED, result.getNextEvents().get(0).getName());
+    }
 }
