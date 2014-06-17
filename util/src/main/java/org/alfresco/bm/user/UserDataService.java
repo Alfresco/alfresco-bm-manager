@@ -3,6 +3,8 @@ package org.alfresco.bm.user;
 import java.util.Iterator;
 import java.util.List;
 
+import org.alfresco.bm.user.UserData.UserCreationState;
+
 import com.mongodb.MongoException.DuplicateKey;
 
 /**
@@ -49,34 +51,20 @@ public interface UserDataService
     /**
      * Change the 'created' state of the user i.e. whether the user exists on the server or not
      */
-    public void setUserCreated(String username, boolean created);
+    public void setUserCreationState(String username, UserCreationState creationState);
     
     /**
-     * @param created               <tt>true</tt> to only count users that have been created or <tt>false</tt> to count users not created
+     * @param domain                the domain to search or <tt>null</tt> for all domains
+     * @param creationState         optional creation state to filter the count or <tt>null</tt> for all 
      */
-    public long countUsers(boolean created);
+    public long countUsers(String domain, UserCreationState creationState);
 
-    /**
-     * @param domain                the domain to search
-     * @param created               <tt>true</tt> to only count users that have been created,
-     *                              <tt>false</tt> to count users not created
-     *                              or <tt>null</tt> to ignore the created state
-     */
-    public long countUsers(String domain, Boolean created);
-
-    /**
-     * @return                      a count of all users in any state
-     */
-    public long countUsers();
-    
     /**
      * Delete users by create state
      * 
-     * @param created               <tt>true</tt> to delete user entries for created users,
-     *                              otherwise <tt>false</tt> to delete user entries for users not yet created
-     * @return                      the number of user entries deleted
+     * @param creationState         the user creation state to target or <tt>null<tt> to delete all users
      */
-    public long deleteUsers(boolean created);
+    public long deleteUsers(UserCreationState creationState);
     
     /**
      * Find a user by username
@@ -93,22 +81,14 @@ public interface UserDataService
     public UserData findUserByEmail(String email);
     
     /**
-     * Get a list of usernames that are NOT created in alfresco with paging
+     * Get the users based on user creation state
      * 
-     * @param startIndex index to start getting users from  
-     * @param count number of users to fetch
-     * @return      List of user data, which may be empty or less than the required count
-     */
-    public List<UserData> getUsersPendingCreation(int startIndex, int count);
-
-    /**
-     * Get a list of usernames that are created in alfresco with paging
-     * 
+     * @param creationState the current creation state
      * @param startIndex    index to start getting users from  
      * @param count         number of users to fetch
      * @return              List of user data, which may be empty or less than the required count
      */
-    public List<UserData> getCreatedUsers(int startIndex, int count);
+    public List<UserData> getUsersByCreationState(UserCreationState creationState, int startIndex, int count);
     
     /**
      * Select a random, pre-created user.
@@ -124,7 +104,7 @@ public interface UserDataService
      */
 
     /**
-     * Access users by their user domain using paging
+     * Access created users by their user domain using paging
      * 
      * @param domain                    the user domain
      * @param startIndex                the start index for paging
@@ -136,20 +116,6 @@ public interface UserDataService
      */
     public List<UserData> getUsersInDomain(String domain, int startIndex, int count);
 
-    /**
-     * Return a maximum of "max" users in the network with id "networkId" and given created flag.
-     * 
-     * @param domain                    the user domain
-     * @param startIndex                the start index for paging
-     * @param count                     the number of users to retrieve
-     * @param created                    is the user created or not?
-     * 
-     * @return a list of users in the domain
-     * 
-     * @see #DEFAULT_DOMAIN
-     */
-    public List<UserData> getUsersInDomain(String domain, int startIndex, int count, boolean created);
-    
     /**
      * An iterator over networks in the users collection.
      * 
@@ -182,14 +148,4 @@ public interface UserDataService
      * @see #DEFAULT_DOMAIN
      */
     UserData getRandomUserFromDomains(List<String> domains);
-    
-    /**
-     * Iterate over users in the given network.
-     * 
-     * @param       domain the user domain
-     * @return      an iterator over users in the given domain.
-     * 
-     * @see #DEFAULT_DOMAIN
-     */
-    public Iterator<UserData> getUsersByDomainIterator(String domain);
 }

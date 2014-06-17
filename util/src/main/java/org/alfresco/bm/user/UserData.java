@@ -30,11 +30,26 @@ import java.io.Serializable;
 public class UserData implements Serializable
 {
     private static final long serialVersionUID = 6819295613500413737L;
-
+    
+    /**
+     * The different states for user creation
+     * 
+     * @author Derek Hulley
+     * @since 2.0
+     */
+    public enum UserCreationState
+    {
+        Unknown,
+        NotScheduled,
+        Scheduled,
+        Failed,
+        Created
+    }
+    
     private int randomizer;
     private String username;
     private String password;
-    private boolean created;
+    private UserCreationState creationState;
     private String firstName;
     private String lastName;
     private String email;
@@ -45,7 +60,7 @@ public class UserData implements Serializable
     public UserData()
     {
         randomizer = (int)(Math.random() * 1E6);
-        created = false;
+        creationState = UserCreationState.Unknown;
     }
 
     public int getRandomizer()
@@ -79,13 +94,13 @@ public class UserData implements Serializable
         this.password = password;
     }
 
-    public boolean isCreated()
+    public UserCreationState getCreationState()
     {
-        return this.created;
+        return creationState;
     }
-    public void setCreated(boolean created)
+    public void setCreationState(UserCreationState creationState)
     {
-        this.created = created;
+        this.creationState = creationState;
     }
 
     public String getFirstName()
@@ -148,8 +163,8 @@ public class UserData implements Serializable
         StringBuilder builder = new StringBuilder();
         builder.append("UserData [username=");
         builder.append(username);
-        builder.append(", created=");
-        builder.append(created);
+        builder.append(", creationState=");
+        builder.append(creationState);
         builder.append(", email=");
         builder.append(email);
         builder.append(", domain=");

@@ -24,6 +24,7 @@ import java.util.List;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.user.UserData.UserCreationState;
 
 /**
  * <h1>Input</h1>
@@ -106,10 +107,10 @@ public class CreateUsers extends AbstractEventProcessor
         List<Event> nextEvents = new ArrayList<Event>();
         
         // Schedule events for each user to be created
-        long createdUsers = userDataService.countUsers(true);
+        long createdUsers = userDataService.countUsers(null, UserCreationState.Created);
         long toCreate = numberOfUsers - createdUsers;
         int index = 0;
-        List<UserData> pendingUsers = userDataService.getUsersPendingCreation(index, batchSize);
+        List<UserData> pendingUsers = userDataService.getUsersByCreationState(UserCreationState.NotScheduled, index, batchSize);
         
         // Terminate the user creation process if there is no more do to or nothing to do
         if (toCreate <= 0)
@@ -131,11 +132,13 @@ public class CreateUsers extends AbstractEventProcessor
         for (UserData user : pendingUsers)
         {
             lastEventTime = System.currentTimeMillis();
-            // Do we need to schedule it?
+            // Schedule it and mark the user
             String username = user.getUsername();
             Event nextEvent = new Event(EVENT_NAME_CREATE_USER, username);
             nextEvents.add(nextEvent);
             toCreate--;
+            userDataService.setUserCreationState(username, UserCreationState.Scheduled);
+            // Check if we still need to do more
             if (toCreate <= 0)
             {
                 break;

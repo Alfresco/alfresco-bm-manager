@@ -21,6 +21,7 @@ package org.alfresco.bm.user;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.user.UserData.UserCreationState;
 
 import com.mongodb.MongoException.DuplicateKey;
 
@@ -109,10 +110,10 @@ public class PrepareUsers extends AbstractEventProcessor
     public static final String DEFAULT_PASSWORD_PATTERN = PATTERN_EMAIL_ADDRESS;
     
     private UserDataService userDataService;
+    private String eventNameUsersPrepared;
     private long numberOfUsers;
     private long usersPerDomain;
     private String domainPattern;
-    private String eventNameUsersPrepared;
     private String emailDomainPattern;
     private String firstNamePattern;
     private String lastNamePattern;
@@ -128,10 +129,10 @@ public class PrepareUsers extends AbstractEventProcessor
     public PrepareUsers(UserDataService userDataService, long numberOfUsers)
     {
         this.userDataService = userDataService;
+        this.eventNameUsersPrepared = EVENT_NAME_USERS_PREPARED;
         this.numberOfUsers = numberOfUsers;
         this.usersPerDomain = DEFAULT_USERS_PER_DOMAIN;
         this.domainPattern = DEFAULT_DOMAIN_PATTERN;
-        this.eventNameUsersPrepared = EVENT_NAME_USERS_PREPARED;
         this.emailDomainPattern = DEFAULT_EMAIL_DOMAIN_PATTERN;
         this.firstNamePattern = DEFAULT_FIRST_NAME_PATTERN;
         this.lastNamePattern = DEFAULT_LAST_NAME_PATTERN;
@@ -253,7 +254,10 @@ public class PrepareUsers extends AbstractEventProcessor
     public EventResult processEvent(Event event) throws Exception
     {
         // First wipe out any users that were not created
-        userDataService.deleteUsers(false);
+        userDataService.deleteUsers(UserCreationState.Unknown);
+        userDataService.deleteUsers(UserCreationState.NotScheduled);
+        userDataService.deleteUsers(UserCreationState.Scheduled);
+        userDataService.deleteUsers(UserCreationState.Failed);
         
         // How many domains must we create?
         long domainsToCreate = (long) (Math.ceil((double)numberOfUsers/(double)usersPerDomain));
@@ -307,17 +311,20 @@ public class PrepareUsers extends AbstractEventProcessor
                 UserData user = userDataService.findUserByUsername(username);
                 if (user != null)
                 {
-                    // Double check that the user has NOT been created
-                    if (!user.isCreated())
+                    switch (user.getCreationState())
                     {
-                        logger.warn("Found a user that was NOT created even though we cleared those out: " + user);
+                        case Created:
+                            // These are acceptable cases, which we ignore
+                            break;
+                        default:
+                            logger.warn("Found a user that was NOT created even though we cleared those out: " + user);
                     }
                     // User already exists
                     continue;
                 }
                 // Create data
                 user = new UserData();
-                user.setCreated(false);
+                user.setCreationState(UserCreationState.NotScheduled);
                 user.setDomain(domain);
                 user.setEmail(email);
                 user.setFirstName(firstName);
@@ -329,7 +336,7 @@ public class PrepareUsers extends AbstractEventProcessor
                 // Check if the user must be assumed to exist
                 if (assumeCreated)
                 {
-                    user.setCreated(true);
+                    user.setCreationState(UserCreationState.Created);
                 }
                 // Persist
                 try

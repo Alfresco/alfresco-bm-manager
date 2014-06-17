@@ -24,6 +24,7 @@ import junit.framework.Assert;
 
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.user.UserData.UserCreationState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public class UserEventHandlingTest
         Assert.assertTrue(result.getData().toString().contains("200"));
         
         // Check
-        Assert.assertEquals(200,  userDataService.countUsers());
+        Assert.assertEquals(200,  userDataService.countUsers(null, null));
         UserData user = userDataService.getRandomUser();
         Assert.assertNull("No users have been created, yet.", user);
         user = userDataService.findUserByUsername("0000000.Test@00000.example.com");
@@ -87,29 +88,57 @@ public class UserEventHandlingTest
         Assert.assertNotNull("Expected to find last user out of 200.", user);
         Assert.assertEquals(user.getLastName(), PrepareUsers.DEFAULT_LAST_NAME_PATTERN);
         
-        // Create a user
-        userDataService.setUserCreated("0000199.Test@00009.example.com", true);
-        Assert.assertEquals("Incorrect number of users in domain. ", 20, userDataService.getUsersInDomain("00009.example.com", 0, 200).size());
-        Assert.assertEquals("Expected to find the created user only.", 1, userDataService.getUsersInDomain("00009.example.com", 0, 200, true).size());
-        Assert.assertEquals("Expected to find the pending users only.", 19, userDataService.getUsersInDomain("00009.example.com", 0, 200, false).size());
+        // Schedule user creation
+        userDataService.setUserCreationState("0000199.Test@00009.example.com", UserCreationState.Scheduled);
+        Assert.assertEquals(199,  userDataService.countUsers(null, UserCreationState.NotScheduled));
+        Assert.assertEquals(1,  userDataService.countUsers(null, UserCreationState.Scheduled));
+        Assert.assertEquals("Domain query should only bring back created users.", 0, userDataService.getUsersInDomain("00009.example.com", 0, 200).size());
+        
+        // Complete user creation
+        userDataService.setUserCreationState("0000199.Test@00009.example.com", UserCreationState.Created);
+        Assert.assertEquals("Domain query should bring back created users.", 1, userDataService.getUsersInDomain("00009.example.com", 0, 200).size());
         
         // Check that the cleanup is active: create the 201st user
         user.setUsername("fred");
         user.setEmail("fred@example.com");
         userDataService.createNewUser(user);
-        Assert.assertEquals(201,  userDataService.countUsers());
+        Assert.assertEquals(201,  userDataService.countUsers(null, null));
+        // If we run it again, it should wipe and repeat, except that it'll leave the created user
+        result = prep.processEvent(event);
+        Assert.assertTrue(result.getData().toString().contains("199"));
+        
+        // Since the email pattern changed, it will not find the previously-created user
+        Assert.assertEquals("Target number of users not restored", 200,  userDataService.countUsers(null, null));
+        user = userDataService.findUserByUsername("0000000.Test@00000.example.com");
+        Assert.assertNotNull("Username should be recreated.", user);
+        user = userDataService.findUserByUsername("0000199.Test@00009.example.com");
+        Assert.assertNotNull("User with email pattern not found.", user);
+        // Check that original, created user still exists
+        Assert.assertEquals("Expected to find the created user only.", 1, userDataService.getUsersInDomain("00009.example.com", 0, 200).size());
+        
         // If we run it again, it should wipe and repeat, except that it'll leave the created user
         prep.setEmailDomainPattern("%05d.second.com");
-        prep.processEvent(event);
+        result = prep.processEvent(event);
+        Assert.assertTrue(result.getData().toString().contains("200"));
         
-        // Since the email pattern changed, it will not find and count the created user
-        Assert.assertEquals("Target number of users not restored", 201,  userDataService.countUsers());
+        // Since the email pattern changed, it will not find the previously-created user
+        Assert.assertEquals("Total number of users not present", 201,  userDataService.countUsers(null, null));
+        Assert.assertEquals("Target number of users not created", 20,  userDataService.countUsers("00009.second.com", null));
+        Assert.assertEquals("Target number of users not created", 1,  userDataService.countUsers(null, UserCreationState.Created));
+        Assert.assertEquals("Target number of users not created", 200,  userDataService.countUsers(null, UserCreationState.NotScheduled));
         user = userDataService.findUserByUsername("0000000.Test@00000.example.com");
         Assert.assertNull("Email pattern has changed so user should not have been found.", user);
         user = userDataService.findUserByUsername("0000199.Test@00009.second.com");
         Assert.assertNotNull("User with changed email pattern not found.", user);
         // Check that original, created user still exists
-        Assert.assertEquals("Expected to find the created user only.", 1, userDataService.getUsersInDomain("00009.example.com", 0, 200, true).size());
-        Assert.assertEquals("All uncreated users should have been cleaned out.", 0, userDataService.getUsersInDomain("00009.example.com", 0, 200, false).size());
+        Assert.assertEquals("Expected to find the created user only.", 1, userDataService.getUsersInDomain("00009.example.com", 0, 200).size());
+
+        // User count check event
+        CheckUserCountEventProcessor checkUsers = new CheckUserCountEventProcessor(userDataService, 200);
+        result = checkUsers.processEvent(event);
+        Assert.assertEquals("Needed 200 created users but only found 1.", result.getData().toString());
+        checkUsers = new CheckUserCountEventProcessor(userDataService, 1);
+        result = checkUsers.processEvent(event);
+        Assert.assertEquals("Found 1 created users.  Minimum was 1.", result.getData().toString());
     }
 }

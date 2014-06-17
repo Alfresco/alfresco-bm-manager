@@ -21,6 +21,7 @@ package org.alfresco.bm.user;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.user.UserData.UserCreationState;
 import org.alfresco.bm.user.UserDataService;
 
 /**
@@ -45,8 +46,8 @@ import org.alfresco.bm.user.UserDataService;
 public class CheckUserCountEventProcessor extends AbstractEventProcessor
 {
     public static final String EVENT_NAME_USERS_READY = "users.ready";
-    public static final String ERR_NOT_ENOUGH_USERS = "Needed %2d created users but only found %2d.";
-    public static final String MSG_FOUND_USERS = "Found %2d created users.  Minimum was %2d.";
+    public static final String ERR_NOT_ENOUGH_USERS = "Needed %1d created users but only found %1d.";
+    public static final String MSG_FOUND_USERS = "Found %1d created users.  Minimum was %1d.";
     
     private String eventNameUsersReady = EVENT_NAME_USERS_READY;
     private final UserDataService userDataService;
@@ -74,7 +75,7 @@ public class CheckUserCountEventProcessor extends AbstractEventProcessor
     public EventResult processEvent(Event event) throws Exception
     {
         // Check the number of users
-        long actualUserCount = userDataService.countUsers(true);
+        long actualUserCount = userDataService.countUsers(null, UserCreationState.Created);
         if (actualUserCount < userCount)
         {
             // Not enough

@@ -21,6 +21,7 @@ package org.alfresco.bm.user;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.alfresco.bm.user.UserData.UserCreationState;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -86,7 +87,7 @@ public class UserDataServiceTest
         
         UserData user = new UserData();
         user.setUsername(username);
-        user.setCreated(false);
+        user.setCreationState(UserCreationState.NotScheduled);
         user.setDomain("example.com");
         user.setEmail(username + "@example.com");
         user.setFirstName(first);
@@ -139,18 +140,18 @@ public class UserDataServiceTest
     {
         // Start with 1 created user and 5 uncreated users
         UserData createdUser = createUserData("testDeletedByCreated.createdUser" + System.nanoTime());
-        createdUser.setCreated(true);
+        createdUser.setCreationState(UserCreationState.Created);
         userDataService.createNewUser(createdUser);
         
-        Assert.assertEquals(6, userDataService.countUsers());
-        Assert.assertEquals(1, userDataService.countUsers(true));
-        Assert.assertEquals(5, userDataService.countUsers(false));
+        Assert.assertEquals(6, userDataService.countUsers(null, null));
+        Assert.assertEquals(1, userDataService.countUsers(null, UserCreationState.Created));
+        Assert.assertEquals(5, userDataService.countUsers(null, UserCreationState.NotScheduled));
 
-        long deleted = userDataService.deleteUsers(false);
-        Assert.assertEquals(5L,  deleted);
-        Assert.assertEquals(1, userDataService.countUsers());
-        Assert.assertEquals(1, userDataService.countUsers(true));
-        Assert.assertEquals(0, userDataService.countUsers(false));
+        long deleted = userDataService.deleteUsers(UserCreationState.NotScheduled);
+        Assert.assertEquals(5L, deleted);
+        Assert.assertEquals(1, userDataService.countUsers(null, null));
+        Assert.assertEquals(1, userDataService.countUsers(null, UserCreationState.Created));
+        Assert.assertEquals(0, userDataService.countUsers(null, UserCreationState.NotScheduled));
     }
     
     @Test
@@ -164,7 +165,7 @@ public class UserDataServiceTest
             user = userDataService.findUserByUsername(USERS[i]);
             Assert.assertNotNull("No user found for " + USERS[i], user);
             // Mark user created
-            userDataService.setUserCreated(USERS[i], true);
+            userDataService.setUserCreationState(USERS[i], UserCreationState.Created);
             // Repeat and repeat ...
             for (int j = 0; j < 1000; j++)
             {
@@ -180,7 +181,7 @@ public class UserDataServiceTest
         // Convert all the users to created users
         for (String username : USERS)
         {
-            userDataService.setUserCreated(username, true);
+            userDataService.setUserCreationState(username, UserCreationState.Created);
         }
         
         UserData userData = userDataService.getRandomUserFromDomain("example.net");
@@ -194,7 +195,7 @@ public class UserDataServiceTest
         userDataService.createNewUser(userData);
         userData = userDataService.getRandomUserFromDomain("example.net");
         Assert.assertNull("User in example.net was not created so should not show up", userData);
-        userDataService.setUserCreated("fblogs", true);
+        userDataService.setUserCreationState("fblogs", UserCreationState.Created);
         userData = userDataService.getRandomUserFromDomain("example.net");
         Assert.assertNotNull("User in example.net is created so should show up", userData);
         
@@ -208,7 +209,7 @@ public class UserDataServiceTest
     {
         try
         {
-            userDataService.setUserCreated("Bob", true);
+            userDataService.setUserCreationState("Bob", UserCreationState.Created);
             Assert.fail("Missing username not detected.");
         }
         catch (RuntimeException e)
