@@ -48,6 +48,11 @@ svg {
     top: 20px;
     right: 30px;
 }
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
 
 </style>
 <script src="d3.js"></script>
@@ -362,33 +367,49 @@ svg {
         .on("mouseover", mouseover)
         .on("mouseout", mouseout);
 
-    //Zoom brush
-    var context = svg.append("g")
-        .attr("class", "context")
-        .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")");
-    
-    // context.append("path")
-    //     .datum(data)
-    //     .attr("class", "area")
-    //     .attr("d", area2);
-
-    context.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + mini_height + ")")
-        .call(xAxis2);
-
-    context.append("g")
-        .attr("class", "x brush")
-        .call(brush)
-        .selectAll("rect")
-        .attr("y", -6)
-        .attr("height", mini_height + 7);
-
     d3.select("#show-voronoi")
         .property("disabled", false)
         .on("change", function() {
             voronoiGroup.classed("voronoi--show", this.checked);
         });
+//------------- start brush slider
+var line2 = d3.svg.line()
+    .x(function(d) { return mini_x(d.time); })
+    .y(function(d) { return mini_y(d.value); })
+    .interpolate('basis');
+
+ var brush = d3.svg.brush()//for slider bar at the bottom
+    .x(mini_x)
+    .on("brush", brushed);
+
+//Zoom brush
+mini_x.domain(x.domain());
+mini_y.domain(y.domain());
+
+var context = svg.append("g")
+        .attr("class", "context")
+        .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")"); 
+
+context.append("path")
+      .datum(data[0])
+      .attr("class", "line")
+      .attr("d", function(minidata) {
+            minidata.line = this;
+            var res = line2(minidata.values);
+            return res
+        });
+
+  context.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + mini_height + ")")
+      .call(xAxis2);
+
+  context.append("g")
+      .attr("class", "x brush")
+      .call(brush)
+    .selectAll("rect")
+      .attr("y", -6)
+      .attr("height", mini_height + 7);
 
     function mouseover(d) {
         d3.select(d.event.line).classed("event--hover", true);
