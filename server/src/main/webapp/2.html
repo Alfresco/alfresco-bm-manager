@@ -195,21 +195,6 @@ svg {
             .x(mini_x)
             .on("brush", brushed);
 
-    var area = d3.svg.area()
-        .interpolate("monotone")
-        .x(function(d) {
-            return x(d.time);
-        })
-        .y0(height)
-        .y1(function(d) {
-            return y(d.value);
-        });
-
-    var area2 = d3.svg.area()
-        .interpolate("monotone")
-        .x(function(d) {
-            return mini_x(d.time);
-        })
     data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
