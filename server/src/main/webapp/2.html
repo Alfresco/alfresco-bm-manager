@@ -53,6 +53,11 @@ svg {
     stroke: steelblue;
     stroke-width: 1.5px;
 }
+.brush .extent {
+    stroke: #fff;
+    fill-opacity: .125;
+    shape-rendering: crispEdges;
+}
 </style>
 <script src="d3.js"></script>
 
@@ -299,8 +304,9 @@ svg {
 
     var focus = svg.append("g")
         .attr("class", "focus"); 
+
     //paint xaxis and rotate label to 65 degrees
-    svg.append("g")
+    focus.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
@@ -318,7 +324,7 @@ svg {
         .text("Date Taken");;
 
 
-    svg.append("g")
+    focus.append("g")
         .attr("class", "y axis")
         .call(yAxis)
         .append("text")
@@ -329,8 +335,7 @@ svg {
         .style("text-anchor", "middle")
         .text("Y");
 
-
-    svg.append("g")
+    focus.append("g")
         .attr("class", "cities")
         .selectAll("path")
         .data(data)
@@ -351,7 +356,7 @@ svg {
     focus_point.append("text")
         .attr("y", -10);
 
-    var voronoiGroup = svg.append("g")
+    var voronoiGroup = focus.append("g")
         .attr("class", "voronoi");
 
     voronoiGroup.selectAll("path")
@@ -444,7 +449,7 @@ svg {
 
     function brushed() {
         x.domain(brush.empty() ? mini_x.domain() : brush.extent());
-        focus_point.select(".area").attr("d", area);
+        focus_point.select(".line").attr("d", line);
         focus_point.select(".x.axis").call(xAxis);
     }
     </script>
