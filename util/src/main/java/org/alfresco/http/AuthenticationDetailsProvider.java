@@ -32,17 +32,6 @@ public interface AuthenticationDetailsProvider
     String getPasswordForUser(String username);
     
     /**
-     * @return  the ticket being used by the given user or <tt>null</tt> if no ticket
-     *          is stored
-     */
-    String getTicketForUser(String username);
-    
-    /**
-     * Update the value of the ticket for the given user.
-     */
-    void updateTicketForUser(String username, String ticket);
-    
-    /**
      * @return the Alfresco administrator username
      */
     String getAdminUsername();

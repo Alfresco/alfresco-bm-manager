@@ -24,11 +24,12 @@ import java.util.List;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.user.UserData.UserCreationState;
 
 /**
  * <h1>Input</h1>
  * 
- * Skip count for walking the user list
+ * None
  * 
  * <h1>Actions</h1>
  * 
@@ -38,7 +39,7 @@ import org.alfresco.bm.event.EventResult;
  * 
  * <h1>Output</h1>
  * {@link #EVENT_NAME_CREATE_USER}: User to create<br/>
- * {@link #EVENT_NAME_CREATE_USERS}: Returned when this issue should reschedule itself
+ * {@link #EVENT_NAME_CREATE_USERS}: Returned when this issue should reschedule itself<br/>
  * {@link #EVENT_NAME_USERS_CREATED}: Returned when users have been successfully created
  *
  * @author Derek Hulley
@@ -47,15 +48,16 @@ import org.alfresco.bm.event.EventResult;
 public class CreateUsers extends AbstractEventProcessor
 {
     private static final int DEFAULT_BATCH_SIZE = 100;
-    private static final long DEFAULT_EXPECTED_CREATE_TIME = 20;
+    private static final long DEFAULT_CREATION_DELAY = 20;
     
     public static final String EVENT_NAME_CREATE_USER = "createUser";
     public static final String EVENT_NAME_CREATE_USERS = "createUsers";
     public static final String EVENT_NAME_USERS_CREATED = "usersCreated";
     
-    private UserDataService userDataService;
-    private long numberOfUsers;
+    private final UserDataService userDataService;
+    private final long numberOfUsers;
     private int batchSize;
+    private long creationDelay;
     private String eventNameCreateUsers;
     private String eventNameUsersCreated;
     
@@ -71,6 +73,7 @@ public class CreateUsers extends AbstractEventProcessor
         this.numberOfUsers = numberOfUsers;
         
         batchSize = DEFAULT_BATCH_SIZE;
+        creationDelay = DEFAULT_CREATION_DELAY;
         eventNameCreateUsers = EVENT_NAME_CREATE_USERS;
         eventNameUsersCreated = EVENT_NAME_USERS_CREATED;
     }
@@ -81,6 +84,15 @@ public class CreateUsers extends AbstractEventProcessor
     public void setBatchSize(int batchSize)
     {
         this.batchSize = batchSize;
+    }
+    
+    /**
+     * Override the {@link #DEFAULT_CREATION_DELAY default} creation delay
+     * i.e. time between scheduled user creation events.
+     */
+    public void setCreationDelay(long creationDelay)
+    {
+        this.creationDelay = creationDelay;
     }
     
     /**
@@ -106,10 +118,10 @@ public class CreateUsers extends AbstractEventProcessor
         List<Event> nextEvents = new ArrayList<Event>();
         
         // Schedule events for each user to be created
-        long createdUsers = userDataService.countUsers(true);
+        long createdUsers = userDataService.countUsers(null, UserCreationState.Created);
         long toCreate = numberOfUsers - createdUsers;
         int index = 0;
-        List<UserData> pendingUsers = userDataService.getUsersPendingCreation(index, batchSize);
+        List<UserData> pendingUsers = userDataService.getUsersByCreationState(UserCreationState.NotScheduled, index, batchSize);
         
         // Terminate the user creation process if there is no more do to or nothing to do
         if (toCreate <= 0)
@@ -130,24 +142,43 @@ public class CreateUsers extends AbstractEventProcessor
         long lastEventTime = System.currentTimeMillis();
         for (UserData user : pendingUsers)
         {
-            lastEventTime = System.currentTimeMillis();
-            // Do we need to schedule it?
+            // Schedule it and mark the user
             String username = user.getUsername();
             Event nextEvent = new Event(EVENT_NAME_CREATE_USER, username);
             nextEvents.add(nextEvent);
             toCreate--;
+            userDataService.setUserCreationState(username, UserCreationState.Scheduled);
+            // Check if we still need to do more
             if (toCreate <= 0)
             {
                 break;
             }
+            // Schedule event for later
+            lastEventTime += creationDelay;
         }
+        
+        // Either reschedule or we are done
         int scheduled = nextEvents.size();
-        // Reschedule for the next batch (might zero next time)
-        long scheduledTime = lastEventTime + DEFAULT_EXPECTED_CREATE_TIME;
-        Event self = new Event(eventNameCreateUsers, scheduledTime, null);
-        nextEvents.add(self);
+        long rescheduleTime = lastEventTime + creationDelay;
+        if (scheduled == 0)
+        {
+            // We didn't schedule anything so we are done
+            Event done = new Event(eventNameUsersCreated, rescheduleTime, null);
+            nextEvents.add(done);
+        }
+        else
+        {
+            // Reschedule for the next batch (might zero next time)
+            Event self = new Event(eventNameCreateUsers, rescheduleTime, null);
+            nextEvents.add(self);
+        }
         
         // Return messages + next events
-        return new EventResult("Scheduled " + scheduled + " user(s) for creation", nextEvents);
+        String msg = "Scheduled " + scheduled + " user(s) for creation.";
+        if (scheduled == 0)
+        {
+            msg += "  Not rescheduling any events.";
+        }
+        return new EventResult(msg, nextEvents);
     }
 }

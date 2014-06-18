@@ -23,6 +23,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.alfresco.bm.user.UserData.UserCreationState;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import com.mongodb.BasicDBObjectBuilder;
@@ -48,18 +51,17 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     public static final String FIELD_RANDOMIZER = "randomizer";
     public static final String FIELD_USERNAME = "username";
     public static final String FIELD_PASSWORD = "password";
-    public static final String FIELD_CREATED = "created";
+    public static final String FIELD_CREATION_STATE = "creationState";
     public static final String FIELD_FIRST_NAME = "firstName";
     public static final String FIELD_LAST_NAME = "lastName";
     public static final String FIELD_EMAIL = "email";
     public static final String FIELD_DOMAIN = "domain";
-    public static final String FIELD_CLOUD_SIGNUP = "cloudSignUp";
-    public static final String FIELD_TICKET = "ticket";
-    public static final String FIELD_NODE_ID = "nodeId";
 
     public static final String FIELD_ID = "id";
     public static final String FIELD_KEY = "key";
     public static final String FIELD_COMPLETE = "complete";
+    
+    private static Log logger = LogFactory.getLog(UserDataServiceImpl.class);
 
     private DBCollection collection;
     
@@ -98,23 +100,11 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         collection.ensureIndex(idxDomain, "idx_domain", false);
         
         DBObject idxCreated = BasicDBObjectBuilder
-                .start(FIELD_CREATED, 1)
+                .start(FIELD_CREATION_STATE, 1)
                 .add(FIELD_RANDOMIZER, 2)
                 .add(FIELD_DOMAIN, 3)
                 .get();
-        collection.ensureIndex(idxCreated, "idx_created", false);
-        
-        DBObject idxCloudSignUp = BasicDBObjectBuilder
-                .start(FIELD_CLOUD_SIGNUP, 1)
-                .add(FIELD_CREATED, 2)
-                .add(FIELD_RANDOMIZER, 3)
-                .get();
-        collection.ensureIndex(idxCloudSignUp, "idx_cloudsignup", false);
-        
-        DBObject idxCloudSignUpId = BasicDBObjectBuilder
-                .start(FIELD_CLOUD_SIGNUP + "." + FIELD_ID, 1)
-                .get();
-        collection.ensureIndex(idxCloudSignUpId, "idx_cloudsignup_id", false);
+        collection.ensureIndex(idxCreated, "idx_creation_state", false);
     }
     
     /**
@@ -132,7 +122,17 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         UserData userData = new UserData();
         userData.setUsername((String) userDataObj.get(FIELD_USERNAME));
         userData.setPassword((String) userDataObj.get(FIELD_PASSWORD));
-        userData.setCreated((Boolean) userDataObj.get(FIELD_CREATED));
+        String userCreationStateStr = (String) userDataObj.get(FIELD_CREATION_STATE);
+        UserData.UserCreationState creationState = UserCreationState.Unknown;
+        try
+        {
+            creationState = UserCreationState.valueOf(userCreationStateStr);
+            userData.setCreationState(creationState);
+        }
+        catch (Exception  e)
+        {
+            logger.error("User data has unknown state: " + userData.getUsername() + " - " + userCreationStateStr);
+        }
         userData.setFirstName((String) userDataObj.get(FIELD_FIRST_NAME));
         userData.setLastName((String) userDataObj.get(FIELD_LAST_NAME));
         userData.setEmail((String) userDataObj.get(FIELD_EMAIL));
@@ -175,14 +175,11 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .add(FIELD_RANDOMIZER, data.getRandomizer())
                 .add(FIELD_USERNAME, data.getUsername())
                 .add(FIELD_PASSWORD, data.getPassword())
-                .add(FIELD_CREATED, data.isCreated())
+                .add(FIELD_CREATION_STATE, data.getCreationState().toString())
                 .add(FIELD_FIRST_NAME, data.getFirstName())
                 .add(FIELD_LAST_NAME, data.getLastName())
                 .add(FIELD_EMAIL, data.getEmail())
                 .add(FIELD_DOMAIN, data.getDomain());
-        insertObjBuilder
-                .add(FIELD_TICKET, data.getTicket())
-                .add(FIELD_NODE_ID, data.getNodeId());
         DBObject insertObj = insertObjBuilder.get();
         
         try
@@ -200,31 +197,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         {
             // We just rethrow as per the API
             throw e;
-        }
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setUserTicket(String username, String ticket)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_USERNAME, username)
-                .get();
-        DBObject updateObj = BasicDBObjectBuilder.start()
-                .push("$set")
-                    .add(FIELD_TICKET, ticket)
-                .pop()
-                .get();
-        WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() != 1)
-        {
-            throw new RuntimeException(
-                    "Failed to update user ticket: \n" +
-                    "   Username: " + username + "\n" +
-                    "   Ticket:   " + ticket + "\n" +
-                    "   Result:   " + result);
         }
     }
     
@@ -257,39 +229,14 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
      * {@inheritDoc}
      */
     @Override
-    public void setUserNodeId(String username, String nodeId)
+    public void setUserCreationState(String username, UserCreationState creationState)
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
                 .add(FIELD_USERNAME, username)
                 .get();
         DBObject updateObj = BasicDBObjectBuilder.start()
                 .push("$set")
-                    .add(FIELD_NODE_ID, nodeId)
-                .pop()
-                .get();
-        WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() != 1)
-        {
-            throw new RuntimeException(
-                    "Failed to update user ticket: \n" +
-                    "   Username: " + username + "\n" +
-                    "   NodeId:   " + nodeId + "\n" +
-                    "   Result:   " + result);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setUserCreated(String username, boolean created)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_USERNAME, username)
-                .get();
-        DBObject updateObj = BasicDBObjectBuilder.start()
-                .push("$set")
-                    .add(FIELD_CREATED, created)
+                    .add(FIELD_CREATION_STATE, creationState.toString())
                 .pop()
                 .get();
         WriteResult result = collection.update(queryObj, updateObj);
@@ -297,50 +244,39 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         {
             throw new RuntimeException(
                     "Failed to update user creation state: \n" +
-                    "   Username: " + username + "\n" +
-                    "   Created:  " + created + "\n" +
-                    "   Result:   " + result);
+                    "   Username:       " + username + "\n" +
+                    "   Creation State: " + creationState + "\n" +
+                    "   Result:         " + result);
         }
     }
     
     @Override
-    public long countUsers(boolean created)
-    {
-        return countUsers(null, created);
-    }
-    
-    @Override
-    public long countUsers(String domain, Boolean created)
+    public long countUsers(String domain, UserCreationState creationState)
     {
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start();
         if (domain != null)
         {
             queryObjBuilder.add(FIELD_DOMAIN, domain);
         }
-        if (created != null)
+        if (creationState != null)
         {
-            queryObjBuilder.add(FIELD_CREATED, created);
+            queryObjBuilder.add(FIELD_CREATION_STATE, creationState.toString());
         }
-        
         DBObject queryObj = queryObjBuilder.get();
+        
         return collection.count(queryObj);
     }
 
-    /**
-     * @return                      a count of all users in any state
-     */
     @Override
-    public long countUsers()
+    public long deleteUsers(UserCreationState creationState)
     {
-        return countUsers(null, null);
-    }
-    
-    @Override
-    public long deleteUsers(boolean created)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_CREATED, created)
-                .get();
+        BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start();
+        if (creationState != null)
+        {
+            queryObjBuilder.add(FIELD_CREATION_STATE, creationState.toString());
+        }
+        DBObject queryObj = queryObjBuilder.get();
+        
         WriteResult result = collection.remove(queryObj);
         return result.getN();
     }
@@ -360,11 +296,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         return fromDBObject(userDataObj);
     }
     
-    /**
-     * Find a user by email address
-     * 
-     * @return                          the {@link UserData} found otherwise <tt>null</tt.
-     */
     @Override
     public UserData findUserByEmail(String email)
     {
@@ -375,13 +306,11 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         return fromDBObject(userDataObj);
     }
     
-    /**
-     * @param created               <tt>true</tt> to only count users present in Alfresco
-     */
-    protected List<UserData> getUsers(boolean created, int startIndex, int count)
+    @Override
+    public List<UserData> getUsersByCreationState(UserCreationState creationState, int startIndex, int count)
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_CREATED, created)
+                .add(FIELD_CREATION_STATE, creationState.toString())
                 .get();
         DBCursor cursor = collection.find(queryObj).skip(startIndex).limit(count);
         return fromDBCursor(cursor);
@@ -393,7 +322,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     private int getMaxRandomizer()
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_CREATED, Boolean.TRUE)
+                .add(FIELD_CREATION_STATE, UserCreationState.Created.toString())
                 .get();
         DBObject sortObj = BasicDBObjectBuilder.start()
                 .add(FIELD_RANDOMIZER, -1)
@@ -421,7 +350,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         int random = (int) (Math.random() * (double) upper);
         
         DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_CREATED, Boolean.TRUE)
+                .add(FIELD_CREATION_STATE, UserCreationState.Created.toString())
                 .push(FIELD_RANDOMIZER)
                     .add("$gte", Integer.valueOf(random))
                 .pop()
@@ -440,18 +369,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
                 .add(FIELD_DOMAIN, domain)
-                .get();
-        DBCursor cursor = collection.find(queryObj).skip(startIndex).limit(count);
-        
-        return fromDBCursor(cursor);
-    }
-    
-    @Override
-    public List<UserData> getUsersInDomain(String domain, int startIndex, int count, boolean created)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_DOMAIN, domain)
-                .add(FIELD_CREATED, created)
+                .add(FIELD_CREATION_STATE, UserCreationState.Created.toString())
                 .get();
         DBCursor cursor = collection.find(queryObj).skip(startIndex).limit(count);
         
@@ -476,7 +394,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     private Range getRandomizerRange(List<String> domains)
     {
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start()
-                .add(FIELD_CREATED, Boolean.TRUE);
+                .add(FIELD_CREATION_STATE, UserCreationState.Created.toString());
         if (domains.size() > 0)
         {
             queryObjBuilder
@@ -515,7 +433,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         int random = lower + (int) (Math.random() * (double) (upper - lower));
 
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start()
-                .add(FIELD_CREATED, Boolean.TRUE)
+                .add(FIELD_CREATION_STATE, UserCreationState.Created.toString())
                 .push(FIELD_RANDOMIZER)
                     .add("$gte", random)
                 .pop();
@@ -530,18 +448,6 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         
         DBObject userDataObj = collection.findOne(queryObj);
         return fromDBObject(userDataObj);
-    }
-    
-    @Override
-    public Iterator<UserData> getUsersByDomainIterator(String domain)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_DOMAIN, domain)
-                .add(FIELD_CREATED, Boolean.TRUE)
-                .get();
-        DBCursor cursor = collection.find(queryObj);
-        
-        return fromDBCursor(cursor).iterator();
     }
     
     public static class Range
