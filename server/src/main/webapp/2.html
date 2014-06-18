@@ -390,14 +390,17 @@ var context = svg.append("g")
         .attr("class", "context")
         .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")"); 
 
-context.append("path")
-      .datum(data[0])
-      .attr("class", "line")
-      .attr("d", function(minidata) {
+    context.append("g")
+        .attr("class", "cities")
+        .selectAll("path")
+        .data(data)
+        .enter().append("path")
+        .attr("d", function(minidata) {
             minidata.line = this;
             var res = line2(minidata.values);
             return res
         });
+
 
   context.append("g")
       .attr("class", "x axis")
