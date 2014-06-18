@@ -449,8 +449,8 @@ svg {
 
     function brushed() {
         x.domain(brush.empty() ? mini_x.domain() : brush.extent());
-        focus_point.select(".line").attr("d", line);
-        focus_point.select(".x.axis").call(xAxis);
+        focus.select(".line").attr("d", line);
+        focus.select(".x.axis").call(xAxis);
     }
     </script>
 </body>
