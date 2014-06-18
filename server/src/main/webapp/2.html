@@ -31,7 +31,7 @@ svg {
 .event--hover {
     stroke: #000;
 }
-.focus text {
+.focus_point text {
     text-anchor: middle;
     text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 }
@@ -49,11 +49,10 @@ svg {
     right: 30px;
 }
 .line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
 }
-
 </style>
 <script src="d3.js"></script>
 
@@ -65,9 +64,6 @@ svg {
     <section id="graph">
         <section id="historic"></section>
     </section>
-
-
-
     <script>
     var data = [{
             "time": "2013-02-21",
@@ -114,26 +110,26 @@ svg {
         },
         //
         {
-            "time": "2013-02-22",
+            "time": "2014-02-22",
             "value": "3",
             "name": "Find People"
         }, {
-            "time": "2013-02-23",
+            "time": "2014-02-23",
             "value": "2",
             "name": "Find People"
         }, {
-            "time": "2013-02-28",
+            "time": "2016-02-28",
             "value": "1",
             "name": "Find People"
         }, {
-            "time": "2013-02-29",
+            "time": "2017-02-29",
             "value": "1",
             "name": "Find People"
         }, {
-            "time": "2013-02-30",
+            "time": "2017-05-30",
             "value": "1",
             "name": "Find People"
-        },{
+        }, {
             "time": "2014-02-21",
             "value": "12.2",
             "name": "Search"
@@ -159,8 +155,7 @@ svg {
             "time": "2015-02-20",
             "value": "1.8",
             "name": "Navigate"
-        },
-        {
+        }, {
             "time": "2015-02-22",
             "value": "3.2",
             "name": "Navigate"
@@ -171,11 +166,21 @@ svg {
         }
     ];
 
-    var margin = {top: 20, right: 80, bottom: 110, left: 40},
-    mini_margin = {top: 430, right: 80, bottom: 40, left: 10},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom,
-    mini_height = 500 - mini_margin.top - mini_margin.bottom;
+    var margin = {
+        top: 20,
+        right: 80,
+        bottom: 110,
+        left: 40
+    },
+        mini_margin = {
+            top: 430,
+            right: 80,
+            bottom: 40,
+            left: 10
+        },
+        width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom,
+        mini_height = 500 - mini_margin.top - mini_margin.bottom;
 
     // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
     var parseDate = d3.time.format("%Y-%m-%d").parse;
@@ -210,7 +215,7 @@ svg {
             return y(d.value);
         });
 
-    
+
     data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
@@ -285,9 +290,16 @@ svg {
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    //Main chart view with brush zoom.
+    svg.append("defs").append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("width", width)
+        .attr("height", height);
+
+    var focus = svg.append("g")
+        .attr("class", "focus"); 
     //paint xaxis and rotate label to 65 degrees
-
-
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
@@ -329,14 +341,14 @@ svg {
             return res
         });
 
-    var focus = svg.append("g")
+    var focus_point = svg.append("g")
         .attr("transform", "translate(-100,-100)")
         .attr("class", "focus");
 
-    focus.append("circle")
+    focus_point.append("circle")
         .attr("r", 3.5);
 
-    focus.append("text")
+    focus_point.append("text")
         .attr("y", -10);
 
     var voronoiGroup = svg.append("g")
@@ -372,23 +384,27 @@ svg {
         .on("change", function() {
             voronoiGroup.classed("voronoi--show", this.checked);
         });
-//------------- start brush slider
-var line2 = d3.svg.line()
-    .x(function(d) { return mini_x(d.time); })
-    .y(function(d) { return mini_y(d.value); })
-    .interpolate('basis');
+    //------------- start brush slider
+    var line2 = d3.svg.line()
+        .x(function(d) {
+            return mini_x(d.time);
+        })
+        .y(function(d) {
+            return mini_y(d.value);
+        })
+        .interpolate('basis');
 
- var brush = d3.svg.brush()//for slider bar at the bottom
+    var brush = d3.svg.brush() //for slider bar at the bottom
     .x(mini_x)
-    .on("brush", brushed);
+        .on("brush", brushed);
 
-//Zoom brush
-mini_x.domain(x.domain());
-mini_y.domain(y.domain());
+    //Zoom brush
+    mini_x.domain(x.domain());
+    mini_y.domain(y.domain());
 
-var context = svg.append("g")
+    var context = svg.append("g")
         .attr("class", "context")
-        .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")"); 
+        .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")");
 
     context.append("g")
         .attr("class", "cities")
@@ -402,34 +418,34 @@ var context = svg.append("g")
         });
 
 
-  context.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + mini_height + ")")
-      .call(xAxis2);
+    context.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + mini_height + ")")
+        .call(xAxis2);
 
-  context.append("g")
-      .attr("class", "x brush")
-      .call(brush)
-    .selectAll("rect")
-      .attr("y", -6)
-      .attr("height", mini_height + 7);
+    context.append("g")
+        .attr("class", "x brush")
+        .call(brush)
+        .selectAll("rect")
+        .attr("y", -6)
+        .attr("height", mini_height + 7);
 
     function mouseover(d) {
         d3.select(d.event.line).classed("event--hover", true);
         d.event.line.parentNode.appendChild(d.event.line);
-        focus.attr("transform", "translate(" + x(d.time) + "," + y(d.value) + ")");
-        focus.select("text").text(d.event.name);
+        focus_point.attr("transform", "translate(" + x(d.time) + "," + y(d.value) + ")");
+        focus_point.select("text").text(d.event.name);
     }
 
     function mouseout(d) {
         d3.select(d.event.line).classed("event--hover", false);
-        focus.attr("transform", "translate(-100,-100)");
+        focus_point.attr("transform", "translate(-100,-100)");
     }
 
     function brushed() {
         x.domain(brush.empty() ? mini_x.domain() : brush.extent());
-        focus.select(".area").attr("d", area);
-        focus.select(".x.axis").call(xAxis);
+        focus_point.select(".area").attr("d", area);
+        focus_point.select(".x.axis").call(xAxis);
     }
     </script>
 </body>
