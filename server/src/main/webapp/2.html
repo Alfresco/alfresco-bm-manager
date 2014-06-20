@@ -357,7 +357,6 @@ svg {
         .text("Y");
 
     focus.append("g")
-        // .attr("class", "cities")
         .selectAll("path")
         .data(data)
         .enter().append("path")
@@ -473,6 +472,7 @@ svg {
         x.domain(brush.empty() ? mini_x.domain() : brush.extent());
         focus.selectAll('.cities').attr('d', function(d) { return line(d.values); });
         focus.select(".x.axis").call(xAxis);
+        
     }
     </script>
 </body>
