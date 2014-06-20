@@ -230,23 +230,13 @@ svg {
         brush = d3.svg.brush()
             .x(mini_x)
             .on("brush", brushed);
-
-    var area = d3.svg.area()
-        .interpolate("monotone")
-        .x(function(d) {
-            return x(d.time);
-        })
-        .y0(height)
-        .y1(function(d) {
-            return y(d.value);
-        });
-
-
+ 
     data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
         return d;
     });
+
     //nest data by event
     data = d3.nest().key(function(d) {
         return d.name;
@@ -260,6 +250,7 @@ svg {
         }
         return z;
     })
+
     var data = data.map(function(d) {
         var event = {
             name: d.name,
@@ -275,19 +266,6 @@ svg {
         return event;
     });
 
-    var voronoi = d3.geom.voronoi()
-        .x(function(d) {
-            return x(d.time);
-        })
-        .y(function(d) {
-            return y(d.value);
-        })
-        .clipExtent([
-            [-margin.left, -margin.top],
-            [width + margin.right, height + margin.bottom]
-        ]);
-
-
     x.domain([d3.min(data, function(d) {
             return d3.min(d.values, function(d) {
                 return d.time;
@@ -299,14 +277,12 @@ svg {
             });
         })
     ]);
+
     y.domain([0, d3.max(data, function(d) {
         return d3.max(d.values, function(d) {
             return d.value;
         });
     })]);
-
-    mini_x.domain(x.domain());
-    mini_y.domain(y.domain());
 
     //Angularjs replace html tag
     // var el = element[0];
@@ -367,49 +343,17 @@ svg {
             return res
         });
 
-    var focus_point = focus.append("g")
-        .attr("transform", "translate(-100,-100)")
-        .attr("class", "focus_point");
+    // var focus_point = focus.append("g")
+    //     .attr("transform", "translate(-100,-100)")
+    //     .attr("class", "focus_point");
 
-    focus_point.append("circle")
-        .attr("r", 3.5);
+    // focus_point.append("circle")
+    //     .attr("r", 3.5);
 
-    focus_point.append("text")
-        .attr("y", -10);
+    // focus_point.append("text")
+    //     .attr("y", -10);
 
-    var voronoiGroup = focus.append("g")
-        .attr("class", "voronoi");
 
-    voronoiGroup.selectAll("path")
-        .data(voronoi(d3.nest()
-            .key(function(d) {
-                return x(d.time) + "," + y(d.value);
-            })
-            .rollup(function(v) {
-                return v[0];
-            })
-            .entries(d3.merge(
-                data.map(function(d) {
-                    return d.values;
-                })))
-            .map(function(d) {
-                return d.values;
-            })))
-        .enter().append("path")
-        .attr("d", function(d) {
-            return "M" + d.join("L") + "Z";
-        })
-        .datum(function(d) {
-            return d.point;
-        })
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout);
-
-    d3.select("#show-voronoi")
-        .property("disabled", false)
-        .on("change", function() {
-            voronoiGroup.classed("voronoi--show", this.checked);
-        });
     //------------- start brush slider
     var line2 = d3.svg.line()
         .x(function(d) {
@@ -443,7 +387,6 @@ svg {
             return res
         });
 
-
     context.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + mini_height + ")")
@@ -456,23 +399,10 @@ svg {
         .attr("y", -6)
         .attr("height", mini_height + 7);
 
-    function mouseover(d) {
-        d3.select(d.event.line).classed("event--hover", true);
-        d.event.line.parentNode.appendChild(d.event.line);
-        focus_point.attr("transform", "translate(" + x(d.time) + "," + y(d.value) + ")");
-        focus_point.select("text").text(d.event.name);
-    }
-
-    function mouseout(d) {
-        d3.select(d.event.line).classed("event--hover", false);
-        focus_point.attr("transform", "translate(-100,-100)");
-    }
-
     function brushed() {
         x.domain(brush.empty() ? mini_x.domain() : brush.extent());
         focus.selectAll('.cities').attr('d', function(d) { return line(d.values); });
         focus.select(".x.axis").call(xAxis);
-        
     }
     </script>
 </body>
