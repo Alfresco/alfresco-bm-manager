@@ -213,11 +213,9 @@ svg {
     // Using time range instead of scale to display date and time on axis.
     var x = d3.time.scale().range([0, width]),
         mini_x = d3.time.scale().range([0, width]),
-        xAxis = d3.svg.axis().scale(x).orient("bottom"),
         xAxis2 = d3.svg.axis().scale(mini_x).orient("bottom"),
         y = d3.scale.linear().range([height, 0]),
         mini_y = d3.scale.linear().range([mini_height, 0])
-        yAxis = d3.svg.axis().scale(y).orient("left"),
         color = d3.scale.category10(),
         line = d3.svg.line()
             .interpolate("linear")
@@ -236,7 +234,19 @@ svg {
         d.value = +d.value;
         return d;
     });
-
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .tickSize(-height)
+        .tickPadding(10)    
+        .tickSubdivide(true)    
+        .orient("bottom");  
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .tickPadding(10)
+        .tickSize(-width)
+        .tickSubdivide(true)    
+        .orient("left");
     //nest data by event
     data = d3.nest().key(function(d) {
         return d.name;
