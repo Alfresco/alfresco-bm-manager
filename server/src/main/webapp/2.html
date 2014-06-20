@@ -13,9 +13,14 @@ body {
 svg {
     font: 11px"Helvetica Neue", Helvetica, Arial, sans-serif;
 }
-.axis path, .axis line {
+.axis path {
     fill: none;
     stroke: #000;
+    shape-rendering: crispEdges;
+}
+.axis line{
+    fill: none;
+    stroke: #ccc;
     shape-rendering: crispEdges;
 }
 .axis--y path {
@@ -54,14 +59,11 @@ svg {
     fill-opacity: .125;
     shape-rendering: crispEdges;
 }
+
 </style>
 <script src="d3.js"></script>
 
 <body>
-    <label id="form" for="show-voronoi">
-        Show Voronoi
-        <input type="checkbox" id="show-voronoi" disabled>
-    </label>
     <section id="graph">
         <section id="historic"></section>
     </section>
@@ -191,6 +193,8 @@ svg {
 {"time":"Feb 2010","value":"1104.49","name":"search"},
 {"time":"Mar 2010","value":"1140.45","name":"search"}];
 
+    var colors = new Array();
+        colors=d3.scale.category20();
     var margin = {
         top: 20,
         right: 80,
@@ -351,7 +355,8 @@ svg {
             ci.line = this;
             var res = line(ci.values);
             return res
-        });
+        })
+        .style("stroke", function(d) { return colors(d.name); });
 
     // var focus_point = focus.append("g")
     //     .attr("transform", "translate(-100,-100)")
