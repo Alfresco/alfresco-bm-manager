@@ -307,6 +307,7 @@ svg {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     //Main chart view with brush zoom.
+    svg.append('clipPath').attr("id", "clipping-rect").append("rect");
     svg.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("rect")
@@ -315,7 +316,7 @@ svg {
 
     var focus = svg.append("g")
         .attr("class", "focus"); 
-
+    
     //paint xaxis and rotate label to 65 degrees
     focus.append("g")
         .attr("class", "x axis")
@@ -357,7 +358,7 @@ svg {
             return res
         })
         .style("stroke", function(d) { return colors(d.name); });
-
+    focus.attr("clip-path", "url(#clip)");
     // var focus_point = focus.append("g")
     //     .attr("transform", "translate(-100,-100)")
     //     .attr("class", "focus_point");
