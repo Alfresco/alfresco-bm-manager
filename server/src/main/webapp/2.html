@@ -307,7 +307,6 @@ svg {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     //Main chart view with brush zoom.
-    svg.append('clipPath').attr("id", "clipping-rect").append("rect");
     svg.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("rect")
@@ -359,15 +358,16 @@ svg {
         })
         .style("stroke", function(d) { return colors(d.name); });
     focus.attr("clip-path", "url(#clip)");
-    // var focus_point = focus.append("g")
-    //     .attr("transform", "translate(-100,-100)")
-    //     .attr("class", "focus_point");
 
-    // focus_point.append("circle")
-    //     .attr("r", 3.5);
+    var focus_point = focus.append("g")
+        .attr("transform", "translate(-100,-100)")
+        .attr("class", "focus_point");
 
-    // focus_point.append("text")
-    //     .attr("y", -10);
+    focus_point.append("circle")
+        .attr("r", 3.5);
+
+    focus_point.append("text")
+        .attr("y", -10);
 
 
     //------------- start brush slider
@@ -391,7 +391,7 @@ svg {
     var context = svg.append("g")
         .attr("class", "context")
         .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")");
-
+    //Event line plotter for the brush view
     context.append("g")
         .attr("class", "cities")
         .selectAll("path")
@@ -420,6 +420,24 @@ svg {
         focus.selectAll('.cities').attr('d', function(d) { return line(d.values); });
         focus.select(".x.axis").call(xAxis);
     }
+        //curving part of those funds------------------------------------------------------------------------
+    // var fund = focus.selectAll(".cities")
+    //         .data(data)
+    //         .enter().append("g")
+    //         .attr("class", "fund");
+
+    // fund.append("path")
+    //     .attr("class", "line")
+    //     .attr("clip-path", "url(#clip)")//use clip path to make irrelevant part invisible
+    //     .attr("d", function(d) { 
+    //         if(d.vis=="1"){
+    //         return line(d.priceList);} 
+    //         else{ return null;} 
+    //     })
+    //     .style("stroke", function(d) { return colors(d.name); });
+
+
+    //end of curving part of those funds-------------------------------------------------------------
     </script>
 </body>
 
