@@ -203,13 +203,12 @@ svg {
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom,
         mini_height = 500 - mini_margin.top - mini_margin.bottom;
-    var xbuffer = 110;
 
     // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
     // var parseDate = d3.time.format("%Y-%m-%d").parse;
     var parseDate = d3.time.format("%b %Y").parse;
     // Using time range instead of scale to display date and time on axis.
-    var x = d3.time.scale().range([0, width - xbuffer]),
+    var x = d3.time.scale().range([0, width]),
         mini_x = d3.time.scale().range([0, width]),
         xAxis2 = d3.svg.axis().scale(mini_x).orient("bottom"),
         y = d3.scale.linear().range([height, 0]),
@@ -302,10 +301,11 @@ svg {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     //Main chart view with brush zoom.
     svg.append("defs").append("clipPath")
-        .attr("id", "clip")
+        .attr("id", "clip").attr("width", width)
+        
         .append("rect")
-        .attr("width", width - xbuffer)
-        .attr("height", height);
+        .attr("width", width+1)
+        .attr("height", height+40);
 
     var focus = svg.append("g")
         .attr("class", "focus"); 
@@ -353,15 +353,15 @@ svg {
         .style("stroke", function(d) { return colors(d.name); });
     focus.attr("clip-path", "url(#clip)");
 
-    var focus_point = focus.append("g")
-        .attr("transform", "translate(-100,-100)")
-        .attr("class", "focus_point");
+    // var focus_point = focus.append("g")
+    //     .attr("transform", "translate(-100,-100)")
+    //     .attr("class", "focus_point");
 
-    focus_point.append("circle")
-        .attr("r", 3.5);
+    // focus_point.append("circle")
+    //     .attr("r", 3.5);
 
-    focus_point.append("text")
-        .attr("y", -10);
+    // focus_point.append("text")
+    //     .attr("y", -10);
 
 
     //------------- start brush slider
@@ -414,53 +414,7 @@ svg {
         focus.selectAll('.cities').attr('d', function(d) { return line(d.values); });
         focus.select(".x.axis").call(xAxis);
     }
-    // add legend   
-    var legend = svg.append("g")
-      .attr("class", "legend")
-      .attr("x", width - 85)
-      .attr("y", 25)
-      .attr("height", 100)
-      .attr("width", 100);
 
-    legend.selectAll('g').data(data)
-      .enter()
-      .append('g')
-      .each(function(d, i) {
-        var g = d3.select(this);
-        g.append("rect")
-          .attr("x", width - 85)
-          .attr("y", i*25)
-          .attr("width", 10)
-          .attr("height", 10)
-          .style("fill", function(d) { return colors(d.name); });
-        
-        g.append("text")
-          .attr("x", width - 70)
-          .attr("y", i * 25 + 8)
-          .attr("height",30)
-          .attr("width",100)
-          // .style("fill",function(d) { return colors(d.name); })
-          .text(d.name);
-
-      });
-        //curving part of those funds------------------------------------------------------------------------
-    // var fund = focus.selectAll(".cities")
-    //         .data(data)
-    //         .enter().append("g")
-    //         .attr("class", "fund");
-
-    // fund.append("path")
-    //     .attr("class", "line")
-    //     .attr("clip-path", "url(#clip)")//use clip path to make irrelevant part invisible
-    //     .attr("d", function(d) { 
-    //         if(d.vis=="1"){
-    //         return line(d.priceList);} 
-    //         else{ return null;} 
-    //     })
-    //     .style("stroke", function(d) { return colors(d.name); });
-
-
-    //end of curving part of those funds-------------------------------------------------------------
     </script>
 </body>
 
