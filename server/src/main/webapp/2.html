@@ -203,12 +203,13 @@ svg {
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom,
         mini_height = 500 - mini_margin.top - mini_margin.bottom;
+    var xbuffer = 110;
 
     // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
     // var parseDate = d3.time.format("%Y-%m-%d").parse;
     var parseDate = d3.time.format("%b %Y").parse;
     // Using time range instead of scale to display date and time on axis.
-    var x = d3.time.scale().range([0, width]),
+    var x = d3.time.scale().range([0, width - xbuffer]),
         mini_x = d3.time.scale().range([0, width]),
         xAxis2 = d3.svg.axis().scale(mini_x).orient("bottom"),
         y = d3.scale.linear().range([height, 0]),
@@ -303,7 +304,7 @@ svg {
     svg.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("rect")
-        .attr("width", width)
+        .attr("width", width - xbuffer)
         .attr("height", height);
 
     var focus = svg.append("g")
@@ -413,6 +414,35 @@ svg {
         focus.selectAll('.cities').attr('d', function(d) { return line(d.values); });
         focus.select(".x.axis").call(xAxis);
     }
+    // add legend   
+    var legend = svg.append("g")
+      .attr("class", "legend")
+      .attr("x", width - 85)
+      .attr("y", 25)
+      .attr("height", 100)
+      .attr("width", 100);
+
+    legend.selectAll('g').data(data)
+      .enter()
+      .append('g')
+      .each(function(d, i) {
+        var g = d3.select(this);
+        g.append("rect")
+          .attr("x", width - 85)
+          .attr("y", i*25)
+          .attr("width", 10)
+          .attr("height", 10)
+          .style("fill", function(d) { return colors(d.name); });
+        
+        g.append("text")
+          .attr("x", width - 70)
+          .attr("y", i * 25 + 8)
+          .attr("height",30)
+          .attr("width",100)
+          .style("fill",function(d) { return colors(d.name); })
+          .text(d.name);
+
+      });
         //curving part of those funds------------------------------------------------------------------------
     // var fund = focus.selectAll(".cities")
     //         .data(data)
