@@ -6,7 +6,7 @@
 </head>
 <style>
 body {
-    width: 960px;
+    width: 1200px;
     margin: auto;
     position: relative;
 }
@@ -187,7 +187,7 @@ svg {
 {"time":"Mar 2010","value":"1140.45","name":"search"}];
 
     var colors = new Array();
-        colors=d3.scale.category20();
+        colors = d3.scale.category20();
     var margin = {
         top: 20,
         right: 80,
@@ -296,23 +296,25 @@ svg {
     //Angularjs replace html tag
     // var el = element[0];
     // var svg = d3.select(el).append("svg")
-    var svg = d3.select("body").append("svg")
+    var svg = d3.select("body").append("svg");
+    //Main chart view
+    var chart = svg.append("g")
+        .attr("class", "chart")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    
     //X axis
-    svg.append("g")
+    chart.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")") //adds the x grids
         .call(xAxis);
     //Y axis
-    svg.append("g")
+    chart.append("g")
         .attr("class", "y axis")
         .call(yAxis);
-    //Main chart view 
-    var focus = svg.append("g")
+    //focus of chart view 
+    var focus = chart.append("g")
         .attr("class", "focus")
     //Evnet line chart
     focus.append("g")
@@ -343,7 +345,7 @@ svg {
                     .x(mini_x)
                     .on("brush", brushed);
     //brush zoom view.
-    svg.append("defs").append("clipPath")
+    chart.append("defs").append("clipPath")
         .attr("id", "clip")
         .attr("width", 500)
         .attr("x",-100)
@@ -355,12 +357,12 @@ svg {
     mini_x.domain(x.domain());
     mini_y.domain(y.domain());
 
-    var context = svg.append("g")
-        .attr("class", "context")
-        .attr("transform", "translate(0," + mini_margin.top + ")");
+    var slider = svg.append("g")
+        .attr("class", "slider")
+        .attr("transform", "translate(40," + mini_margin.top + ")");
     
     //Event line plotter for the brush view
-    context.append("g")
+    slider.append("g")
         .attr("class", "events")
         .selectAll("path")
         .data(data)
@@ -371,12 +373,12 @@ svg {
             return res
         });
     //Brushed view x axis 
-    context.append("g")
+    slider.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + mini_height + ")")
         .call(xAxis2);
     //Brushed view y axis 
-    context.append("g")
+    slider.append("g")
         .attr("class", "x brush")
         .call(brush)
         .selectAll("rect")

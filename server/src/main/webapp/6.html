@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <title>MPF Vis</title>
+</head>
+<style>
+
+body {
+  margin:10px 5px 30px 40px;
+  width: 1060px;
+}
+
+text {
+  font: 10px sans-serif;
+}
+
+.axis path {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+.axis line{
+    fill: none;
+    stroke: #ccc;
+    shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: url(#temperature-gradient);
+  stroke-width: 1.5px;
+}
+.brush .extent {
+    stroke: #fff;
+    fill-opacity: .125;
+    shape-rendering: crispEdges;
+}
+.events {
+    fill: none;
+    stroke: #aaa;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-width: 1.5px;
+}
+</style>
+<body> 
+
+
+<div id="graph" class="graph" style="position:relative;width:100%;height:630px"></div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+
+<script>
+var data = 
+[{"time":"Jan 2000","value":"1394.46","name":"search"},
+{"time":"Feb 2000","value":"1366.42","name":"search"},
+{"time":"Mar 2000","value":"1498.58","name":"search"},
+{"time":"Apr 2000","value":"1452.43","name":"search"},
+{"time":"May 2000","value":"1420.6","name":"search"},
+{"time":"Jun 2000","value":"1454.6","name":"search"},
+{"time":"Jul 2000","value":"1430.83","name":"search"},
+{"time":"Aug 2000","value":"1517.68","name":"search"},
+{"time":"Sep 2000","value":"1436.51","name":"search"},
+{"time":"Oct 2000","value":"1429.4","name":"search"},
+{"time":"Nov 2000","value":"1314.95","name":"search"},
+{"time":"Dec 2000","value":"1320.28","name":"search"},
+{"time":"Jan 2001","value":"1366.01","name":"search"},
+{"time":"Feb 2001","value":"1239.94","name":"search"},
+{"time":"Mar 2001","value":"1160.33","name":"search"},
+{"time":"Apr 2001","value":"1249.46","name":"search"},
+{"time":"May 2001","value":"1255.82","name":"search"},
+{"time":"Jun 2001","value":"1224.38","name":"search"},
+{"time":"Jul 2001","value":"1211.23","name":"search"},
+{"time":"Aug 2001","value":"1133.58","name":"search"},
+{"time":"Sep 2001","value":"1040.94","name":"search"},
+{"time":"Oct 2001","value":"1059.78","name":"search"},
+{"time":"Nov 2001","value":"1139.45","name":"search"},
+{"time":"Dec 2001","value":"1148.08","name":"search"},
+{"time":"Jan 2002","value":"1130.2","name":"search"},
+{"time":"Feb 2002","value":"1106.73","name":"search"},
+{"time":"Mar 2002","value":"1147.39","name":"search"},
+{"time":"Apr 2002","value":"1076.92","name":"search"},
+{"time":"May 2002","value":"1067.14","name":"search"},
+{"time":"Jun 2002","value":"989.82","name":"search"},
+{"time":"Jul 2002","value":"911.62","name":"search"},
+{"time":"Aug 2002","value":"916.07","name":"search"},
+{"time":"Sep 2002","value":"815.28","name":"search"},
+{"time":"Oct 2002","value":"885.76","name":"search"},
+{"time":"Nov 2002","value":"936.31","name":"search"},
+{"time":"Dec 2002","value":"879.82","name":"search"},
+{"time":"Jan 2003","value":"855.7","name":"search"},
+{"time":"Feb 2003","value":"841.15","name":"search"},
+{"time":"Mar 2003","value":"848.18","name":"search"},
+{"time":"Apr 2003","value":"916.92","name":"search"},
+{"time":"May 2003","value":"963.59","name":"search"},
+{"time":"Jun 2003","value":"974.5","name":"search"},
+{"time":"Jul 2003","value":"990.31","name":"search"},
+{"time":"Aug 2003","value":"1008.01","name":"search"},
+{"time":"Sep 2003","value":"995.97","name":"search"},
+{"time":"Oct 2003","value":"1050.71","name":"search"},
+{"time":"Nov 2003","value":"1058.2","name":"search"},
+{"time":"Dec 2003","value":"1111.92","name":"search"},
+{"time":"Jan 2004","value":"1131.13","name":"search"},
+{"time":"Feb 2004","value":"1144.94","name":"search"},
+{"time":"Mar 2004","value":"1126.21","name":"search"},
+{"time":"Apr 2004","value":"1107.3","name":"search"},
+{"time":"May 2004","value":"1120.68","name":"search"},
+{"time":"Jun 2004","value":"1140.84","name":"search"},
+{"time":"Jul 2004","value":"1101.72","name":"search"},
+{"time":"Aug 2004","value":"1104.24","name":"search"},
+{"time":"Sep 2004","value":"1114.58","name":"search"},
+{"time":"Oct 2004","value":"1130.2","name":"search"},
+{"time":"Nov 2004","value":"1173.82","name":"search"},
+{"time":"Dec 2004","value":"1211.92","name":"search"},
+{"time":"Jan 2005","value":"1181.27","name":"search"},
+{"time":"Feb 2005","value":"1203.6","name":"search"},
+{"time":"Mar 2005","value":"1180.59","name":"search"},
+{"time":"Apr 2005","value":"1156.85","name":"search"},
+{"time":"May 2005","value":"1191.5","name":"search"},
+{"time":"Jun 2005","value":"1191.33","name":"search"},
+{"time":"Jul 2005","value":"1234.18","name":"search"},
+{"time":"Aug 2005","value":"1220.33","name":"search"},
+{"time":"Sep 2005","value":"1228.81","name":"search"},
+{"time":"Oct 2005","value":"1207.01","name":"search"},
+{"time":"Nov 2005","value":"1249.48","name":"search"},
+{"time":"Dec 2005","value":"1248.29","name":"search"},
+{"time":"Jan 2006","value":"1280.08","name":"search"},
+{"time":"Feb 2006","value":"1280.66","name":"search"},
+{"time":"Mar 2006","value":"1294.87","name":"search"},
+{"time":"Apr 2006","value":"1310.61","name":"search"},
+{"time":"May 2006","value":"1270.09","name":"search"},
+{"time":"Jun 2006","value":"1270.2","name":"search"},
+{"time":"Jul 2006","value":"1276.66","name":"search"},
+{"time":"Aug 2006","value":"1303.82","name":"search"},
+{"time":"Sep 2006","value":"1335.85","name":"search"},
+{"time":"Oct 2006","value":"1377.94","name":"search"},
+{"time":"Nov 2006","value":"1400.63","name":"search"},
+{"time":"Dec 2006","value":"1418.3","name":"search"},
+{"time":"Jan 2007","value":"1438.24","name":"search"},
+{"time":"Feb 2007","value":"1406.82","name":"search"},
+{"time":"Mar 2007","value":"1420.86","name":"search"},
+{"time":"Apr 2007","value":"1482.37","name":"search"},
+{"time":"May 2007","value":"1530.62","name":"search"},
+{"time":"Jun 2007","value":"1503.35","name":"search"},
+{"time":"Jul 2007","value":"1455.27","name":"search"},
+{"time":"Aug 2007","value":"1473.99","name":"search"},
+{"time":"Sep 2007","value":"1526.75","name":"search"},
+{"time":"Oct 2007","value":"1549.38","name":"search"},
+{"time":"Nov 2007","value":"1481.14","name":"search"},
+{"time":"Dec 2007","value":"1468.36","name":"search"},
+{"time":"Jan 2008","value":"1378.55","name":"search"},
+{"time":"Feb 2008","value":"1330.63","name":"search"},
+{"time":"Mar 2008","value":"1322.7","name":"search"},
+{"time":"Apr 2008","value":"1385.59","name":"search"},
+{"time":"May 2008","value":"1400.38","name":"search"},
+{"time":"Jun 2008","value":"1280","name":"navigate"},
+{"time":"Jul 2008","value":"1267.38","name":"navigate"},
+{"time":"Aug 2008","value":"1282.83","name":"navigate"},
+{"time":"Sep 2008","value":"1166.36","name":"navigate"},
+{"time":"Oct 2008","value":"968.75","name":"navigate"},
+{"time":"Nov 2008","value":"896.24","name":"navigate"},
+{"time":"Dec 2008","value":"903.25","name":"navigate"},
+{"time":"Jan 2009","value":"825.88","name":"navigate"},
+{"time":"Feb 2009","value":"735.09","name":"navigate"},
+{"time":"Mar 2009","value":"797.87","name":"navigate"},
+{"time":"Apr 2009","value":"872.81","name":"navigate"},
+{"time":"May 2009","value":"919.14","name":"navigate"},
+{"time":"Jun 2009","value":"919.32","name":"navigate"},
+{"time":"Jul 2009","value":"987.48","name":"navigate"},
+{"time":"Aug 2009","value":"1020.62","name":"navigate"},
+{"time":"Sep 2009","value":"1057.08","name":"navigate"},
+{"time":"Oct 2009","value":"1036.19","name":"navigate"},
+{"time":"Nov 2009","value":"1095.63","name":"search"},
+{"time":"Dec 2009","value":"1115.1","name":"search"},
+{"time":"Jan 2010","value":"1073.87","name":"search"},
+{"time":"Feb 2010","value":"1104.49","name":"search"},
+{"time":"Mar 2010","value":"1140.45","name":"search"}];
+var colors = new Array();
+        colors = d3.scale.category20();
+ var parseDate = d3.time.format("%b %Y").parse;
+//Prepare data
+    data = data.map(function(d) {
+        d.time = parseDate(d.time);
+        d.value = +d.value;
+        return d;
+    });
+    //nest data by event
+    data = d3.nest().key(function(d) {
+        return d.name;
+    }).entries(data);
+
+    //rename key property to name
+    data = data.map(function(z) {
+        if (z.hasOwnProperty("key")) {
+            z.name = z.key;
+            delete z.key;
+        }
+        return z;
+    })
+
+    var data = data.map(function(d) {
+        var event = {
+            name: d.name,
+            values: null
+        };
+        event.values = d.values.map(function(f) {
+            return {
+                "event": event,
+                "time": f.time,
+                "value": f.value
+            };
+        });
+        return event;
+    });
+    // prepare data end 
+  var margin = {top: 15, right: 50, bottom: 100, left: 50},
+    margin2 = {top: 500, right: 50, bottom: 50, left: 50},
+    width = 1300 - margin.left - margin.right,
+    height = 570 - margin.top - margin.bottom,
+    height2 = 570 - margin2.top - margin2.bottom;
+
+  var maxY=findMaxY();
+  var minY=findMinY();
+  var mousePickerDate;
+  var currIndex=data[0].values.length-1;
+  
+  var x = d3.time.scale()
+    .range([0, width-210]),
+    x2 = d3.time.scale()
+    .range([0, width-210]);
+
+  var y = d3.scale.linear()
+    .range([height, 0]),
+    y2 = d3.scale.linear()
+    .range([height2, 0]);
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .tickSize(-height)
+        .tickPadding(10)    
+        .tickSubdivide(true)    
+        .orient("bottom");  
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .tickPadding(10)
+        .tickSize(-width)
+        .tickSubdivide(true)    
+        .orient("left");
+  // var xAxis = d3.svg.axis()
+  //   .scale(x)
+  //   .orient("bottom");
+    xAxis2 = d3.svg.axis()
+    .scale(x2).orient("bottom");
+
+  // var yAxis = d3.svg.axis()
+  //   .scale(y)
+  //   .orient("left");
+  
+  var line = d3.svg.line()
+    .interpolate("linear")
+    .x(function(d) { return x(d.time); })
+    .y(function(d) { return y(d.value); });
+    //------------- start brush slider
+    var line2 = d3.svg.line()
+        .x(function(d) {
+            return x2(d.time);
+        })
+        .y(function(d) {
+            return y2(d.value);
+        })
+        .interpolate('basis');
+  var svg = d3.select("#graph").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+  
+  //the main graphic component of the plot
+  var focus=svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  
+  //for slider part-----------------------------------------------------------------------------------
+  var brush = d3.svg.brush()//for slider bar at the bottom
+    .x(x2)
+    .on("brush", brushed);
+  
+  var context = svg.append("g")
+    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+  
+  //append click path for controlling the sliding of curve, clip those part out of bounds
+  svg.append("defs").append("clipPath") 
+  .attr("id", "clip")
+  .append("rect")
+  .attr("width", width-210)
+  .attr("height", height); 
+
+  x.domain([data[0].values[0].time,data[0].values[data[0].values.length-1].time]); 
+  y.domain([minY-0.2,maxY+0.2]);
+  x2.domain(x.domain());//the domain axis for the bar at the bottom
+  
+  context.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height2 + ")")
+      .call(xAxis2);
+    
+  var contextArea = d3.svg.area()
+    .interpolate("monotone")
+    .x(function(d) { return x2(d.time); })
+    .y0(height2)
+    .y1(0);
+  
+  //plot the rect as the bar at the bottom
+  context.append("g")
+        .attr("class", "events")
+        .selectAll("path")
+        .data(data)
+        .enter().append("path")
+        .attr("d", function(minidata) {
+            minidata.line = this;
+            var res = line2(minidata.values);
+            return res
+        });
+  context.append("path")
+    .attr("class", "x axis")
+        .attr("transform", "translate(0," + height2 + ")")
+        .call(xAxis2);
+  //append the brush for the selection of subsection  
+  context.append("g")
+    .attr("class", "x brush")
+    .call(brush)
+    .selectAll("rect")
+    .attr("y", -6)
+    .attr("height", height2 + 7);
+  //end slider part-----------------------------------------------------------------------------------
+  
+  //x,y-axis for the plot
+  focus.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  focus.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+  
+  //curving part of those funds------------------------------------------------------------------------
+  var fund = focus.selectAll(".fund")
+      .data(data)
+      .enter().append("g")
+      .attr("class", "fund");
+
+  fund.append("path")
+    .attr("class", "line")
+    .attr("clip-path", "url(#clip)")//use clip path to make irrelevant part invisible
+    .attr("d", function(d) { if(d.vis=="1"){return line(d.values);} else{ return null;} })
+    .style("stroke", function(d) { return colors(d.name); });
+
+  //fund name label
+  fund.append("text")
+    .attr("class", "fundNameLabel")
+    .attr("x", function(d) { return width-175; })
+    .attr("y", function(d) { return getFundID(d.name)*35; })
+    .text( function (d) { return d.name; })
+    .attr("font-family", "sans-serif")
+    .attr("font-size", "10px")
+    .attr("fill", "black");   
+  
+  //fund select or dis-select btn
+  fund.append("rect")
+    .attr("height",10)
+    .attr("width", 25)
+    .attr("x",width-205)
+    .attr("y",function(d) {return getFundID(d.name)*35-8;})
+    .attr("stroke", function(d) {return colors(d.name);})
+    .attr("fill",function(d) {if(d.vis=="1"){return colors(d.name);}else{return "white";}})
+    .on("click", function(d) { 
+          if(d.vis=="1"){
+            d.vis="0";
+          }
+          else{
+            d.vis="1";
+          } 
+          maxY=findMaxY();
+          minY=findMinY();
+          y.domain([minY-0.2,maxY+0.2]);
+          focus.select(".y.axis").call(yAxis);
+          
+          fund.select("path").transition()//update curve 
+            .attr("d", function(d) { if(d.vis=="1"){return line(d.values);} else{ return null;} })
+        
+          fund.select("rect")//update legend 
+            .attr("fill",function(d) {if(d.vis=="1"){return colors(d.name);}else{return "white";}});
+      });  
+  //end of curving part of those funds------------------------------------------------------------- 
+      
+  // //mouse picker related, hover line---------------------------------------------------------------
+  // var pickerValue = focus.selectAll(".pickerValue")//for displaying fund unit price 
+  //   .data(data)
+  //   .enter().append("g")
+  //   .attr("class", "pickerValue");
+    
+  // var valueChange = focus.selectAll(".valueChange")//for displaying unit price percentage change
+  //   .data(data)
+  //   .enter().append("g")
+  //   .attr("class", "valueChange");
+    
+  // var hoverLineGroup = focus.append("g") //the vertical line across the plots
+  //       .attr("class", "hover-line");
+        
+  // var DateLbl = focus.append("g")  //the date label at the right upper corner part
+  //   .attr("class", "dateLabel");
+
+  // //check the mouse event over the plot area and do the processing 
+  // container = document.querySelector('#graph');
+  // $(container).mouseleave(function(event) {
+  //   // handleMouseOutGraph(event);
+  //   //console.log("mouse leave");
+  // })
+  // $(container).mousemove(function(event) {
+  //   // handleMouseOverGraph(event);
+  //   //console.log("mouse move on graph");
+  // })    
+  
+  // mousePickerDate=getValueForPositionXFromData(width-210);//initial pick date is the last day of the plot
+  // //for displaying fund unit price
+  // pickerValue.append("text")
+  //   .attr("class", "valuesLabel")
+  //   .attr("x", function(d) { return width-205; })
+  //   .attr("y", function(d) { return getFundID(d.name)*35+15; })
+  //   .text( function (d) { 
+  //     var dateStr="";
+  //     //console.log(mousePickerDate);
+  //     dateStr+=mousePickerDate.getFullYear();
+  //     if(mousePickerDate.getMonth()+1<10){
+  //       dateStr+="0"+(mousePickerDate.getMonth()+1);
+  //     }else{
+  //       dateStr+=(mousePickerDate.getMonth()+1);
+  //     }
+  //     if(mousePickerDate.getDate()<10){
+  //       dateStr+="0"+mousePickerDate.getDate();
+  //     }else{
+  //       dateStr+=mousePickerDate.getDate();
+  //     }
+  //     //console.log(dateStr);
+  //     currIndex=DateMapIndex.get(dateStr);
+  //     return d.values[currIndex].price; 
+  //   })
+  //          .attr("font-family", "sans-serif")
+  //          .attr("font-size", "15px")
+  //          .attr("fill", function(d) { return colors(d.name); });  
+       
+  // //for displaying unit price percentage change
+  // valueChange.append("text")
+  //   .attr("class", "valuesLabel")
+  //   .attr("x", function(d) { return width-170; })
+  //   .attr("y", function(d) { return getFundID(d.name)*35+15; })
+  //   .text( function (d) { 
+  //     var percentChange=(d.values[currIndex].price-d.values[currIndex-1].price)/d.values[currIndex-1].price*100;
+  //     if(percentChange<0){
+  //       return "(-"+percentChange.toFixed(2)+"%)" 
+  //     }else{
+  //       return "(+"+percentChange.toFixed(2)+"%)" 
+  //     }
+  //   })
+  //       .attr("font-family", "sans-serif")
+  //       .attr("font-size", "15px")
+  //       .attr("fill", function (d) {
+  //     var percentChange=(d.values[currIndex].price-d.values[currIndex-1].price)/d.values[currIndex-1].price*100;
+  //     if(percentChange<0){
+  //       return "red" 
+  //     }else{
+  //       return "black" 
+  //     }
+  //   });  
+
+  //end of mouse picker related, hover line-------------------------------------------------------------------
+  
+//************************************************* Supporting Functions***********************************************
+  //for brusher of the slider bar at the bottom
+  function brushed() {
+    x.domain(brush.empty() ? x2.domain() : brush.extent());
+    fund.select("path").transition()//update curve 
+      .attr("d", function(d) { if(d.vis=="1"){return line(d.values);} else{ return null;} })
+    focus.select(".x.axis").call(xAxis);
+  }
+  
+  //this function is mainly for accessing the colors
+  function getFundID(fundName){
+    for(var i=0; i < data.length; i++) {
+      if(data[i].name==fundName)
+        return i;
+    }
+  }
+  
+//************************************************End of Supporting Functions******************************************
+function findMaxY(){
+  var max=-9999999;
+  for(var i=0; i < data.length; i++) {
+    if(data[i].vis=="1"){//only find within those selected fund sets
+      var fundData=data[i].values;    
+      for(var j=0;j<fundData.length;j++){
+        if(fundData[j].value>max){
+          max=fundData[j].value;
+        }
+      }
+    }
+  }
+  return max;
+}
+
+function findMinY(){
+  var min=9999999;
+  for(var i=0; i < data.length; i++) {
+    if(data[i].vis=="1"){
+      var fundData=data[i].values;    
+      for(var j=0;j<fundData.length;j++){
+        if(fundData[j].value<min){
+          min=fundData[j].value;
+        }
+      }
+    }
+  }
+  return min;
+}
+</script>
