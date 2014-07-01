@@ -26,7 +26,7 @@ svg {
 .axis--y path {
     display: none;
 }
-.cities {
+.events {
     fill: none;
     stroke: #aaa;
     stroke-linejoin: round;
@@ -319,7 +319,7 @@ svg {
         .selectAll("path")
         .data(data)
         .enter().append("path")
-        .attr("class","cities")
+        .attr("class","events")
         .attr("d", function(ci) {
             ci.line = this;
             var res = line(ci.values);
@@ -361,7 +361,7 @@ svg {
     
     //Event line plotter for the brush view
     context.append("g")
-        .attr("class", "cities")
+        .attr("class", "events")
         .selectAll("path")
         .data(data)
         .enter().append("path")
@@ -385,7 +385,7 @@ svg {
 
     function brushed() {
         x.domain(brush.empty() ? mini_x.domain() : brush.extent());
-        focus.selectAll('.cities').attr('d', function(d) { return line(d.values); });
+        focus.selectAll('.events').attr('d', function(d) { return line(d.values); });
         focus.select(".x.axis").call(xAxis);
     }
 
