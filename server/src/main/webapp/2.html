@@ -194,7 +194,7 @@ svg {
         bottom: 110,
         left: 40
     },
-        mini_margin = {
+    mini_margin = {
             top: 430,
             right: 80,
             bottom: 40,
@@ -225,25 +225,12 @@ svg {
         brush = d3.svg.brush()
             .x(mini_x)
             .on("brush", brushed);
- 
+    //Prepare data
     data = data.map(function(d) {
         d.time = parseDate(d.time);
         d.value = +d.value;
         return d;
     });
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .tickSize(-height)
-        .tickPadding(10)    
-        .tickSubdivide(true)    
-        .orient("bottom");  
-    
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .tickPadding(10)
-        .tickSize(-width)
-        .tickSubdivide(true)    
-        .orient("left");
     //nest data by event
     data = d3.nest().key(function(d) {
         return d.name;
@@ -272,7 +259,22 @@ svg {
         });
         return event;
     });
+    // prepare data end 
 
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .tickSize(-height)
+        .tickPadding(10)    
+        .tickSubdivide(true)    
+        .orient("bottom");  
+    
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .tickPadding(10)
+        .tickSize(-width)
+        .tickSubdivide(true)    
+        .orient("left");
+    
     x.domain([d3.min(data, function(d) {
             return d3.min(d.values, function(d) {
                 return d.time;
@@ -299,47 +301,20 @@ svg {
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    //Main chart view with brush zoom.
-    svg.append("defs").append("clipPath")
-        .attr("id", "clip").attr("width", width)
-        
-        .append("rect")
-        .attr("width", width+1)
-        .attr("height", height+40);
-
-    var focus = svg.append("g")
-        .attr("class", "focus"); 
     
-    //paint xaxis and rotate label to 65 degrees
-    focus.append("g")
+    //X axis
+    svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis)
-        .selectAll("text")
-        .style("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", ".15em")
-
-    .attr("transform", function(d) {
-        return "rotate(-65)"
-    })
-        .append("text")
-        .attr("y", margin.bottom / 1.5)
-        .attr("x", width / 2)
-        .text("Date Taken");;
-
-
-    focus.append("g")
+        .attr("transform", "translate(0," + height + ")") //adds the x grids
+        .call(xAxis);
+    //Y axis
+    svg.append("g")
         .attr("class", "y axis")
-        .call(yAxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -margin.top * 2.5)
-        .attr("x", -height / 2)
-        .attr("dy", ".71em")
-        .style("text-anchor", "middle")
-        .text("Y");
-
+        .call(yAxis);
+    //Main chart view 
+    var focus = svg.append("g")
+        .attr("class", "focus")
+    //Evnet line chart
     focus.append("g")
         .selectAll("path")
         .data(data)
@@ -351,18 +326,8 @@ svg {
             return res
         })
         .style("stroke", function(d) { return colors(d.name); });
+    //Attach to drawing window.
     focus.attr("clip-path", "url(#clip)");
-
-    // var focus_point = focus.append("g")
-    //     .attr("transform", "translate(-100,-100)")
-    //     .attr("class", "focus_point");
-
-    // focus_point.append("circle")
-    //     .attr("r", 3.5);
-
-    // focus_point.append("text")
-    //     .attr("y", -10);
-
 
     //------------- start brush slider
     var line2 = d3.svg.line()
@@ -377,14 +342,23 @@ svg {
     var brush = d3.svg.brush() //for slider bar at the bottom
                     .x(mini_x)
                     .on("brush", brushed);
-
-    //Zoom brush
+    //brush zoom view.
+    svg.append("defs").append("clipPath")
+        .attr("id", "clip")
+        .attr("width", 500)
+        .attr("x",-100)
+        .append("rect")
+        .attr("width", width+1)
+        .attr("height", height+40);
+    
+    //Zoom brush domains
     mini_x.domain(x.domain());
     mini_y.domain(y.domain());
 
     var context = svg.append("g")
         .attr("class", "context")
         .attr("transform", "translate(" + mini_margin.left + "," + mini_margin.top + ")");
+    
     //Event line plotter for the brush view
     context.append("g")
         .attr("class", "cities")
@@ -396,12 +370,12 @@ svg {
             var res = line2(minidata.values);
             return res
         });
-
+    //Brushed view x axis 
     context.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + mini_height + ")")
         .call(xAxis2);
-
+    //Brushed view y axis 
     context.append("g")
         .attr("class", "x brush")
         .call(brush)
