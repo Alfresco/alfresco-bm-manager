@@ -14,15 +14,15 @@ text {
   font: 10px sans-serif;
 }
 
-.axis path {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
 }
-.axis line{
-    fill: none;
-    stroke: #ccc;
-    shape-rendering: crispEdges;
+
+.x.axis path {
+  /*display: none;*/
 }
 
 .line {
@@ -233,28 +233,16 @@ var colors = new Array();
     .range([height, 0]),
     y2 = d3.scale.linear()
     .range([height2, 0]);
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .tickSize(-height)
-        .tickPadding(10)    
-        .tickSubdivide(true)    
-        .orient("bottom");  
-    
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .tickPadding(10)
-        .tickSize(-width)
-        .tickSubdivide(true)    
-        .orient("left");
-  // var xAxis = d3.svg.axis()
-  //   .scale(x)
-  //   .orient("bottom");
+
+  var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
     xAxis2 = d3.svg.axis()
     .scale(x2).orient("bottom");
 
-  // var yAxis = d3.svg.axis()
-  //   .scale(y)
-  //   .orient("left");
+  var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
   
   var line = d3.svg.line()
     .interpolate("linear")
@@ -340,6 +328,12 @@ var colors = new Array();
   focus.append("g")
     .attr("class", "y axis")
     .call(yAxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("Value");
   
   //curving part of those funds------------------------------------------------------------------------
   var fund = focus.selectAll(".fund")
