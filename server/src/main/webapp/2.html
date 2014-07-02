@@ -52,6 +52,11 @@ svg {
     fill-opacity: .125;
     shape-rendering: crispEdges;
 }
+.legend {
+  fill: #fff;
+  stroke: #000;
+  /*stroke-dasharray: 3, 4;*/
+}
 
 </style>
 <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -200,10 +205,17 @@ svg {
             bottom: 40,
             left: 10
         },
+
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom,
         mini_height = 500 - mini_margin.top - mini_margin.bottom;
-
+    legend_margin = {
+            top: 500,
+            right: 80,
+            bottom: 40,
+            left: 10
+        },
+        legend_height = 50;
     // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
     // var parseDate = d3.time.format("%Y-%m-%d").parse;
     var parseDate = d3.time.format("%b %Y").parse;
@@ -301,7 +313,7 @@ svg {
     var chart = svg.append("g")
         .attr("class", "chart")
         .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
+        .attr("height", height -100 + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     //X axis
@@ -351,11 +363,21 @@ svg {
         .attr("x",-100)
         .append("rect")
         .attr("width", width+1)
-        .attr("height", height+40);
+        .attr("height", height);
     
     //Zoom brush domains
     mini_x.domain(x.domain());
     mini_y.domain(y.domain());
+    //Start events legend
+    var legend = svg.append("g")
+        .attr("class","legend")
+        .attr("transform", "translate(40," + legend_margin.top + ")");
+            //Brushed view x axis 
+    legend.append("g").append("rect")
+    .attr("class", "legend")
+    .attr("width", width)
+    .attr("height", legend_height);
+    //end events legend
 
     var slider = svg.append("g")
         .attr("class", "slider")
