@@ -675,7 +675,9 @@ svg {
     //Angularjs replace html tag
     // var el = element[0];
     // var svg = d3.select(el).append("svg")
-    var svg = d3.select("body").append("svg");
+    var svg = d3.select("body").append("svg")
+    .attr("width","600")
+    .attr("height","500");
     //Main chart view
     var chart = svg.append("g")
         .attr("class", "chart")

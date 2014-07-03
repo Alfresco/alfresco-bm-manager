@@ -177,32 +177,54 @@ d3Benchmark.directive('line', function() {
 
         link: function link(scope, element) {
             var data = scope.data;
+            // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+            var parseDate = d3.time.format("%b %Y").parse;
+            //Colors for event lines.
+            var colors = new Array();
+            colors = d3.scale.category20();
             var margin = {
-                top: 30,
-                right: 40,
-                bottom: 100,
-                left: 50
+                top: 20,
+                right: 80,
+                bottom: 110,
+                left: 40
             },
-                width = 600,
-                height = 300;
+                mini_margin = {
+                    top: scope.height-70,
+                    right: 80,
+                    bottom: 40,
+                    left: 10
+                },
 
-            var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
-            // var parseDate = d3.time.format("%Y-%m-%d").parse;
+                width = scope.width - margin.left - margin.right;
+                var height = scope.height - margin.top - margin.bottom;
+                var mini_height = scope.height - mini_margin.top - mini_margin.bottom;
+
+            var legend_margin = {
+                top: 35,
+                right: 80,
+                bottom: 40,
+                left: width + 60
+            },
+                legend_height = 50;
+
             // Using time range instead of scale to display date and time on axis.
-            var x = d3.time.scale().range([0, width]);
-            var xAxis = d3.svg.axis().scale(x).orient("bottom");
-            var y = d3.scale.linear().range([height, 0]);
-            var yAxis = d3.svg.axis().scale(y).orient("left");
-            var color = d3.scale.category10();
-            var line = d3.svg.line()
-                .interpolate("linear")
-                .x(function(d) {
-                    return x(d.time);
-                })
-                .y(function(d) {
-                    return y(d.value);
-                });
-
+            var x = d3.time.scale().range([0, width]),
+                mini_x = d3.time.scale().range([0, width]),
+                xAxis2 = d3.svg.axis().scale(mini_x).orient("bottom"),
+                y = d3.scale.linear().range([height, 0]),
+                mini_y = d3.scale.linear().range([mini_height, 0]),
+                line = d3.svg.line()
+                    .interpolate("linear")
+                    .x(function(d) {
+                        return x(d.time);
+                    })
+                    .y(function(d) {
+                        return y(d.value);
+                    }),
+                brush = d3.svg.brush()
+                    .x(mini_x)
+                    .on("brush", brushed);
+            //Prepare data
             data = data.map(function(d) {
                 d.time = parseDate(d.time);
                 d.value = +d.value;
@@ -210,7 +232,7 @@ d3Benchmark.directive('line', function() {
             });
             //nest data by event
             data = d3.nest().key(function(d) {
-                return d.series;
+                return d.name;
             }).entries(data);
 
             //rename key property to name
@@ -221,9 +243,11 @@ d3Benchmark.directive('line', function() {
                 }
                 return z;
             })
+
             var data = data.map(function(d) {
                 var event = {
                     name: d.name,
+                    vis: 0,
                     values: null
                 };
                 event.values = d.values.map(function(f) {
@@ -235,19 +259,20 @@ d3Benchmark.directive('line', function() {
                 });
                 return event;
             });
+            // prepare data end 
+            var xAxis = d3.svg.axis()
+                .scale(x)
+                .tickSize(-height)
+                .tickPadding(10)
+                .tickSubdivide(true)
+                .orient("bottom");
 
-            var voronoi = d3.geom.voronoi()
-                .x(function(d) {
-                    return x(d.time);
-                })
-                .y(function(d) {
-                    return y(d.value);
-                })
-                .clipExtent([
-                    [-margin.left, -margin.top],
-                    [width + margin.right, height + margin.bottom]
-                ]);
-
+            var yAxis = d3.svg.axis()
+                .scale(y)
+                .tickPadding(10)
+                .tickSize(-width)
+                .tickSubdivide(true)
+                .orient("left");
 
             x.domain([d3.min(data, function(d) {
                     return d3.min(d.values, function(d) {
@@ -260,6 +285,7 @@ d3Benchmark.directive('line', function() {
                     });
                 })
             ]);
+
             y.domain([0, d3.max(data, function(d) {
                 return d3.max(d.values, function(d) {
                     return d.value;
@@ -269,108 +295,200 @@ d3Benchmark.directive('line', function() {
             //Angularjs replace html tag
             var el = element[0];
             var svg = d3.select(el).append("svg")
-            // var svg = d3.select("body").append("svg")
+                .attr("height",scope.height);
+
+            //Main chart view
+            var chart = svg.append("g")
+                .attr("class", "chart")
                 .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
+                .attr("height", height - 100 + margin.top + margin.bottom)
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-            //paint xaxis and rotate label to 65 degrees
 
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis)
-                .selectAll("text")
-                .style("text-anchor", "end")
-                .attr("dx", "-.8em")
-                .attr("dy", ".15em")
-
-            .attr("transform", function(d) {
-                return "rotate(-65)"
-            })
-                .append("text")
-                .attr("y", margin.bottom / 1.5)
-                .attr("x", width / 2)
-                .text("Date Taken");;
-
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(yAxis)
-                .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", -margin.top * 2.5)
-                .attr("x", -height / 2)
-                .attr("dy", ".71em")
-                .style("text-anchor", "middle")
-                .text("Y");
-
-            svg.append("g")
-                .attr("class", "events")
+            //focus of chart view 
+            var focus = chart.append("g")
+                .attr("class", "focus")
+            //Evnet line chart plotter
+            focus.append("g")
                 .selectAll("path")
                 .data(data)
                 .enter().append("path")
+                .attr("class", "events")
                 .attr("d", function(ci) {
                     ci.line = this;
                     var res = line(ci.values);
                     return res
+                })
+                .style("stroke", function(d) {
+                    if (d.vis == 1) {
+                        return colors(d.name);
+                    }
                 });
+            //X axis
+            focus.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")") //adds the x grids
+            .call(xAxis);
+            //Y axis
+            focus.append("g")
+                .attr("class", "y axis")
+                .call(yAxis);
 
-            var focus = svg.append("g")
-                .attr("transform", "translate(-100,-100)")
-                .attr("class", "focus");
+            //------------- start brush slider
+            var line2 = d3.svg.line()
+                .x(function(d) {
+                    return mini_x(d.time);
+                })
+                .y(function(d) {
+                    return mini_y(d.value);
+                })
+                .interpolate('basis');
 
-            focus.append("circle")
-                .attr("r", 3.5);
 
-            focus.append("text")
-                .attr("y", -10);
+            var brush = d3.svg.brush() //for slider bar at the bottom
+            .x(mini_x)
+                .on("brush", brushed);
+            //Attach to drawing window.
+            focus.attr("clip-path", "url(#clip)");
+            //Chart with brush zoom view.
+            chart.append("defs").append("clipPath")
+                .attr("id", "clip")
+                .attr("width", 500)
+                .attr("x", -100)
+                .append("rect")
+                .attr("width", width + 1)
+                .attr("height", height + 40);
 
-            var voronoiGroup = svg.append("g")
-                .attr("class", "voronoi");
+            //Populate axis for Zoom brush domains
+            mini_x.domain(x.domain());
+            mini_y.domain(y.domain());
+            //The brush control.
+            var slider = svg.append("g")
+                .attr("class", "slider")
+                .attr("transform", "translate(40," + mini_margin.top + ")");
 
-            voronoiGroup.selectAll("path")
-                .data(voronoi(d3.nest()
-                    .key(function(d) {
-                        return x(d.time) + "," + y(d.value);
-                    })
-                    .rollup(function(v) {
-                        return v[0];
-                    })
-                    .entries(d3.merge(
-                        data.map(function(d) {
-                            return d.values;
-                        })))
-                    .map(function(d) {
-                        return d.values;
-                    })))
+            //Event line plotter for the brush view
+            slider.append("g")
+                .attr("class", "events")
+                .selectAll("path")
+                .data(data)
                 .enter().append("path")
-                .attr("d", function(d) {
-                    return "M" + d.join("L") + "Z";
-                })
-                .datum(function(d) {
-                    return d.point;
-                })
-                .on("mouseover", mouseover)
-                .on("mouseout", mouseout);
-
-            d3.select("#show-voronoi")
-                .property("disabled", false)
-                .on("change", function() {
-                    voronoiGroup.classed("voronoi--show", this.checked);
+                .attr("d", function(minidata) {
+                    minidata.line = this;
+                    var res = line2(minidata.values);
+                    return res
                 });
+            //Brushed view x axis 
+            slider.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + mini_height + ")")
+                .call(xAxis2);
 
-            function mouseover(d) {
-                d3.select(d.event.line).classed("event--hover", true);
-                d.event.line.parentNode.appendChild(d.event.line);
-                focus.attr("transform", "translate(" + x(d.time) + "," + y(d.value) + ")");
-                focus.select("text").text(d.event.name);
+            //Brushed view y axis 
+            slider.append("g")
+                .attr("class", "x brush")
+                .call(brush)
+                .selectAll("rect")
+                .attr("y", -6)
+                .attr("height", mini_height + 7);
+
+            //Brush, zoom feature.
+
+            function brushed() {
+                x.domain(brush.empty() ? mini_x.domain() : brush.extent());
+                focus.selectAll('.events').attr('d', function(d) {
+                    return line(d.values);
+                });
+                focus.select(".x.axis").call(xAxis);
             }
 
-            function mouseout(d) {
-                d3.select(d.event.line).classed("event--hover", false);
-                focus.attr("transform", "translate(-100,-100)");
+            //Start events legend
+            var legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", "translate(" + legend_margin.left + "," + legend_margin.top + ")");
+            // Legend box used in developement to aid in layout.
+            // var legend_box = legend.append("g").append("rect")
+            //     .attr("class", "legend")
+            //     .attr("width", 100)
+            //     .attr("height", legend_height);
+            //---------------------
+            var legendLabel = legend.selectAll(".legendLabel")
+                .data(data)
+                .enter().append("g")
+                .attr("class", "legendLabel");
+
+            legendLabel.append("text")
+                .attr("class", "fundNameLabel")
+                .attr("x", 40)
+                .attr("y", function(d) {
+                    return getEventId(d.name) * 35;
+                })
+                .text(function(d) {
+                    return d.name;
+                })
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+
+            //legendLabel select or dis-select btn
+            legendLabel.append("rect")
+                .attr("height", 10)
+                .attr("width", 25)
+                .attr("y", function(d) {
+                    return getEventId(d.name) * 35 - 8;
+                })
+                .attr("stroke", function(d) {
+                    return colors(d.name);
+                })
+                .attr("fill", function(d) {
+                    if (d.vis == "1") {
+                        return colors(d.name);
+                    } else {
+                        return "white";
+                    }
+                })
+            //Event toggle action
+            .on("click", function(d) {
+                if (d.vis == "1") {
+                    d.vis = "0";
+                } else {
+                    d.vis = "1";
+                }
+
+                focus.select(".y.axis").call(yAxis);
+
+                legendLabel.select("path").transition() //update curve 
+                .attr("d", function(d) {
+                    if (d.vis == "1") {
+                        return line(d.values);
+                    } else {
+                        return null;
+                    }
+                })
+
+                legendLabel.select("rect") //update legend 
+                .attr("fill", function(d) {
+                    if (d.vis == "1") {
+                        return colors(d.name);
+                    } else {
+                        return "white";
+                    }
+                });
+                //Find event line and recolor it
+                svg.selectAll(".events").style("stroke", function(d) {
+                    if (d.vis == "1") {
+                        return colors(d.name);
+                    }
+                });
+            });
+
+            //end events legend
+            //this function is mainly for accessing the colors
+
+            function getEventId(fundName) {
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i].name == fundName)
+                        return i;
+                }
             }
         }
     }
