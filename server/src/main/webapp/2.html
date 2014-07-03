@@ -627,7 +627,7 @@ svg {
     var data = data.map(function(d) {
         var event = {
             name: d.name,
-            vis: 1,
+            vis: 0,
             values: null
         };
         event.values = d.values.map(function(f) {
@@ -640,7 +640,6 @@ svg {
         return event;
     });
     // prepare data end 
-
     var xAxis = d3.svg.axis()
         .scale(x)
         .tickSize(-height)
@@ -688,23 +687,22 @@ svg {
     //focus of chart view 
     var focus = chart.append("g")
         .attr("class", "focus")
-    //Evnet line chart
+    //Evnet line chart plotter
     focus.append("g")
         .selectAll("path")
         .data(data)
         .enter().append("path")
         .attr("class", "events")
         .attr("d", function(ci) {
-            if(ci.vis == 1){
             ci.line = this;
             var res = line(ci.values);
             return res
-            } else {
-            return null;
             }
-        })
+        )
         .style("stroke", function(d) {
-            return colors(d.name);
+            if(d.vis == 1){
+                return colors(d.name);
+            }   
         });
         //X axis
     focus.append("g")
