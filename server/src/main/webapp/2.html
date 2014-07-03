@@ -770,7 +770,7 @@ svg {
         .attr("class", "fundNameLabel")
         .attr("x", 40)
         .attr("y", function(d) {
-            return getFundID(d.name) * 35;
+            return getEventId(d.name) * 35;
         })
         .text(function(d) {
             return d.name;
@@ -783,7 +783,7 @@ svg {
         .attr("height", 10)
         .attr("width", 25)
         .attr("y", function(d) {
-            return getFundID(d.name) * 35 - 8;
+            return getEventId(d.name) * 35 - 8;
         })
         .attr("stroke", function(d) {
             return colors(d.name);
@@ -864,7 +864,7 @@ svg {
         focus.select(".x.axis").call(xAxis);
     }
     //this function is mainly for accessing the colors
-    function getFundID(fundName) {
+    function getEventId(fundName) {
         for (var i = 0; i < data.length; i++) {
             if (data[i].name == fundName)
                 return i;
