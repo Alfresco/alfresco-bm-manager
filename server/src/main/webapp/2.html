@@ -684,15 +684,7 @@ svg {
         .attr("height", height - 100 + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    //X axis
-    chart.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")") //adds the x grids
-    .call(xAxis);
-    //Y axis
-    chart.append("g")
-        .attr("class", "y axis")
-        .call(yAxis);
+
     //focus of chart view 
     var focus = chart.append("g")
         .attr("class", "focus")
@@ -703,15 +695,26 @@ svg {
         .enter().append("path")
         .attr("class", "events")
         .attr("d", function(ci) {
+            if(ci.vis == 1){
             ci.line = this;
             var res = line(ci.values);
             return res
+            } else {
+            return null;
+            }
         })
         .style("stroke", function(d) {
             return colors(d.name);
         });
-    //Attach to drawing window.
-    focus.attr("clip-path", "url(#clip)");
+        //X axis
+    focus.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")") //adds the x grids
+    .call(xAxis);
+    //Y axis
+    focus.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
 
     //------------- start brush slider
     var line2 = d3.svg.line()
@@ -723,21 +726,61 @@ svg {
         })
         .interpolate('basis');
 
+
     var brush = d3.svg.brush() //for slider bar at the bottom
-    .x(mini_x)
+        .x(mini_x)
         .on("brush", brushed);
-    //brush zoom view.
+    //Attach to drawing window.
+    focus.attr("clip-path", "url(#clip)");
+    //Chart with brush zoom view.
     chart.append("defs").append("clipPath")
         .attr("id", "clip")
         .attr("width", 500)
         .attr("x", -100)
         .append("rect")
         .attr("width", width + 1)
-        .attr("height", height);
+        .attr("height", height + 40);
 
-    //Zoom brush domains
+    //Populate axis for Zoom brush domains
     mini_x.domain(x.domain());
     mini_y.domain(y.domain());
+    //The brush control.
+    var slider = svg.append("g")
+        .attr("class", "slider")
+        .attr("transform", "translate(40," + mini_margin.top + ")");
+
+    //Event line plotter for the brush view
+    slider.append("g")
+        .attr("class", "events")
+        .selectAll("path")
+        .data(data)
+        .enter().append("path")
+        .attr("d", function(minidata) {
+            minidata.line = this;
+            var res = line2(minidata.values);
+            return res
+        });
+    //Brushed view x axis 
+    slider.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + mini_height + ")")
+        .call(xAxis2);
+    //Brushed view y axis 
+    slider.append("g")
+        .attr("class", "x brush")
+        .call(brush)
+        .selectAll("rect")
+        .attr("y", -6)
+        .attr("height", mini_height + 7);
+    //Brush, zoom feature.
+    function brushed() {
+        x.domain(brush.empty() ? mini_x.domain() : brush.extent());
+        focus.selectAll('.events').attr('d', function(d) {
+            return line(d.values);
+        });
+        focus.select(".x.axis").call(xAxis);
+    }
+
     //Start events legend
     var legend = svg.append("g")
         .attr("class", "legend")
@@ -826,43 +869,6 @@ svg {
         });
 
     //end events legend
-    
-    //The brush control.
-    var slider = svg.append("g")
-        .attr("class", "slider")
-        .attr("transform", "translate(40," + mini_margin.top + ")");
-
-    //Event line plotter for the brush view
-    slider.append("g")
-        .attr("class", "events")
-        .selectAll("path")
-        .data(data)
-        .enter().append("path")
-        .attr("d", function(minidata) {
-            minidata.line = this;
-            var res = line2(minidata.values);
-            return res
-        });
-    //Brushed view x axis 
-    slider.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + mini_height + ")")
-        .call(xAxis2);
-    //Brushed view y axis 
-    slider.append("g")
-        .attr("class", "x brush")
-        .call(brush)
-        .selectAll("rect")
-        .attr("y", -6)
-        .attr("height", mini_height + 7);
-    //Brush, zoom feature.
-    function brushed() {
-        x.domain(brush.empty() ? mini_x.domain() : brush.extent());
-        focus.selectAll('.events').attr('d', function(d) {
-            return line(d.values);
-        });
-        focus.select(".x.axis").call(xAxis);
-    }
     //this function is mainly for accessing the colors
     function getEventId(fundName) {
         for (var i = 0; i < data.length; i++) {
