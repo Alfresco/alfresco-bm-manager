@@ -577,11 +577,11 @@ svg {
         height = 500 - margin.top - margin.bottom,
         mini_height = 500 - mini_margin.top - mini_margin.bottom;
     var legend_margin = {
-            top: 35,
-            right: 80,
-            bottom: 40,
-            left: 10
-        },
+        top: 35,
+        right: 80,
+        bottom: 40,
+        left: 10
+    },
         legend_height = 50;
     // var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
     // var parseDate = d3.time.format("%Y-%m-%d").parse;
@@ -697,14 +697,13 @@ svg {
             ci.line = this;
             var res = line(ci.values);
             return res
-            }
-        )
+        })
         .style("stroke", function(d) {
-            if(d.vis == 1){
+            if (d.vis == 1) {
                 return colors(d.name);
-            }   
+            }
         });
-        //X axis
+    //X axis
     focus.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")") //adds the x grids
@@ -726,7 +725,7 @@ svg {
 
 
     var brush = d3.svg.brush() //for slider bar at the bottom
-        .x(mini_x)
+    .x(mini_x)
         .on("brush", brushed);
     //Attach to drawing window.
     focus.attr("clip-path", "url(#clip)");
@@ -763,6 +762,7 @@ svg {
         .attr("class", "x axis")
         .attr("transform", "translate(0," + mini_height + ")")
         .call(xAxis2);
+    
     //Brushed view y axis 
     slider.append("g")
         .attr("class", "x brush")
@@ -770,6 +770,7 @@ svg {
         .selectAll("rect")
         .attr("y", -6)
         .attr("height", mini_height + 7);
+    
     //Brush, zoom feature.
     function brushed() {
         x.domain(brush.empty() ? mini_x.domain() : brush.extent());
@@ -783,6 +784,7 @@ svg {
     var legend = svg.append("g")
         .attr("class", "legend")
         .attr("transform", "translate(890," + legend_margin.top + ")");
+    // Legend box used in developement to aid in layout.
     // var legend_box = legend.append("g").append("rect")
     //     .attr("class", "legend")
     //     .attr("width", 100)
@@ -793,20 +795,6 @@ svg {
         .enter().append("g")
         .attr("class", "legendLabel");
 
-    // legendLabel.append("path")
-    //     .attr("class", "line")
-    //     .attr("clip-path", "url(#clip)") //use clip path to make irrelevant part invisible
-    // .attr("d", function(d) {
-    //     if (d.vis == "1") {
-    //         return line(d.values);
-    //     } else {
-    //         return null;
-    //     }
-    // })
-    //     .style("stroke", function(d) {
-    //         return colors(d.name);
-    //     });
-    //legendLabel name label
     legendLabel.append("text")
         .attr("class", "fundNameLabel")
         .attr("x", 40)
@@ -836,15 +824,14 @@ svg {
                 return "white";
             }
         })
+        //Event toggle action
         .on("click", function(d) {
             if (d.vis == "1") {
                 d.vis = "0";
             } else {
                 d.vis = "1";
             }
-            // maxY = findMaxY();
-            // minY = findMinY();
-            // y.domain([minY - 0.2, maxY + 0.2]);
+
             focus.select(".y.axis").call(yAxis);
 
             legendLabel.select("path").transition() //update curve 
@@ -864,9 +851,8 @@ svg {
                     return "white";
                 }
             });
-        //Find event line and recolor it
-        var t = svg.selectAll(".events");
-        t.style("stroke", function(d) {
+            //Find event line and recolor it
+            svg.selectAll(".events").style("stroke", function(d) {
                 if (d.vis == "1") {
                     return colors(d.name);
                 }
@@ -875,6 +861,7 @@ svg {
 
     //end events legend
     //this function is mainly for accessing the colors
+
     function getEventId(fundName) {
         for (var i = 0; i < data.length; i++) {
             if (data[i].name == fundName)
