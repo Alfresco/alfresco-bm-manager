@@ -845,7 +845,7 @@ svg {
             // maxY = findMaxY();
             // minY = findMinY();
             // y.domain([minY - 0.2, maxY + 0.2]);
-            // focus.select(".y.axis").call(yAxis);
+            focus.select(".y.axis").call(yAxis);
 
             legendLabel.select("path").transition() //update curve 
             .attr("d", function(d) {
@@ -862,6 +862,13 @@ svg {
                     return colors(d.name);
                 } else {
                     return "white";
+                }
+            });
+        //Find event line and recolor it
+        var t = svg.selectAll(".events");
+        t.style("stroke", function(d) {
+                if (d.vis == "1") {
+                    return colors(d.name);
                 }
             });
         });
