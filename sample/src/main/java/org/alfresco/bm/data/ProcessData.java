@@ -21,10 +21,10 @@ package org.alfresco.bm.data;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
+import com.mongodb.MongoException;
 
 /**
- * Sample POJO for demonstration.  This file should be deleted.
+ * Sample POJO for demonstration.
  * 
  * @author Derek Hulley
  * @since 1.0
@@ -46,10 +46,14 @@ public class ProcessData
      */
     public static void checkIndexes(DBCollection collection)
     {
-        DBObject IDX_PROCNAME = BasicDBObjectBuilder
+        DBObject idx_PROCNAME = BasicDBObjectBuilder
                 .start(FIELD_PROCESS_NAME, 1)
                 .get();
-        collection.ensureIndex(IDX_PROCNAME, "IDX_PROCNAME", true);
+        DBObject opt_PROCNAME = BasicDBObjectBuilder
+                .start("name", "IDX_PROCNAME")
+                .add("unique", true)
+                .get();
+        collection.createIndex(idx_PROCNAME, opt_PROCNAME);
     }
     
     /**
@@ -65,8 +69,16 @@ public class ProcessData
                 .start()
                 .add(FIELD_PROCESS_NAME, processName)
                 .get();
-        WriteResult result = collection.insert(insertObj);
-        return result.getError() == null;
+        try
+        {
+            collection.insert(insertObj);
+            return true;
+        }
+        catch (MongoException e)
+        {
+            // Log and rethrow
+            return false;
+        }
     }
     
     /**

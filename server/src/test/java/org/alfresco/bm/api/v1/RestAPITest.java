@@ -60,9 +60,8 @@ import org.springframework.core.env.PropertiesPropertySource;
 
 import com.google.gson.Gson;
 import com.mongodb.DB;
-import com.mongodb.DBAddress;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
 /**
@@ -172,11 +171,8 @@ public class RestAPITest implements TestConstants
         ServerAddress mongoAddress = db.getMongo().getAddress();
         
         // Now connect a real mongo client to it
-        DBAddress dbAddress = new DBAddress(
-                mongoAddress.getHost(),
-                mongoAddress.getPort(),
-                dbName);
-        DB dbCheck = Mongo.connect(dbAddress);
+        MongoClient mongoClient = new MongoClient(mongoAddress);
+        DB dbCheck = mongoClient.getDB(dbName);
         
         // See if we can add/remove stuff and that it works
         assertTrue(dao.createTest("TESTconnectToMongoDB", "connectToMongoDB", "R1", 1));

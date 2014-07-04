@@ -19,6 +19,7 @@
 package org.alfresco.bm.event.mongo;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.alfresco.bm.event.AbstractResultService;
@@ -33,8 +34,8 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
-import com.mongodb.WriteResult;
 
 /**
  * A Mongo-based implementation of the results for benchmark test runs.
@@ -60,7 +61,47 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     public void start() throws Exception
     {
         // Initialize indexes
-        EventRecord.checkIndexes(this.collection);
+        DBObject idx_EVENT_NAME_START_SUCCESS = BasicDBObjectBuilder
+                .start(EventRecord.FIELD_EVENT_NAME, Integer.valueOf(1))
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .add(EventRecord.FIELD_SUCCESS, Integer.valueOf(1))
+                .get();
+        DBObject opt_EVENT_NAME_START_SUCCESS = BasicDBObjectBuilder
+                .start("name", "IDX_EVENT_NAME_START_SUCCESS")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_EVENT_NAME_START_SUCCESS, opt_EVENT_NAME_START_SUCCESS);
+        
+        DBObject idx_SESSION_START = BasicDBObjectBuilder
+                .start(EventRecord.FIELD_EVENT_SESSION_ID, Integer.valueOf(1))
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .get();
+        DBObject opt_SESSION_START = BasicDBObjectBuilder
+                .start("name", "IDX_SESSION_START")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_SESSION_START, opt_SESSION_START);
+        
+        DBObject idx_START_EVENT_NAME_SUCCESS = BasicDBObjectBuilder
+                .start(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .add(EventRecord.FIELD_EVENT_NAME, Integer.valueOf(1))
+                .add(EventRecord.FIELD_SUCCESS, Integer.valueOf(1))
+                .get();
+        DBObject opt_START_EVENT_NAME_SUCCESS = BasicDBObjectBuilder
+                .start("name", "IDX_START_EVENT_NAME_SUCCESS")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_START_EVENT_NAME_SUCCESS, opt_START_EVENT_NAME_SUCCESS);
+
+        DBObject idx_SUCCESS_START = BasicDBObjectBuilder
+                .start(EventRecord.FIELD_SUCCESS, Integer.valueOf(1))
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .get();
+        DBObject opt_SUCCESS_START = BasicDBObjectBuilder
+                .start("name", "IDX_SUCCESS_START")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_SUCCESS_START, opt_SUCCESS_START);
     }
 
     @Override
@@ -83,11 +124,11 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 (Boolean) eventRecordObj.get(EventRecord.FIELD_SUCCESS) :
                 false;
         long startTime = eventRecordObj.containsField(EventRecord.FIELD_START_TIME) ?
-                (Long) eventRecordObj.get(EventRecord.FIELD_START_TIME) :
-                -1L;
+                ((Date) eventRecordObj.get(EventRecord.FIELD_START_TIME)).getTime() :
+                Long.valueOf(0L);
         long time = eventRecordObj.containsField(EventRecord.FIELD_TIME) ?
                 (Long) eventRecordObj.get(EventRecord.FIELD_TIME) :
-                -1L;
+                Long.valueOf(-1L);
         Object data = eventRecordObj.get(EventRecord.FIELD_DATA);
         String id = (String) eventRecordObj.get(EventRecord.FIELD_ID).toString();
         String warning = (String) eventRecordObj.get(EventRecord.FIELD_WARNING);
@@ -96,7 +137,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 false;
         long startDelay = eventRecordObj.containsField(EventRecord.FIELD_START_DELAY) ?
                 (Long) eventRecordObj.get(EventRecord.FIELD_START_DELAY) :
-                -1L;
+                Long.valueOf(-1L);
         
         // Extract the event
         DBObject eventObj = (DBObject) eventRecordObj.get(EventRecord.FIELD_EVENT);
@@ -129,7 +170,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     {
         String name = (String) eventObj.get(Event.FIELD_NAME);
         long scheduledTime = eventObj.containsField(Event.FIELD_SCHEDULED_TIME) ?
-                (Long) eventObj.get(Event.FIELD_SCHEDULED_TIME) :
+                ((Date) eventObj.get(Event.FIELD_SCHEDULED_TIME)).getTime() :
                 -1L;
         Object data = eventObj.get(Event.FIELD_DATA);
         String dataKey = (String) eventObj.get(Event.FIELD_DATA_KEY);
@@ -173,20 +214,23 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 .add(EventRecord.FIELD_DATA, result.getData())
                 .add(EventRecord.FIELD_SERVER_ID, result.getServerId())
                 .add(EventRecord.FIELD_START_DELAY, result.getStartDelay())
-                .add(EventRecord.FIELD_START_TIME, result.getStartTime())
+                .add(EventRecord.FIELD_START_TIME, new Date(result.getStartTime()))
                 .add(EventRecord.FIELD_SUCCESS, result.isSuccess())
                 .add(EventRecord.FIELD_TIME, result.getTime())
                 .add(EventRecord.FIELD_WARNING, result.getWarning())
                 .add(EventRecord.FIELD_EVENT, eventObj)
                 .get();
         
-        WriteResult wr = collection.insert(insertObj);
-        if (wr.getError() != null)
+        try
+        {
+            collection.insert(insertObj);
+        }
+        catch (MongoException e)
         {
             throw new RuntimeException(
                     "Failed to insert event result:\n" +
-                    "   Result: " + insertObj + "\n" +
-                    "   Error:  " + wr);
+                    "   Result: " + insertObj,
+                    e);
         }
         // Done
         if (logger.isDebugEnabled())
@@ -205,7 +249,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     public EventRecord getFirstResult()
     {
         DBObject sortObj = BasicDBObjectBuilder.start()
-                .add(EventRecord.FIELD_START_TIME, 1)
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
                 .get();
 
         DBObject resultObj = collection.findOne(null, null, sortObj);
@@ -222,7 +266,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     public EventRecord getLastResult()
     {
         DBObject sortObj = BasicDBObjectBuilder.start()
-                .add(EventRecord.FIELD_START_TIME, -1)
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(-1))
                 .get();
 
         DBObject resultObj = collection.findOne(null, null, sortObj);
@@ -247,7 +291,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         }
         DBObject sortObj = BasicDBObjectBuilder
                 .start()
-                .add(EventRecord.FIELD_START_TIME, 1)
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
                 .get();
         
         DBCursor cursor = collection.find(queryObj);
@@ -287,7 +331,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     {
         QueryBuilder queryBuilder = QueryBuilder
                 .start()
-                .and(EventRecord.FIELD_START_TIME).greaterThanEquals(startTime);
+                .and(EventRecord.FIELD_START_TIME).greaterThanEquals(new Date(startTime));
         if (eventName != null)
         {
             queryBuilder.and(EventRecord.FIELD_EVENT_NAME).is(eventName);
@@ -299,7 +343,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         DBObject queryObj = queryBuilder.get();
         DBObject sortObj = BasicDBObjectBuilder
                 .start()
-                .add(EventRecord.FIELD_START_TIME, 1)
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
                 .get();
         
         DBCursor cursor = collection.find(queryObj);

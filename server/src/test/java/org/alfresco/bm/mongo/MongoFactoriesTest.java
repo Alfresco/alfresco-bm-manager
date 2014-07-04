@@ -30,7 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.MongoException.Network;
+import com.mongodb.MongoSocketException;
 
 /**
  * @see MongoDBFactory
@@ -73,7 +73,7 @@ public class MongoFactoriesTest
             db.getCollectionNames();
             Assert.fail("DB must be closed.");
         }
-        catch (Network e)
+        catch (MongoSocketException e)
         {
             // Expected
         }
@@ -85,7 +85,7 @@ public class MongoFactoriesTest
         // Check that we kick out URIs with credentials
         try
         {
-            new MongoClientFactory(new MongoClientURI("mongodb://jack:daw@168.10.0.4:27017"));
+            new MongoClientFactory(new MongoClientURI("mongodb://jack:daw@168.10.0.4:27017"), null, null);
         }
         catch (IllegalArgumentException e)
         {
@@ -96,7 +96,7 @@ public class MongoFactoriesTest
         // Check that we kick out URIs with DB name
         try
         {
-            new MongoClientFactory(new MongoClientURI("mongodb://168.10.0.4:27017/data"));
+            new MongoClientFactory(new MongoClientURI("mongodb://168.10.0.4:27017/data"), null, null);
         }
         catch (IllegalArgumentException e)
         {
@@ -105,7 +105,7 @@ public class MongoFactoriesTest
             Assert.assertTrue(e.getMessage().contains("specific database"));
         }
         // But we must not get confused by the optional options
-        new MongoClientFactory(new MongoClientURI("mongodb://168.10.0.4:27017/?safe=true")).destroy();
+        new MongoClientFactory(new MongoClientURI("mongodb://168.10.0.4:27017/?safe=true"), null, null).destroy();
         
         // Get a DB running
         MongoDBForTestsFactory mockDBFactory = new MongoDBForTestsFactory();
@@ -118,8 +118,8 @@ public class MongoFactoriesTest
             Assert.assertEquals(uriWithoutDB, mockDBFactory.getMongoURIWithoutDB());
 
             // Now connect to the DB
-            MongoClientFactory clientFactoryOne = new MongoClientFactory(mongoClientURI);
-            MongoClientFactory clientFactoryTwo = new MongoClientFactory(mongoClientURI);
+            MongoClientFactory clientFactoryOne = new MongoClientFactory(mongoClientURI, null, null);
+            MongoClientFactory clientFactoryTwo = new MongoClientFactory(mongoClientURI, null, null);
             
             // Each of the factories must produce distinct instances
             MongoClient clientOne = clientFactoryOne.getObject();
@@ -134,18 +134,18 @@ public class MongoFactoriesTest
             DB dbTwoA = clientTwo.getDB("twoA");
             DB dbTwoB = clientTwo.getDB("twoB");
             
-            dbOneA.getCollectionNames();
-            dbOneB.getCollectionNames();
-            dbTwoA.getCollectionNames();
-            dbTwoB.getCollectionNames();
+            dbOneA.getStats();
+            dbOneB.getStats();
+            dbTwoA.getStats();
+            dbTwoB.getStats();
             
             // Shutdown the client factory
             clientFactoryTwo.destroy();
-            dbOneA.getCollectionNames();
-            dbOneB.getCollectionNames();
+            dbOneA.getStats();
+            dbOneB.getStats();
             try
             {
-                dbTwoA.getCollectionNames();
+                dbTwoA.getStats();
                 Assert.fail("Second set of DBs did not close with second client factory.");
             }
             catch (IllegalStateException e)
@@ -154,7 +154,7 @@ public class MongoFactoriesTest
             }
             try
             {
-                dbTwoB.getCollectionNames();
+                dbTwoB.getStats();
                 Assert.fail("Second set of DBs did not close with second client factory.");
             }
             catch (IllegalStateException e)
@@ -182,24 +182,15 @@ public class MongoFactoriesTest
             String uriWithoutDB = uriWithDB.substring(0, idx);
             MongoClientURI mongoClientURI = new MongoClientURI(uriWithoutDB);
 
-            // Now connect to the DB
-            MongoClientFactory clientFactory = new MongoClientFactory(mongoClientURI);
+            // Connect without username:password
+            MongoClientFactory clientFactory = new MongoClientFactory(mongoClientURI, null, null);
             try
             {
                 MongoClient client = clientFactory.getObject();
+                String credentials = client.getCredentialsList().toString();
+                Assert.assertEquals("[]", credentials);
                 
-                // Attempt a badly-authenticated connection
-                try
-                {
-                    new MongoDBFactory(client, "fred", "admin", "admin");
-                    Assert.fail("Expected authentication failure for DB.");
-                }
-                catch (RuntimeException e)
-                {
-                    // Expected
-                }
-                
-                MongoDBFactory dbFactory = new MongoDBFactory(client, "fred", "", "");
+                MongoDBFactory dbFactory = new MongoDBFactory(client, "fred");
                 try
                 {
                     DB db = dbFactory.getObject();
@@ -211,6 +202,20 @@ public class MongoFactoriesTest
                 {
                     dbFactory.destroy();
                 }
+            }
+            finally
+            {
+                clientFactory.destroy();
+            }
+
+            // Connect with username:password
+            // This is merely checking that the URL generated has the credentials in it
+            clientFactory = new MongoClientFactory(mongoClientURI, "ifa", "tiger");
+            try
+            {
+                MongoClient client = clientFactory.getObject();
+                String credentials = client.getCredentialsList().toString();
+                Assert.assertEquals("[MongoCredential{mechanism='MONGODB-CR', userName='ifa', source='admin', password=<hidden>, mechanismProperties={}}]", credentials);
             }
             finally
             {

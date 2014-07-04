@@ -43,7 +43,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 
 import com.mongodb.MongoClientURI;
-import com.mongodb.MongoException.Network;
+import com.mongodb.MongoSocketException;
 
 /**
  * Utility class that kicks off a BM test using the {@link MongoDBForTestsFactory} if MongoDB host has not
@@ -219,7 +219,7 @@ public class BMTestRunner implements TestConstants
             catch (Exception e)
             {
                 Throwable root = ExceptionUtils.getRootCause(e);
-                if (root != null && (root instanceof Network || root instanceof UnknownHostException))
+                if (root != null && (root instanceof MongoSocketException || root instanceof UnknownHostException))
                 {
                     // We deal with this specifically as it's a simple case of not finding the MongoDB
                     logger.error("Set the configuration property '" + PROP_MONGO_CONFIG_HOST + "' (<server>:<port>) as required.");
@@ -252,16 +252,14 @@ public class BMTestRunner implements TestConstants
             // Now set any properties that have been explicitly passed in for the test
             if (testProperties != null)
             {
-                int version = 1;
                 for (Map.Entry<Object, Object> entry : testProperties.entrySet())
                 {
                     String propKey = (String) entry.getKey();
                     String propVal = (String) entry.getValue();
 
                     propSet.setValue(propVal);
-                    propSet.setVersion(version);
+                    propSet.setVersion(0);
                     api.setTestProperty(testName, propKey, propSet);
-                    version++;
                 }
             }
             

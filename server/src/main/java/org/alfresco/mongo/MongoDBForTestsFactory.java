@@ -18,6 +18,8 @@
  */
 package org.alfresco.mongo;
 
+import java.io.File;
+import java.net.InetAddress;
 import java.util.UUID;
 
 import org.alfresco.bm.test.TestConstants;
@@ -31,19 +33,16 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
 
-import de.flapdoodle.embedmongo.MongoDBRuntime;
-import de.flapdoodle.embedmongo.MongodExecutable;
-import de.flapdoodle.embedmongo.MongodProcess;
-import de.flapdoodle.embedmongo.config.MongodConfig;
-import de.flapdoodle.embedmongo.config.MongodProcessOutputConfig;
-import de.flapdoodle.embedmongo.config.RuntimeConfig;
-import de.flapdoodle.embedmongo.distribution.Version;
-import de.flapdoodle.embedmongo.io.IStreamProcessor;
-import de.flapdoodle.embedmongo.output.IProgressListener;
-import de.flapdoodle.embedmongo.runtime.Network;
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.IMongodConfig;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.processlistener.IMongoProcessListener;
+import de.flapdoodle.embed.mongo.distribution.Version.Main;
 
 /**
- * A factory for  {@link MongoClient} in order to make use of it via Spring contexts.
+ * A factory for {@link DB MongoDB instances} in order to make use of it via Spring contexts or in tests.
  * 
  * @author Derek Hulley
  * @since 2.0
@@ -58,24 +57,20 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
 
     public MongoDBForTestsFactory() throws Exception
     {
-        MongoDBStreamProcessor mongodInfoStreamLogger = new MongoDBStreamProcessor(false);
-        MongoDBStreamProcessor mongodErrorStreamLogger = new MongoDBStreamProcessor(false);
-        MongodProcessOutputConfig mongodProcessOutputConfig = new MongodProcessOutputConfig(mongodInfoStreamLogger, mongodErrorStreamLogger, mongodInfoStreamLogger);
+        MongodStarter starter = MongodStarter.getDefaultInstance();
+        IMongodConfig mongodConfig = new MongodConfigBuilder()
+                .version(Main.V2_6)
+                .processListener(new MongoDBProcessListener())
+                .build();
         
-        RuntimeConfig mongodRuntimeConfig = new RuntimeConfig();
-        mongodRuntimeConfig.setMongodOutputConfig(mongodProcessOutputConfig);
-        mongodRuntimeConfig.setProgressListener(new MongoDBForTestsProgressListener());
-
-        MongoDBRuntime mongodRuntime = MongoDBRuntime.getInstance(mongodRuntimeConfig);
-        MongodConfig mongodConfig = new MongodConfig(
-                Version.Main.V2_2,
-                Network.getFreeServerPort(),
-                Network.localhostIsIPv6());
-        mongodExecutable = mongodRuntime.prepare(mongodConfig);
+        mongodExecutable = starter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
-        MongoClient mongo = new MongoClient(new ServerAddress(
-                Network.getLocalHost(),
-                mongodProcess.getConfig().getPort()));
+
+        // We use a randomly-assigned port, so get it
+        InetAddress address = mongodProcess.getConfig().net().getServerAddress();
+        int port = mongodProcess.getConfig().net().getPort();
+        
+        MongoClient mongo = new MongoClient(new ServerAddress(address, port));
         db = mongo.getDB(UUID.randomUUID().toString());
     }
     
@@ -144,85 +139,33 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
     @Override
     public void destroy() throws Exception
     {
-        db.cleanCursors(true);
         mongodProcess.stop();
-        mongodExecutable.cleanup();
+        mongodExecutable.stop();
     }
     
     /**
-     * Helper class to write the internal MongoDB calls to regular logging.
+     * Log processes
      * 
      * @author Derek Hulley
      * @since 2.0
      */
-    private class MongoDBForTestsProgressListener implements IProgressListener
+    private class MongoDBProcessListener implements IMongoProcessListener
     {
         @Override
-        public void start(String label)
+        public void onBeforeProcessStart(File dbDir, boolean dbDirIsTemp)
         {
             if (logger.isTraceEnabled())
             {
-                logger.trace("Starting " + label);
+                logger.trace("Starting mock MongoDB processing on " + dbDir);
             }
         }
-
         @Override
-        public void progress(String label, int percent)
+        public void onAfterProcessStop(File dbDir, boolean dbDirIsTemp)
         {
             if (logger.isTraceEnabled())
             {
-                logger.trace("Progress of " + label + ": " + percent);
+                logger.trace("Stopped mock MongoDB processing on " + dbDir);
             }
-        }
-
-        @Override
-        public void info(String label, String message)
-        {
-            if (logger.isTraceEnabled())
-            {
-                logger.trace("Information for " + label + ": " + message);
-            }
-        }
-
-        @Override
-        public void done(String label)
-        {
-            if (logger.isTraceEnabled())
-            {
-                logger.trace("Completed " + label);
-            }
-        }
-    }
-    
-    /**
-     * Stream logger for Mongo
-     * 
-     * @author Derek Hulley
-     * @since 2.0
-     */
-    private class MongoDBStreamProcessor implements IStreamProcessor
-    {
-        private final boolean isError;
-        private MongoDBStreamProcessor(boolean isError)
-        {
-            this.isError = isError;
-        }
-        @Override
-        public void process(String block)
-        {
-            if (isError)
-            {
-                logger.error("Process " + block);
-            }
-            else if (logger.isTraceEnabled())
-            {
-                logger.trace("Process " + block);
-            }
-        }
-
-        @Override
-        public void onProcessed()
-        {
         }
     }
 }

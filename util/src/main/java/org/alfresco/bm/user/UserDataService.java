@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.alfresco.bm.user.UserData.UserCreationState;
 
-import com.mongodb.MongoException.DuplicateKey;
+import com.mongodb.DuplicateKeyException;
 
 /**
  * Service providing access to {@link UserData} storage. All {@link UserData} returned from and persisted
@@ -29,7 +29,7 @@ public interface UserDataService
     };
     
     /**
-     * @throws DuplicateKey         if the username is already used
+     * @throws DuplicateKeyException    if the username is already used
      */
     public void createNewUser(UserData data);
 

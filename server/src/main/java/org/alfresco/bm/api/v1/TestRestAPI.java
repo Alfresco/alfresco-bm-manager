@@ -46,7 +46,7 @@ import org.alfresco.bm.test.mongo.MongoTestDAO;
 
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.MongoException.DuplicateKey;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.util.JSON;
 
 /**
@@ -1041,7 +1041,7 @@ public class TestRestAPI extends AbstractRestResource
                         "Property '" + property + "' (" + version + ") was not updated for " + test + "." + run);
             }
         }
-        catch (DuplicateKey e)
+        catch (DuplicateKeyException e)
         {
             throwAndLogException(
                     Status.CONFLICT,

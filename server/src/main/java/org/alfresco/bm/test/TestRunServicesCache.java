@@ -43,7 +43,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
-import com.mongodb.MongoException.Network;
+import com.mongodb.MongoSocketException;
 
 
 /**
@@ -149,7 +149,7 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
         catch (Exception e)
         {
             Throwable root = ExceptionUtils.getRootCause(e);
-            if (root != null && root instanceof Network)
+            if (root != null && root instanceof MongoSocketException)
             {
                 // We deal with this specifically as it's a simple case of not finding the MongoDB
                 logger.error("Failed to start test run services context '" + testRunFqn + "': " + e.getCause().getMessage());

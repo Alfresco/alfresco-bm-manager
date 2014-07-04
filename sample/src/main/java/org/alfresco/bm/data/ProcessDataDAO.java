@@ -22,7 +22,7 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 
 /**
- * Sample DAO for demonstration.  This file should be deleted.
+ * Sample DAO for demonstration.
  * 
  * @author Derek Hulley
  * @since 1.0

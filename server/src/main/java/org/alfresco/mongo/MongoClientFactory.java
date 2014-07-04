@@ -20,6 +20,8 @@ package org.alfresco.mongo;
 
 import java.net.UnknownHostException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 
@@ -44,6 +46,8 @@ import com.mongodb.MongoClientURI;
  */
 public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableBean
 {
+    private static Log logger = LogFactory.getLog(MongoClientFactory.class);
+    
     /** The Mongo client instance that will be created */
     private MongoClient mongoClient;
     
@@ -72,10 +76,12 @@ public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableB
      * This forces the client URI to be an instance that can be shared between instances of this factory.
      * 
      * @param mongoClientURI            the client URI, which <b>must not</b> reference a database, username or password
+     * @param username                  the username to use when connecting (<tt>null</tt> allowed and empty string is ignored)
+     * @param password                  the user password for the database (<tt>null</tt> allowed and empty string is ignored)
      * 
      * @throws IllegalArgumentException if the arguments are null when not allowed or contain invalid information
      */
-    public MongoClientFactory(MongoClientURI mongoClientURI) throws UnknownHostException
+    public MongoClientFactory(MongoClientURI mongoClientURI, String username, String password) throws UnknownHostException
     {
         if (mongoClientURI == null)
         {
@@ -97,8 +103,26 @@ public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableB
                     "The provided 'mongoClientURI' instance may not reference a specific password: " + MongoClientFactory.toStringSafe(mongoClientURI));
         }
         
+        // Reformat the URI if credentials were supplied
+        if (username != null && username.length() > 0)
+        {
+            String userPwdCombo = username;
+            if (password != null && password.length() > 0)
+            {
+                userPwdCombo = username + ":" + password;
+            }
+            String mongoClientURIstr = mongoClientURI.getURI().replace("mongodb://", "mongodb://" + userPwdCombo + "@");
+            mongoClientURI = new MongoClientURI(mongoClientURIstr);
+        }
+        
         // Construct the client
         mongoClient = new MongoClient(mongoClientURI);
+        
+        // Done
+        if (logger.isInfoEnabled())
+        {
+            logger.info("New MongoDB client created using URL: " + MongoClientFactory.toStringSafe(mongoClientURI));
+        }
     }
 
     /**

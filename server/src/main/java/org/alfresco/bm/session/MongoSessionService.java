@@ -24,8 +24,8 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
-import com.mongodb.WriteResult;
 
 /**
  * Mongo implementation of service providing access and management of {@link SessionData}.
@@ -73,28 +73,44 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
         DBObject uidxSessionId = BasicDBObjectBuilder
                 .start(FIELD_SESSION_ID, 1)
                 .get();
-        collection.ensureIndex(uidxSessionId, "uidx_sessionId", true);
+        DBObject optSessionId = BasicDBObjectBuilder
+                .start("name", "uidx_sessionId")
+                .add("unique", Boolean.TRUE)
+                .get();
+        collection.createIndex(uidxSessionId, optSessionId);
 
         // Ensure ordering by start time
-        DBObject idxSessionId = BasicDBObjectBuilder
+        DBObject idxSessionIdStartTime = BasicDBObjectBuilder
                 .start(FIELD_SESSION_ID, 1)
                 .add(FIELD_START_TIME, 2)
                 .get();
-        collection.ensureIndex(idxSessionId, "idx_sessionId", false);
+        DBObject optSessionIdStartTime = BasicDBObjectBuilder
+                .start("name", "idx_sessionId_startTime")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxSessionIdStartTime, optSessionIdStartTime);
 
         // Find unfinished sessions
         DBObject idxEndTime = BasicDBObjectBuilder
                 .start(FIELD_END_TIME, 1)
                 .add(FIELD_START_TIME, 1)
                 .get();
-        collection.ensureIndex(idxEndTime, "idx_endTime", false);
+        DBObject optEndTime = BasicDBObjectBuilder
+                .start("name", "idx_endTime")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxEndTime, optEndTime);
 
         // Perhaps find long-running sessions
         DBObject idxElapsedTime = BasicDBObjectBuilder
                 .start(FIELD_ELAPSED_TIME, 1)
                 .add(FIELD_START_TIME, 1)
                 .get();
-        collection.ensureIndex(idxElapsedTime, "idx_elapsedTime", false);
+        DBObject optElapsedTime = BasicDBObjectBuilder
+                .start("name", "idx_elapsedTime")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxElapsedTime, optElapsedTime);
     }
     
     private SessionData fromDBObject(DBObject sessionDataObj)
@@ -118,13 +134,16 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
                 .add(FIELD_END_TIME, sessionData.getEndTime())
                 .add(FIELD_ELAPSED_TIME, sessionData.getElapsedTime())
                 .get();
-        WriteResult result = collection.insert(insertObj);
-        if (result.getError() != null)
+        try
+        {
+            collection.insert(insertObj);
+        }
+        catch (MongoException e)
         {
             throw new RuntimeException(
                     "Failed to write new session data: \n" +
-                    "   Session: " + sessionData + "\n" +
-                    "   Result:  " + result);
+                    "   Session: " + sessionData,
+                    e);
         }
     }
 
@@ -157,15 +176,18 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
                     .add(FIELD_ELAPSED_TIME, elapsedTime)
                 .pop()
                 .get();
-        WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() == 0)
+        try
+        {
+            collection.update(queryObj, updateObj);
+        }
+        catch (MongoException e)
         {
             throw new RuntimeException(
                     "Failed to update session end time: \n" +
                     "   Session:      " + sessionId + "\n" +
                     "   End Time:     " + endTime + "\n" +
-                    "   Elapsed Time: " + elapsedTime + "\n" +
-                    "   Result:       " + result);
+                    "   Elapsed Time: " + elapsedTime,
+                    e);
         }
     }
 
@@ -180,14 +202,17 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
                     .add(FIELD_DATA, data)
                 .pop()
                 .get();
-        WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() == 0)
+        try
+        {
+            collection.update(queryObj, updateObj);
+        }
+        catch (MongoException e)
         {
             throw new RuntimeException(
                     "Failed to update session data: \n" +
                     "   Session:      " + sessionId + "\n" +
-                    "   Data:         " + data + "\n" +
-                    "   Result:       " + result);
+                    "   Data:         " + data,
+                    e);
         }
     }
     

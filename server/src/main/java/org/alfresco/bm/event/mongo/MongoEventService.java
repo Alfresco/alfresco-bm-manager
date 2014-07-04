@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.event.mongo;
 
+import java.util.Date;
+
 import org.alfresco.bm.event.AbstractEventService;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventService;
@@ -30,6 +32,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 import com.mongodb.WriteResult;
 
@@ -57,17 +60,25 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
     public void start() throws Exception
     {
         // Initialize indexes
-        DBObject IDX_NEXT_AVAILABLE_EVENT = BasicDBObjectBuilder
-                .start(Event.FIELD_SCHEDULED_TIME, -1)
-                .add(Event.FIELD_LOCK_OWNER, 1)
-                .add(Event.FIELD_DATA_OWNER, 1)
+        DBObject idx_NEXT_AVAILABLE_EVENT = BasicDBObjectBuilder
+                .start(Event.FIELD_SCHEDULED_TIME, Integer.valueOf(-1))
+                .add(Event.FIELD_LOCK_OWNER, Integer.valueOf(1))
+                .add(Event.FIELD_DATA_OWNER, Integer.valueOf(1))
                 .get();
-        collection.ensureIndex(IDX_NEXT_AVAILABLE_EVENT, "IDX_NEXT_AVAILABLE_EVENT", false);
+        DBObject opt_NEXT_AVAILABLE_EVENT = BasicDBObjectBuilder
+                .start("name", "IDX_NEXT_AVAILABLE_EVENT")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_NEXT_AVAILABLE_EVENT, opt_NEXT_AVAILABLE_EVENT);
         
-        DBObject IDX_NAME = BasicDBObjectBuilder
-                .start(Event.FIELD_NAME, 1)
+        DBObject idx_NAME = BasicDBObjectBuilder
+                .start(Event.FIELD_NAME, Integer.valueOf(1))
                 .get();
-        collection.ensureIndex(IDX_NAME, "IDX_NAME", false);
+        DBObject opt_NAME = BasicDBObjectBuilder
+                .start("name", "IDX_NAME")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_NAME, opt_NAME);
     }
 
     @Override
@@ -100,9 +111,9 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         }
         insertObjBuilder
                 .add(Event.FIELD_LOCK_OWNER, event.getLockOwner())
-                .add(Event.FIELD_LOCK_TIME, event.getLockTime())
+                .add(Event.FIELD_LOCK_TIME, new Date(event.getLockTime()))
                 .add(Event.FIELD_NAME, event.getName())
-                .add(Event.FIELD_SCHEDULED_TIME, event.getScheduledTime())
+                .add(Event.FIELD_SCHEDULED_TIME, new Date(event.getScheduledTime()))
                 .add(Event.FIELD_SESSION_ID, event.getSessionId());
         DBObject insertObj = insertObjBuilder.get();
         // Handle explicit setting of the ID
@@ -125,12 +136,12 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         String dataOwner = (String) obj.get(Event.FIELD_DATA_OWNER);
         String lockOwner = (String) obj.get(Event.FIELD_LOCK_OWNER);
         long lockTime = obj.containsField(Event.FIELD_LOCK_TIME) ?
-                (Long) obj.get(Event.FIELD_LOCK_TIME) :
-                -1L;
+                ((Date) obj.get(Event.FIELD_LOCK_TIME)).getTime() :
+                Long.valueOf(0L);
         String name = (String) obj.get(Event.FIELD_NAME);
         long scheduledTime = obj.containsField(Event.FIELD_SCHEDULED_TIME) ?
-                (Long) obj.get(Event.FIELD_SCHEDULED_TIME) :
-                -1L;
+                ((Date) obj.get(Event.FIELD_SCHEDULED_TIME)).getTime() :
+                Long.valueOf(0L);
         String sessionId = (String) obj.get(Event.FIELD_SESSION_ID);
         
         Event event = new Event(name, scheduledTime, data);
@@ -153,13 +164,16 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         }
         DBObject insertObj = convertEvent(event);
         
-        WriteResult wr = collection.insert(insertObj);
-        if (wr.getError() != null)
+        try
+        {
+            collection.insert(insertObj);
+        }
+        catch (MongoException e)
         {
             throw new RuntimeException(
                     "Failed to insert event:\n" +
-                    "   Event: " + insertObj + "\n" +
-                    "   Error:  " + wr);
+                    "   Event: " + insertObj,
+                    e);
         }
         // Extract the ID
         ObjectId eventIdObj = (ObjectId) insertObj.get(Event.FIELD_ID);
@@ -208,7 +222,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         // Build query
         QueryBuilder qb = QueryBuilder
                 .start()
-                .and(Event.FIELD_SCHEDULED_TIME).lessThanEquals(Long.valueOf(latestScheduledTime))
+                .and(Event.FIELD_SCHEDULED_TIME).lessThanEquals(new Date(latestScheduledTime))
                 .and(Event.FIELD_LOCK_OWNER).is(null);
         if (localDataOnly)
         {
@@ -266,7 +280,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
                 .get();
         
         WriteResult wr = collection.remove(queryObj);
-        if (wr.getError() != null || wr.getN() != 1)
+        if (wr.getN() != 1)
         {
             // Done
             if (logger.isDebugEnabled())

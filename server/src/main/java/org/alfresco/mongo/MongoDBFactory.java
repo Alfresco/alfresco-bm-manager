@@ -46,45 +46,23 @@ public class MongoDBFactory implements FactoryBean<DB>, DisposableBean
      * 
      * @param mongoClient               the mongo client
      * @param database                  the database to connect to (never <tt>null</tt>)
-     * @param username                  the username to use when connecting (<tt>null</tt> allowed and empty string is ignored)
-     * @param password                  the user password for the database (<tt>null</tt> allowed and empty string is ignored)
      * 
      * @throws IllegalArgumentException if the arguments are null when not allowed or contain invalid information
      */
-    public MongoDBFactory(MongoClient mongoClient, String database, String username, String password)
+    public MongoDBFactory(MongoClient mongoClient, String database)
     {
         if (mongoClient == null || database == null)
         {
             throw new IllegalArgumentException("'mongoClientURI' and 'database' arguments may not be null.");
         }
         
-        // Handle empty strings
-        if (username != null && username.isEmpty())
-        {
-            username = null;
-        }
-        if (password != null && password.isEmpty())
-        {
-            password = null;
-        }
-        
         // Get the database
         this.db = mongoClient.getDB(database);
-        if (username != null)
-        {
-            boolean authenticated = db.authenticate(username, password.toCharArray());
-            if (!authenticated)
-            {
-                throw new RuntimeException(
-                        "MongoDB authentication failed when connecting to " + mongoClient.getAddress() + " " + database + " for user " + username);
-            }
-        }
     }
     
     @Override
     public void destroy() throws Exception
     {
-        db.cleanCursors(true);
     }
 
     /**

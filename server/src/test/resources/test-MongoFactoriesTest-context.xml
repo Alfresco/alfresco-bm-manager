@@ -19,20 +19,18 @@
 
     <bean id="mongoClient" class="org.alfresco.mongo.MongoClientFactory" >
         <constructor-arg name="mongoClientURI" ref="mongoClientURI" />
+        <constructor-arg name="username"><null/></constructor-arg>
+        <constructor-arg name="password"><null/></constructor-arg>
     </bean>
 
     <bean id="dbOne" class="org.alfresco.mongo.MongoDBFactory" >
         <constructor-arg name="mongoClient" ref="mongoClient" />
         <constructor-arg name="database" value="one" />
-        <constructor-arg name="username"><null/></constructor-arg>
-        <constructor-arg name="password"><null/></constructor-arg>
     </bean>
 
     <bean id="dbTwo" class="org.alfresco.mongo.MongoDBFactory" >
         <constructor-arg name="mongoClient" ref="mongoClient" />
         <constructor-arg name="database" value="two" />
-        <constructor-arg name="username" value="" />
-        <constructor-arg name="password" value="" />
     </bean>
 
 </beans> 

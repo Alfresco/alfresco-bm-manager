@@ -46,8 +46,8 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoException;
-import com.mongodb.MongoException.DuplicateKey;
 import com.mongodb.QueryBuilder;
 import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
@@ -127,68 +127,113 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         
         // @since 2.0
-        DBObject TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS = BasicDBObjectBuilder
+        DBObject idx_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS = BasicDBObjectBuilder
                 .start(FIELD_RELEASE, 1)
                 .add(FIELD_SCHEMA, 1)
                 .add(FIELD_IP_ADDRESS, 1)
                 .get();
-        testDrivers.ensureIndex(TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS, "TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS", false);
+        DBObject opts_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS")
+                .add("unique", Boolean.FALSE)
+                .get();
+        testDrivers.createIndex(idx_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS, opts_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS);
         
         // @since 2.0
-        DBObject TEST_DRIVERS_IDX_NAME_EXPIRES = BasicDBObjectBuilder
+        DBObject idx_TEST_DRIVERS_IDX_NAME_EXPIRES = BasicDBObjectBuilder
                 .start(FIELD_PING + "." + FIELD_EXPIRES, -1)
                 .get();
-        testDrivers.ensureIndex(TEST_DRIVERS_IDX_NAME_EXPIRES, "TEST_DRIVERS_IDX_PING_EXPIRES", false);
+        DBObject opts_TEST_DRIVERS_IDX_NAME_EXPIRES = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_DRIVERS_IDX_NAME_EXPIRES")
+                .add("unique", Boolean.FALSE)
+                .get();
+        testDrivers.createIndex(idx_TEST_DRIVERS_IDX_NAME_EXPIRES, opts_TEST_DRIVERS_IDX_NAME_EXPIRES);
         
         // @since 2.0
-        DBObject TEST_DEFS_UNIQUE_RELEASE_SCHEMA = BasicDBObjectBuilder
+        DBObject idx_TEST_DEFS_UNIQUE_RELEASE_SCHEMA = BasicDBObjectBuilder
                 .start(FIELD_RELEASE, 1)
                 .add(FIELD_SCHEMA, 1)
                 .get();
-        testDefs.ensureIndex(TEST_DEFS_UNIQUE_RELEASE_SCHEMA, "TEST_DEFS_UNIQUE_RELEASE_SCHEMA", true);
+        DBObject opts_TEST_DEFS_UNIQUE_RELEASE_SCHEMA = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_DEFS_UNIQUE_RELEASE_SCHEMA")
+                .add("unique", Boolean.TRUE)
+                .get();
+        testDefs.createIndex(idx_TEST_DEFS_UNIQUE_RELEASE_SCHEMA, opts_TEST_DEFS_UNIQUE_RELEASE_SCHEMA);
         
         // @since 2.0
-        DBObject TESTS_UNIQUE_NAME = BasicDBObjectBuilder
+        DBObject idx_TESTS_UNIQUE_NAME = BasicDBObjectBuilder
                 .start(FIELD_NAME, 1)
                 .get();
-        tests.ensureIndex(TESTS_UNIQUE_NAME, "TESTS_UNIQUE_NAME", true);
+        DBObject opts_TESTS_UNIQUE_NAME = BasicDBObjectBuilder
+                .start()
+                .add("name", "TESTS_UNIQUE_NAME")
+                .add("unique", Boolean.TRUE)
+                .get();
+        tests.createIndex(idx_TESTS_UNIQUE_NAME, opts_TESTS_UNIQUE_NAME);
         
         // @since 2.0
-        DBObject TESTS_NAME_RELEASE_SCHEMA = BasicDBObjectBuilder
+        DBObject idx_TESTS_NAME_RELEASE_SCHEMA = BasicDBObjectBuilder
                 .start(FIELD_NAME, 1)
                 .add(FIELD_RELEASE, 1)
                 .add(FIELD_SCHEMA, 1)
                 .get();
-        tests.ensureIndex(TESTS_NAME_RELEASE_SCHEMA, "TESTS_NAME_RELEASE_SCHEMA", false);
+        DBObject opts_TESTS_NAME_RELEASE_SCHEMA = BasicDBObjectBuilder
+                .start()
+                .add("name", "TESTS_NAME_RELEASE_SCHEMA")
+                .add("unique", Boolean.FALSE)
+                .get();
+        tests.createIndex(idx_TESTS_NAME_RELEASE_SCHEMA, opts_TESTS_NAME_RELEASE_SCHEMA);
         
         // @since 2.0
-        DBObject TEST_RUNS_NAME = BasicDBObjectBuilder
+        DBObject idx_TEST_RUNS_NAME = BasicDBObjectBuilder
                 .start(FIELD_NAME, 1)
                 .get();
-        testRuns.ensureIndex(TEST_RUNS_NAME, "TEST_RUNS_NAME", false);
+        DBObject opts_TEST_RUNS_NAME = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_RUNS_NAME")
+                .add("unique", Boolean.FALSE)
+                .get();
+        testRuns.createIndex(idx_TEST_RUNS_NAME, opts_TEST_RUNS_NAME);
         
         // @since 2.0
-        DBObject TEST_RUNS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
+        DBObject idx_TEST_RUNS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
                 .start(FIELD_TEST, 1)
                 .add(FIELD_NAME, 1)
                 .get();
-        testRuns.ensureIndex(TEST_RUNS_UNIQUE_TEST_NAME, "TEST_RUNS_UNIQUE_TEST_NAME", true);
+        DBObject opts_TEST_RUNS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_RUNS_UNIQUE_TEST_NAME")
+                .add("unique", Boolean.TRUE)
+                .get();
+        testRuns.createIndex(idx_TEST_RUNS_UNIQUE_TEST_NAME, opts_TEST_RUNS_UNIQUE_TEST_NAME);
         
         // @since 2.0
-        DBObject TEST_RUNS_TEST_STATE_SCHEDULED = BasicDBObjectBuilder
+        DBObject idx_TEST_RUNS_TEST_STATE_SCHEDULED = BasicDBObjectBuilder
                 .start(FIELD_TEST, 1)
                 .add(FIELD_STATE, 1)
                 .add(FIELD_SCHEDULED, 1)
                 .get();
-        testRuns.ensureIndex(TEST_RUNS_TEST_STATE_SCHEDULED, "TEST_RUNS_TEST_STATE_SCHEDULED", false);
+        DBObject opts_TEST_RUNS_TEST_STATE_SCHEDULED = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_RUNS_TEST_STATE_SCHEDULED")
+                .add("unique", Boolean.FALSE)
+                .get();
+        testRuns.createIndex(idx_TEST_RUNS_TEST_STATE_SCHEDULED, opts_TEST_RUNS_TEST_STATE_SCHEDULED);
         
         // @since 2.0
-        DBObject TEST_PROPS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
+        DBObject idx_TEST_PROPS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
                 .start(FIELD_TEST, 1)
                 .add(FIELD_RUN, 1)
                 .add(FIELD_NAME, 1)
                 .get();
-        testProps.ensureIndex(TEST_PROPS_UNIQUE_TEST_NAME, "TEST_PROPS_UNIQUE_TEST_NAME", true);
+        DBObject opts_TEST_PROPS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_PROPS_UNIQUE_TEST_NAME")
+                .add("unique", Boolean.TRUE)
+                .get();
+        testProps.createIndex(idx_TEST_PROPS_UNIQUE_TEST_NAME, opts_TEST_PROPS_UNIQUE_TEST_NAME);
     }
 
     @Override
@@ -413,33 +458,28 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_PROPERTIES, testPropertiesForDb)
                 .get();
         
-        boolean written = false;
         try
         {
             WriteResult result = testDefs.insert(newObj);
-            written = (result.getError() == null);
-        }
-        catch (DuplicateKey e)
-        {
-            // Already present
-            written = false;
-        }
-
-        // Done
-        if (logger.isDebugEnabled())
-        {
-            if (written)
+            if (logger.isDebugEnabled())
             {
                 logger.debug(
-                        "Created test definition for " + release + ":" + schema + " \n" +
-                        "   New: " + newObj);
+                        "Created test definition: " + result + "\n" +
+                        "   Release: " + release + "\n" +
+                        "   Schema:  " + schema + "\n" +
+                        "   New:     " + newObj);
             }
-            else
+            return true;
+        }
+        catch (DuplicateKeyException e)
+        {
+            // Already present
+            if (logger.isDebugEnabled())
             {
                 logger.debug("Test definition exists for " + release + ":" + schema);
             }
+            return false;
         }
-        return written;
     }
 
     /**
@@ -866,22 +906,10 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_SCHEMA, schema)
                 .get();
         
-        WriteResult result = null;
-        boolean written = true;
         try
         {
-            result = tests.insert(writeObj);
-            written = (result.getError() == null);
-        }
-        catch (DuplicateKey e)
-        {
-            written = false;
-        }
-
-        // Done
-        if (logger.isDebugEnabled())
-        {
-            if (written)
+            WriteResult result = tests.insert(writeObj);
+            if (logger.isDebugEnabled())
             {
                 logger.debug(
                         "Created test: " + result + "\n" +
@@ -890,12 +918,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                         "   Release: " + release + "\n" +
                         "   Schema:  " + schema);
             }
-            else
-            {
-                logger.debug("Test exists for " + test + ".  " + result);
-            }
+            return true;
         }
-        return written;
+        catch (DuplicateKeyException e)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Test exists: " + test + ".");
+            }
+            return false;
+        }
     }
     
     /**
@@ -1397,22 +1429,10 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_SUCCESS_RATE, Double.valueOf(1.0))
                 .get();
         
-        WriteResult result = null;
-        boolean written = true;
         try
         {
-            result = testRuns.insert(writeObj);
-            written = (result.getError() == null);
-        }
-        catch (DuplicateKey e)
-        {
-            written = false;
-        }
-
-        // Done
-        if (logger.isDebugEnabled())
-        {
-            if (written)
+            WriteResult result = testRuns.insert(writeObj);
+            if (logger.isDebugEnabled())
             {
                 logger.debug(
                         "Created test run: " + result + "\n" +
@@ -1420,12 +1440,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                         "   Name:    " + run + "\n" +
                         "   Descr:   " + description);
             }
-            else
-            {
-                logger.debug("Test run exists for " + run + ".  " + result);
-            }
+            return true;
         }
-        return written;
+        catch (DuplicateKeyException e)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Test run exists: " + test + ". " + run);
+            }
+            return false;
+        }
     }
     
     /**
@@ -2064,34 +2088,34 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         
         WriteResult result = null;
         boolean written = false;
-        if (value == null)
+        try
         {
-            // There must an update
-            result = testProps.remove(queryObj);
-            written = (result.getN() > 0);
-        }
-        else
-        {
-            try
+            if (value == null)
+            {
+                // There must an update
+                result = testProps.remove(queryObj);
+                written = (result.getN() > 0);
+            }
+            else
             {
                 // A value was provided, so either INSERT or UPDATE
                 if (version == 0)
                 {
                     // This indicates that no override should exist, yet
                     result = testProps.insert(updateObj);
-                    written = (result.getError() == null);
+                    written = true;
                 }
                 else
                 {
                     // There must an update
-                    result = testProps.update(queryObj, updateObj, true, false);
-                    written = (result.getN() > 0);
+                    result = testProps.update(queryObj, updateObj);
+                    written = result.getN() > 0;
                 }
             }
-            catch (DuplicateKey e)
-            {
-                written = false;
-            }
+        }
+        catch (DuplicateKeyException e)
+        {
+            written = false;
         }
 
         // Done
@@ -2169,21 +2193,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         
         // Do the bulk insert
-        WriteResult result = testProps.insert(insertObjList, WriteConcern.SAFE);
-        boolean written = (result.getError() == null);
-        if (written)
+        try
         {
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("Successfully fixed property overrides for run: " + runObjId);
-            }
+            testProps.insert(insertObjList, WriteConcern.SAFE);
         }
-        else
+        catch (MongoException e)
         {
             StringBuilder sb = new StringBuilder();
             sb.append(
                     "Lost test run property overrides: \n" +
-                    "   Error: " + result + "\n" +
+                    "   Error: " + e.getMessage() + "\n" +
                     "   Props:");
             for (Object propObj : propObjs)
             {
@@ -2191,7 +2210,12 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             }
             String msg = sb.toString();
             logger.error(msg);
-            throw new RuntimeException(msg);
+            throw new RuntimeException(msg, e);
+        }
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Successfully fixed property overrides for run: " + runObjId);
         }
     }
 }

@@ -23,7 +23,7 @@ import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
 import org.alfresco.bm.user.UserData.UserCreationState;
 
-import com.mongodb.MongoException.DuplicateKey;
+import com.mongodb.DuplicateKeyException;
 
 /**
  * Prepare a specific number of users for interaction with Alfresco.
@@ -341,7 +341,7 @@ public class PrepareUsers extends AbstractEventProcessor
                 {
                     userDataService.createNewUser(user);
                 }
-                catch (DuplicateKey e)
+                catch (DuplicateKeyException e)
                 {
                     // We checked if the user existed and it didn't ... but now it does
                     logger.warn("User data has been created by a separate process.  Ignoring: " + username);

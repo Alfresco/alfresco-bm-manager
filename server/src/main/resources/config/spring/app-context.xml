@@ -105,13 +105,13 @@
 
     <bean id="configMongoClient" class="org.alfresco.mongo.MongoClientFactory" >
         <constructor-arg name="mongoClientURI" ref="configMongoURI" />
+        <constructor-arg name="username" value="${mongo.config.username}" />
+        <constructor-arg name="password" value="${mongo.config.password}" />
     </bean>
 
     <bean id="configMongoDB" class="org.alfresco.mongo.MongoDBFactory" >
         <constructor-arg name="mongoClient" ref="configMongoClient" />
         <constructor-arg name="database" value="${mongo.config.database}" />
-        <constructor-arg name="username" value="${mongo.config.username}" />
-        <constructor-arg name="password" value="${mongo.config.password}" />
     </bean>
 
     <!--           -->

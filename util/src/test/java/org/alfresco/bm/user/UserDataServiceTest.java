@@ -32,7 +32,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
 
-import com.mongodb.MongoException.DuplicateKey;
+import com.mongodb.DuplicateKeyException;
 
 /**
  * @see UserDataService
@@ -110,7 +110,7 @@ public class UserDataServiceTest
             userDataService.createNewUser(userDup);
             Assert.fail("Should fail due to duplicate username.");
         }
-        catch (DuplicateKey e)
+        catch (DuplicateKeyException e)
         {
             // Expected
         }
@@ -129,7 +129,7 @@ public class UserDataServiceTest
             userDataService.createNewUser(userDup);
             Assert.fail("Should fail due to duplicate email.");
         }
-        catch (DuplicateKey e)
+        catch (DuplicateKeyException e)
         {
             // Expected
         }

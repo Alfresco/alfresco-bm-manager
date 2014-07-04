@@ -38,7 +38,7 @@ public class Event
     public static final String FIELD_ID = "_id";
     public static final String FIELD_NAME = "name";
     public static final String FIELD_SESSION_ID = "sessionId";
-    public static final String FIELD_SCHEDULED_TIME = "scheduledTime";
+    public static final String FIELD_SCHEDULED_TIME= "scheduledTime";
     public static final String FIELD_LOCK_OWNER = "lockOwner";
     public static final String FIELD_LOCK_TIME = "lockTime";
     public static final String FIELD_DATA = "data";

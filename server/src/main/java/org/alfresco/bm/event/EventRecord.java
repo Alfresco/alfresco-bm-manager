@@ -18,8 +18,6 @@
  */
 package org.alfresco.bm.event;
 
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
 /**
@@ -62,40 +60,6 @@ public class EventRecord
     private String warning;
     private boolean chart = true;
 
-    /**
-     * Ensure that the MongoDB collection has the required indexes for events.
-     * 
-     * @param collection            name of DB collection containing events
-     */
-    public static void checkIndexes(DBCollection collection)
-    {
-        DBObject IDX_EVENT_NAME_START_SUCCESS = BasicDBObjectBuilder
-                .start(FIELD_EVENT_NAME, 1)
-                .add(FIELD_START_TIME, 1)
-                .add(FIELD_SUCCESS, 1)
-                .get();
-        collection.ensureIndex(IDX_EVENT_NAME_START_SUCCESS, "IDX_EVENT_NAME_START_SUCCESS", false);
-        
-        DBObject IDX_SESSION_START = BasicDBObjectBuilder
-                .start(FIELD_EVENT_SESSION_ID, 1)
-                .add(FIELD_START_TIME, 1)
-                .get();
-        collection.ensureIndex(IDX_SESSION_START, "IDX_SESSION_START", false);
-        
-        DBObject IDX_START_EVENT_NAME_SUCCESS = BasicDBObjectBuilder
-                .start(FIELD_START_TIME, 1)
-                .add(FIELD_EVENT_NAME, 1)
-                .add(FIELD_SUCCESS, 1)
-                .get();
-        collection.ensureIndex(IDX_START_EVENT_NAME_SUCCESS, "IDX_START_EVENT_NAME_SUCCESS", false);
-
-        DBObject IDX_SUCCESS_START = BasicDBObjectBuilder
-                .start(FIELD_SUCCESS, 1)
-                .add(FIELD_START_TIME, 1)
-                .get();
-        collection.ensureIndex(IDX_SUCCESS_START, "IDX_SUCCESS_START", false);
-    }
-    
     /**
      * @param serverId          the server identifier
      * @param success           <tt>true</tt> if this represents a successful event

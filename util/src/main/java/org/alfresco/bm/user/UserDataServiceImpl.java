@@ -33,7 +33,7 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.MongoException.DuplicateKey;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
 
@@ -87,24 +87,40 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         DBObject uidxUserName = BasicDBObjectBuilder
                 .start(FIELD_USERNAME, 1)
                 .get();
-        collection.ensureIndex(uidxUserName, "uidx_username", true);
+        DBObject optUserName = BasicDBObjectBuilder
+                .start("name", "uidx_username")
+                .add("unique", Boolean.TRUE)
+                .get();
+        collection.createIndex(uidxUserName, optUserName);
 
         DBObject uidxEmail = BasicDBObjectBuilder
                 .start(FIELD_EMAIL, 1)
                 .get();
-        collection.ensureIndex(uidxEmail, "uidx_email", true);
+        DBObject optEmail = BasicDBObjectBuilder
+                .start("name", "uidx_email")
+                .add("unique", Boolean.TRUE)
+                .get();
+        collection.createIndex(uidxEmail, optEmail);
 
         DBObject idxDomain = BasicDBObjectBuilder
                 .start(FIELD_DOMAIN, 1)
                 .get();
-        collection.ensureIndex(idxDomain, "idx_domain", false);
+        DBObject optDomain = BasicDBObjectBuilder
+                .start("name", "idx_domain")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxDomain, optDomain);
         
-        DBObject idxCreated = BasicDBObjectBuilder
+        DBObject idxCreationState = BasicDBObjectBuilder
                 .start(FIELD_CREATION_STATE, 1)
                 .add(FIELD_RANDOMIZER, 2)
                 .add(FIELD_DOMAIN, 3)
                 .get();
-        collection.ensureIndex(idxCreated, "idx_creation_state", false);
+        DBObject optCreationState = BasicDBObjectBuilder
+                .start("name", "idx_creation_state")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxCreationState, optCreationState);
     }
     
     /**
@@ -184,16 +200,9 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         
         try
         {
-            WriteResult result = collection.insert(insertObj);
-            if (result.getError() != null)
-            {
-                throw new RuntimeException(
-                        "Failed to insert user data: \n" +
-                        "   User Data: " + data + "\n" +
-                        "   Result:    " + result);
-            }
+            collection.insert(insertObj);
         }
-        catch (DuplicateKey e)
+        catch (DuplicateKeyException e)
         {
             // We just rethrow as per the API
             throw e;
@@ -215,7 +224,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .pop()
                 .get();
         WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() != 1)
+        if (result.getN() != 1)
         {
             throw new RuntimeException(
                     "Failed to update user ticket: \n" +
@@ -240,7 +249,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .pop()
                 .get();
         WriteResult result = collection.update(queryObj, updateObj);
-        if (result.getError() != null || result.getN() != 1)
+        if (result.getN() != 1)
         {
             throw new RuntimeException(
                     "Failed to update user creation state: \n" +

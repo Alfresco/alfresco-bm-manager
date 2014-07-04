@@ -74,26 +74,42 @@ public class FileDataServiceImpl implements FileDataService, InitializingBean
                 .start(FIELD_FILESET, 1)
                 .add(FIELD_RANDOMIZER, 1)
                 .get();
-        collection.ensureIndex(idxRandomizer, "idx_randomizer", false);
+        DBObject optRandomizer = BasicDBObjectBuilder
+                .start("name", "idx_randomizer")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxRandomizer, optRandomizer);
 
         DBObject idxExtension = BasicDBObjectBuilder
                 .start(FIELD_FILESET, 1)
                 .add(FIELD_EXTENSION, 1)
                 .add(FIELD_RANDOMIZER, 1)
                 .get();
-        collection.ensureIndex(idxExtension, "idx_extension", false);
+        DBObject optExtension = BasicDBObjectBuilder
+                .start("name", "idx_extension")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxExtension, optExtension);
 
         DBObject uidxRemoteName = BasicDBObjectBuilder
                 .start(FIELD_FILESET, 1)
                 .add(FIELD_REMOTE_NAME, 1)
                 .get();
-        collection.ensureIndex(uidxRemoteName, "uidx_remoteName", true);
+        DBObject optRemoteName = BasicDBObjectBuilder
+                .start("name", "uidx_remoteName")
+                .add("unique", Boolean.TRUE)
+                .get();
+        collection.createIndex(uidxRemoteName, optRemoteName);
 
         DBObject uidxLocalName = BasicDBObjectBuilder
                 .start(FIELD_FILESET, 1)
                 .add(FIELD_LOCAL_NAME, 1)
                 .get();
-        collection.ensureIndex(uidxLocalName, "uidx_localName", true);
+        DBObject optLocalName = BasicDBObjectBuilder
+                .start("name", "uidx_localName")
+                .add("unique", Boolean.TRUE)
+                .get();
+        collection.createIndex(uidxLocalName, optLocalName);
     }
     
     /**
