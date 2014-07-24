@@ -18,9 +18,12 @@
  */
 package org.alfresco.bm.event;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,73 +49,128 @@ public abstract class AbstractResultService implements ResultService
             String eventName,
             Boolean successOrFail,
             long windowSize,
+            long reportPeriod,
             boolean chartOnly)
     {
+        /*
+         * Keep track of all events' statistics.
+         * It is possible to report more frequently than the window size.
+         * For each report period in the reporting window, the statistics for the events need to be maintained.
+         */
+        
         if (handler == null)
         {
             throw new IllegalArgumentException("A result handler must be supplied.");
         }
-        if (windowSize <= 0)
+        if (windowSize <= 0L)
         {
             throw new IllegalArgumentException("'windowSize' must be a non-zero, positive number.");
         }
+        if (reportPeriod <= 0L)
+        {
+            throw new IllegalArgumentException("'reportPeriod' must be a non-zero, positive number.");
+        }
+        if (reportPeriod > windowSize)
+        {
+            throw new IllegalArgumentException("'reportPeriod' cannot more than the 'windowSize'.");
+        }
+        if (windowSize % reportPeriod != 0L)
+        {
+            throw new IllegalArgumentException("'windowSize' must be a multiple of 'reportPeriod'.");
+        }
+        
+        // We have to keep statistics for each reporting period
+        int windowMultiple = (int) (windowSize / reportPeriod);
+        
+        // Grab the list of event names so that we can always report something for each event
+        List<String> eventNames = (eventName == null) ? getEventNames() : Collections.singletonList(eventName);
         
         // Build stats for reporting back
-        Map<String, DescriptiveStatistics> statsByEventName = new HashMap<String, DescriptiveStatistics>(7);
+        // Each LinkedList will have 'windowMultiple' entries.
+        // The newest statistics will be the last in the linked list; results will be reported from the first entry each time.
+        Map<String, LinkedList<DescriptiveStatistics>> statsByEventName = new HashMap<String, LinkedList<DescriptiveStatistics>>(eventNames.size());
         
-        // Keep track of the start and end times for the current window
-        long currentWindowStartTime = (long) Math.floor(startTime / (double) windowSize) * windowSize;
-        long currentWindowEndTime = currentWindowStartTime + windowSize - 1L;    // It must be inclusive
+        // Our even queries use separate windows
+        EventRecord firstResult = getFirstResult();
+        if (firstResult == null)
+        {
+            // There is nothing
+            return;
+        }
+        long firstResultStartTime = firstResult.getStartTime();
+        EventRecord lastResult = getLastResult();
+        long lastResultStartTime = lastResult.getStartTime();
 
+        long queryWindowStartTime = firstResultStartTime;                       // The start time is inclusive
+        long queryWindowSize = lastResult.getStartTime() - firstResult.getStartTime();
+        if (queryWindowSize < 60000L)
+        {
+            queryWindowSize = 60000L;                                           // Query window is at least a minute
+        }
+        else if (queryWindowSize > (60000L * 60L))
+        {
+            queryWindowSize = 60000L * 60L;                                     // Query window is at most an hour
+        }
+        long queryWindowEndTime = queryWindowStartTime + queryWindowSize;
+
+        // Rebase the aggregation window to encompasse the first event
+        long currentWindowEndTime = (long) Math.floor((firstResultStartTime + reportPeriod) / reportPeriod) * reportPeriod;
+        long currentWindowStartTime = currentWindowEndTime - windowSize;
+        
         // Iterate over the results
-        int windowNumber = -1;
         int skip = 0;
+        int limit = 10000;
         boolean stop = false;
+        boolean unreportedResults = false;
 breakStop:
         while (!stop)
         {
-            List<EventRecord> results = getResults(currentWindowStartTime, eventName, successOrFail, skip, 100);
-            // Simulate iteration over results
+            List<EventRecord> results = getResults(queryWindowStartTime, queryWindowEndTime, eventName, successOrFail, chartOnly, skip, limit);
+            if (results.size() == 0)
+            {
+                if (queryWindowEndTime > lastResultStartTime)
+                {
+                    // The query window has included the last event, so we have extracted all results
+                    if (unreportedResults)
+                    {
+                        // The query window ends in the future, so we are done
+                        reportAndCycleStats(statsByEventName, currentWindowStartTime, currentWindowEndTime, windowMultiple, handler);
+                        unreportedResults = false;
+                    }
+                    stop = true;
+                }
+                else
+                {
+                    // Move the query window up
+                    queryWindowStartTime = queryWindowEndTime;
+                    queryWindowEndTime+= queryWindowSize;
+                    // Reset the skip count as we are in a new query window
+                    skip = 0;
+                }
+                // We continue
+                continue;
+            }
+            // Process each result found in the query window
             for (EventRecord eventRecord : results)
             {
                 String eventRecordName = eventRecord.getEvent().getName();
                 long eventRecordStartTime = eventRecord.getStartTime();
                 long eventRecordTime = eventRecord.getTime();
                 
-                // Move the window up to enclose the first event
-                // If we have enclosed the first event, then just keep moving the window up in incrementally
-                while (eventRecordStartTime > currentWindowEndTime)
+                // If the current event is past the reporting period, then report
+                if (eventRecordStartTime >= currentWindowEndTime)
                 {
-                    if (windowNumber < 0)
+                    // Report the current stats
+                    stop = reportAndCycleStats(statsByEventName, currentWindowStartTime, currentWindowEndTime, windowMultiple, handler);
+                    unreportedResults = false;
+                    // Shift the window up by one report period
+                    currentWindowStartTime += reportPeriod;
+                    currentWindowEndTime += reportPeriod;
+                    // Check for stop
+                    if (stop)
                     {
-                        // There is nothing to report
-                        // Rebase the window to encompasse the first event
-                        currentWindowStartTime = (long) Math.floor(eventRecordStartTime / windowSize) * windowSize;
-                        currentWindowEndTime = currentWindowStartTime + windowSize - 1L;
-                        // We are still in the first window
+                        break breakStop;
                     }
-                    else
-                    {
-                        // Report the previous window
-                        stop = reportCurrentStats(statsByEventName, currentWindowStartTime, currentWindowEndTime, handler);
-                        // Shift the window up
-                        currentWindowStartTime += windowSize;
-                        currentWindowEndTime += windowSize;
-                        // Increment the window count
-                        windowNumber++;
-                        // Check for stop
-                        if (stop)
-                        {
-                            break breakStop;
-                        }
-                    }
-                    // Reset skip for the new window
-                    skip = 0;
-                }
-                // We are in the first window, at least
-                if (windowNumber < 0)
-                {
-                    windowNumber = 0;
                 }
                 // Increase the skip with each window result
                 skip++;
@@ -123,62 +181,73 @@ breakStop:
                     continue;
                 }
 
-                // Get the stats for the current event
-                DescriptiveStatistics eventRecordStats = statsByEventName.get(eventRecordName);
-                if (eventRecordStats == null)
-                {
-                    // The window size is unlimited; we don't know how many results will occur
-                    // within the window
-                    eventRecordStats = new DescriptiveStatistics(DescriptiveStatistics.INFINITE_WINDOW);
-                    statsByEventName.put(eventRecordName, eventRecordStats);
-                }
+                // We have to report this result at some point
+                unreportedResults = true;
                 
-                // Update the stats
-                eventRecordStats.addValue(eventRecordTime);
-            }
-            // If there are no more results, find out if we should wait or quit
-            if (results.size() == 0)
-            {
-                long waitTime = handler.getWaitTime();
-                if (waitTime > 0L)
+                // Get the linked list of stats for the event
+                LinkedList<DescriptiveStatistics> eventLL = statsByEventName.get(eventRecordName);
+                if (eventLL == null)
                 {
-                    synchronized (statsByEventName)
-                    {
-                        try { statsByEventName.wait(waitTime); } catch (InterruptedException e) {}
-                    }
+                    // Create a LL for the event
+                    eventLL = new LinkedList<DescriptiveStatistics>();
+                    statsByEventName.put(eventRecordName, eventLL);
+                    // We need at least one entry in order to record stats
+                    eventLL.add(new DescriptiveStatistics());
                 }
-                else
+                // Write the current event to all the stats for the event
+                for (DescriptiveStatistics eventStats : eventLL)
                 {
-                    reportCurrentStats(statsByEventName, currentWindowStartTime, currentWindowEndTime, handler);
-                    stop = true;
+                    eventStats.addValue(eventRecordTime);
                 }
             }
         }
     }
     
     /**
+     * Reports the oldest stats for the events and pops it off the list
+     * 
+     * @param windowMultiple        the number of reporting entries to hold per event
      * @return                      <tt>true</tt> to stop processing
      */
-    private boolean reportCurrentStats(
-            Map<String, DescriptiveStatistics> statsByEventName,
+    private boolean reportAndCycleStats(
+            Map<String, LinkedList<DescriptiveStatistics>> statsByEventName,
             long currentWindowStartTime,
             long currentWindowEndTime,
+            int windowMultiple,
             ResultHandler handler)
     {
+        Map<String, DescriptiveStatistics> stats = new HashMap<String, DescriptiveStatistics>(statsByEventName.size() + 7);
+        for (Map.Entry<String, LinkedList<DescriptiveStatistics>> entry : statsByEventName.entrySet())
+        {
+            // Grab the OLDEST stats from the beginning of the list
+            String eventName = entry.getKey();
+            LinkedList<DescriptiveStatistics> ll = entry.getValue();
+            try
+            {
+                DescriptiveStatistics eventStats = ll.getFirst();
+                stats.put(eventName, eventStats);
+                if (ll.size() == windowMultiple)
+                {
+                    // We have enough reporting points for the window, so pop the first and add a new to the end
+                    ll.pop();
+                }
+                ll.add(new DescriptiveStatistics());
+            }
+            catch (NoSuchElementException e)
+            {
+                throw new RuntimeException("An event name did not have a result for the reporting period: " + statsByEventName);
+            }
+        }
+        
         boolean stop = false;
         try
         {
-            boolean go = handler.processResult(currentWindowStartTime, currentWindowEndTime, statsByEventName);
+            boolean go = handler.processResult(currentWindowStartTime, currentWindowEndTime, stats);
             stop = !go;
         }
         catch (Throwable e)
         {
             logger.error("Exception while making callback.", e);
-        }
-        finally
-        {
-            // Reset the statistics for the event
-            statsByEventName.clear();
         }
         return stop;
     }

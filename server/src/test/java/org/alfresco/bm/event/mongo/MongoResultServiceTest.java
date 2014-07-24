@@ -23,11 +23,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
@@ -101,7 +102,7 @@ public class MongoResultServiceTest
         assertEquals(0, resultService.countResultsByEventName("e.1"));
         
         assertEquals(0, resultService.getResults("e.1", 0, 5).size());
-        assertEquals(0, resultService.getResults(0L, "e.1", Boolean.TRUE, 0, 5).size());
+        assertEquals(0, resultService.getResults(0L, Long.MAX_VALUE, "e.1", Boolean.TRUE, false, 0, 5).size());
         resultService.getResults(
                 new ResultHandler()
                 {
@@ -111,13 +112,8 @@ public class MongoResultServiceTest
                         fail("Should not have any results");
                         return true;
                     }
-                    @Override
-                    public long getWaitTime()
-                    {
-                        return 0L;
-                    }
                 },
-                0L, "e.1", Boolean.TRUE, 1000L, false);
+                0L, "e.1", Boolean.TRUE, 1000L, 100L, false);
     }
     
     /**
@@ -142,13 +138,13 @@ public class MongoResultServiceTest
     /**
      * Create a sample set of results
      */
-    public static final EventRecord createEventRecord()
+    public static final EventRecord createEventRecord(long eventStartTime)
     {
         Event event = MongoEventServiceTest.createEvent();
 
         String server = "SERVER" + (int)(Math.random() * 10);
         boolean success = Math.random() >= 0.5;
-        long startTime = System.currentTimeMillis() - (long)(Math.random() * 1000.0);
+        long startTime = eventStartTime;
         long time = (long)(Math.random() * 1000.0);
         boolean chart = Math.random() > 0.5;
         long startDelay = (long)(Math.random() * 100.0);
@@ -173,13 +169,15 @@ public class MongoResultServiceTest
     }
     
     /**
-     * Push N number of event records into the {@link ResultService}
+     * Push N number of event records into the {@link ResultService}.
+     * The first event will be now and there will be one every 10ms.
      */
     private void pumpRecords(int n)
     {
+        long testStartTime = System.currentTimeMillis();
         for (int i = 0; i < n; i++)
         {
-            EventRecord eventRecord = createEventRecord();
+            EventRecord eventRecord = createEventRecord(testStartTime + i * 10L);
             resultService.recordResult(eventRecord);
         }
     }
@@ -282,56 +280,151 @@ public class MongoResultServiceTest
     @Test
     public void getResultsAfterTime()
     {
-        long before = System.currentTimeMillis() - 1000L;       // The start time is set back when the record is created
+        long before = System.currentTimeMillis() - 10L;         // The start time is set back when the record is created
         pumpRecords(100);
-        long after = System.currentTimeMillis() + 10L;          // Adjust for JVM accuracy
+        long after = before + 100 * 10L + 10L;                  // Extra 10ms to Adjust for JVM accuracy
         
-        int totalA = 0;         // before, null, null
-        int totalB = 0;         // after, null, null
-        int totalC = 0;         // before, null, true
-        int totalD = 0;         // after, null, false
+        int totalA = 0;         // before, future, null, null
+        int totalB = 0;         // after, future, null, null
+        int totalC = 0;         // before, future, null, true
+        int totalD = 0;         // after, future, null, false
+        int totalE = 0;         // before, after, null, true
+        int totalF = 0;         // before, after, null, false
         int limit = 5;
         for (int skip = 0; skip < 100 ; skip += limit)
         {
-            totalA += resultService.getResults(before, null, null, skip, limit).size();
-            totalB += resultService.getResults(after, null, null, skip, limit).size();
-            totalC += resultService.getResults(before, null, Boolean.TRUE, skip, limit).size();
-            totalD += resultService.getResults(before, null, Boolean.FALSE, skip, limit).size();
+            totalA += resultService.getResults(before, Long.MAX_VALUE, null, null, false, skip, limit).size();
+            totalB += resultService.getResults(after, Long.MAX_VALUE, null, null, false, skip, limit).size();
+            totalC += resultService.getResults(before, Long.MAX_VALUE, null, Boolean.TRUE, false, skip, limit).size();
+            totalD += resultService.getResults(before, Long.MAX_VALUE, null, Boolean.FALSE, false, skip, limit).size();
+            totalE += resultService.getResults(before, after, null, Boolean.TRUE, false, skip, limit).size();
+            totalE += resultService.getResults(before, after, null, Boolean.FALSE, false, skip, limit).size();
         }
         assertEquals(100, totalA);
         assertEquals(000, totalB);
         assertEquals(100, totalC + totalD);
+        assertEquals(100, totalE + totalF);
     }
     
+    /**
+     * Create some results but then search for something that does not match
+     */
     @Test
-    public void getResultsUsingHandler()
+    public void getZeroResultsUsingHandler()
     {
-        pumpRecords(100);
+        //
+        pumpRecords(10);
         
-        final AtomicLong total = new AtomicLong(0L);
-
+        final AtomicInteger count = new AtomicInteger();
         resultService.getResults(
                 new ResultHandler()
                 {
                     @Override
                     public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName) throws Throwable
                     {
-                        // Count each of the events in the time window
-                        for (DescriptiveStatistics stats : statsByEventName.values())
-                        {
-                            total.addAndGet(stats.getN());
-                        }
+                        // Increment
+                        count.incrementAndGet();
                         return true;
                     }
-                    @Override
-                    public long getWaitTime()
-                    {
-                        return 0L;
-                    }
                 },
-                0L, null, null, 1000L, false);
+                0L, "NO-NAME", null, 20L, 10L, false);
         
         // Check
-        assertEquals(100L, total.get());
+        assertEquals(0, count.get());
+    }
+    
+    /**
+     * Test the case where the reporting period is smaller than the stats window
+     */
+    @Test
+    public void getResultsUsingHandler()
+    {
+        pumpRecords(10);
+        final long firstEventTime = resultService.getFirstResult().getStartTime();
+        final long lastEventTime = resultService.getLastResult().getStartTime();
+        
+        final AtomicInteger count = new AtomicInteger();
+        final Set<String> names = new HashSet<String>(17);
+        
+        resultService.getResults(
+                new ResultHandler()
+                {
+                    @Override
+                    public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName) throws Throwable
+                    {
+                        if (toTime <= firstEventTime)
+                        {
+                            fail("The window is before the first event.");
+                        }
+                        if (fromTime > lastEventTime)
+                        {
+                            fail("The window is past the last event.");
+                        }
+                        assertEquals("Window not rebased. ", 0L, fromTime % 10L);       // Rebased on reporting period
+                        assertEquals("Window size incorrect", 20L, toTime - fromTime);
+
+                        // Record all the event names we got
+                        names.addAll(statsByEventName.keySet());
+                        
+                        // Increment
+                        count.incrementAndGet();
+                        
+                        return true;
+                    }
+                },
+                0L, null, null, 20L, 10L, false);
+        
+        // Check
+        assertEquals(10, count.get());
+        assertEquals(resultService.getEventNames().size(), names.size());
+    }
+    
+    /**
+     * Test the case where the reporting period is smaller than the stats window
+     */
+    @Test
+    public void getCheckedResultsUsingHandler()
+    {
+        pumpRecords(10);
+        
+        final AtomicInteger count = new AtomicInteger();
+        final Map<String, DescriptiveStatistics> lastStatsByEventName = new HashMap<String, DescriptiveStatistics>(17);
+        
+        resultService.getResults(
+                new ResultHandler()
+                {
+                    @Override
+                    public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName) throws Throwable
+                    {
+                        // Always keep the last stats
+                        lastStatsByEventName.clear();
+                        lastStatsByEventName.putAll(statsByEventName);
+                        
+                        count.incrementAndGet();
+                        return true;
+                    }
+                },
+                0L, null, null, 200L, 10L, false);
+        // Check
+        assertEquals(10, count.get());
+        
+        // Now go through the last stats received
+        // Check it against the last window size
+        List<String> names = resultService.getEventNames();
+        for (String eventName : names)
+        {
+            List<EventRecord> eventResults = resultService.getResults(eventName, 0, 1000);
+            DescriptiveStatistics eventStats = new DescriptiveStatistics();
+            for (EventRecord eventRecord : eventResults)
+            {
+                eventStats.addValue(eventRecord.getTime());
+            }
+            DescriptiveStatistics lastEventStats = lastStatsByEventName.get(eventName);
+            assertNotNull("No last report for event '" + eventName  + "'.", lastEventStats);
+            // Now check that this matched the last report exactly
+            assertEquals(
+                    "Mean for '" + eventName + "' was not correct. ",
+                    (long) Math.floor(eventStats.getMean()), (long) Math.floor(lastStatsByEventName.get(eventName).getMean()));
+        }
     }
 }

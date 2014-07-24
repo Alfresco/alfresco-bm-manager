@@ -325,13 +325,16 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     @Override
     public List<EventRecord> getResults(
             long startTime,
+            long endTime,
             String eventName,
             Boolean successOrFail,
+            boolean chartOnly,
             int skip, int limit)
     {
         QueryBuilder queryBuilder = QueryBuilder
                 .start()
-                .and(EventRecord.FIELD_START_TIME).greaterThanEquals(new Date(startTime));
+                .and(EventRecord.FIELD_START_TIME).greaterThanEquals(new Date(startTime))
+                .and(EventRecord.FIELD_START_TIME).lessThan(new Date(endTime));
         if (eventName != null)
         {
             queryBuilder.and(EventRecord.FIELD_EVENT_NAME).is(eventName);
@@ -339,6 +342,10 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         if (successOrFail != null)
         {
             queryBuilder.and(EventRecord.FIELD_SUCCESS).is(successOrFail);
+        }
+        if (chartOnly)
+        {
+            queryBuilder.and(EventRecord.FIELD_CHART).is(true);
         }
         DBObject queryObj = queryBuilder.get();
         DBObject sortObj = BasicDBObjectBuilder

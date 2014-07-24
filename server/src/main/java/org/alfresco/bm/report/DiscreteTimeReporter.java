@@ -132,7 +132,8 @@ public class DiscreteTimeReporter extends AbstractEventReporter
         EventRecord lastResult = resultService.getFirstResult();
         long lastEventTime = lastResult == null ? System.currentTimeMillis() : lastResult.getStartTime();
 
-        final long windowSize = ResultChart.getWindowSize(firstEventTime, lastEventTime, numberOfResults);
+        final long reportPeriod = ResultChart.getWindowSize(firstEventTime, lastEventTime, numberOfResults);
+        final long windowSize = reportPeriod;
         
         ResultHandler handler = new ResultHandler()
         {
@@ -149,14 +150,8 @@ public class DiscreteTimeReporter extends AbstractEventReporter
                         headerIndexes);
                 return false;
             }
-
-            @Override
-            public long getWaitTime()
-            {
-                return -1L;
-            }
         };
-        resultService.getResults(handler, 0L, null, Boolean.TRUE, windowSize, false);
+        resultService.getResults(handler, 0L, null, Boolean.TRUE, windowSize, reportPeriod, false);
     }
     
     /**

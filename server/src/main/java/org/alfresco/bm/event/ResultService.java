@@ -71,17 +71,23 @@ public interface ResultService
      * Retrieve a page of event results using a time window
      * 
      * @param startTime         the first event time (inclusive, milliseconds)
+     * @param endTime           the last event time (exclusive, milliseconds)
      * @param eventName         the name of the event to use or <tt>null</tt> for all event names
      * @param successOrFail     <tt>true</tt> for success only or false for failures (<tt>null</tt> for all)
+     * @param chartOnly         <tt>true</tt> to only retrieve results for charting
      */
     List<EventRecord> getResults(
             long startTime,
+            long endTime,
             String eventName,
             Boolean successOrFail,
+            boolean chartOnly,
             int skip, int limit);
     
     /**
-     * Callback handler for aggregated results
+     * Callback handler for aggregated results.  The results include all results for the
+     * given window of time, even if there are multiple callbacks covering the same time
+     * span.
      * 
      * @author derekh
      * @since 1.3
@@ -92,7 +98,7 @@ public interface ResultService
          * The callback of statistics for a given time window.
          * 
          * @param fromTime      the start of the time window (inclusive)
-         * @param toTime       the end of the time window (inclusive)
+         * @param toTime        the end of the time window (exclusive i.e. no result will have occured at this time)
          * @param statsByEventName  statistics for the time window keyed by event name
          * @return              <tt>true</tt> to continue processing otherwise <tt>false</tt>
          * @throws              all exceptions will be handled
@@ -101,16 +107,6 @@ public interface ResultService
                 long fromTime,
                 long toTime,
                 Map<String, DescriptiveStatistics> statsByEventName) throws Throwable;
-        
-        /**
-         * Called when there are no more results to get the time to wait before polling for
-         * more results.
-         * 
-         * @return              Return the time, in milliseconds, to wait before polling for
-         *                      more results.  Use 0 or less to indicate that the process must
-         *                      terminate immediately.
-         */
-        long getWaitTime();
     }
     
     /**
@@ -124,7 +120,8 @@ public interface ResultService
      *                          this time and reset to a multiple of the <tt>windowSize</tt>.
      * @param eventName         the name of the event to use or <tt>null</tt> for all event names
      * @param successOrFail     <tt>true</tt> for success only or false for failures (<tt>null</tt> for all)
-     * @param windowSize        the length (milliseconds) of a time window
+     * @param windowSize        the length (milliseconds) of a time window.  This must be a multiple of the 'reportPeriod'.
+     * @param reportPeriod      the result time report period (milliseconds).  This cannot be <i>more</i> than the 'windowSize'.
      * @param chartOnly         <tt>true</tt> if only {@link EventRecord#isChart() chartable} results must be retrieved
      */
     void getResults(
@@ -133,6 +130,7 @@ public interface ResultService
             String eventName,
             Boolean successOrFail,
             long windowSize,
+            long reportPeriod,
             boolean chartOnly);
 
     /**

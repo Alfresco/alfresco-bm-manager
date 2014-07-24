@@ -28,6 +28,7 @@ import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
@@ -82,18 +83,45 @@ public class SummaryReporter extends AbstractEventReporter
     
     private TreeMap<String, ResultSummary> collateResults(boolean chartOnly)
     {
+        // Do a quick check to see if there are results
+        EventRecord firstEvent = resultService.getFirstResult();
+        if (firstEvent == null)
+        {
+            return new TreeMap<String, ResultSummary>();
+        }
+        EventRecord lastEvent = resultService.getLastResult();
+
+        long oneHour = TimeUnit.HOURS.toMillis(1L);
+        long queryWindowStartTime = firstEvent.getStartTime();
+        long queryWindowEndTime = queryWindowStartTime + oneHour;
+        
         // Prepare recorded data
         TreeMap<String, ResultSummary> results = new TreeMap<String, ResultSummary>();
-        // Prepare to loop
-        int eventsOnLastEventStartTime = 0;
-        long lastEventStartTime = 0L;
         int limit = 10000;
-        // Start
-        List<EventRecord> data = resultService.getResults(lastEventStartTime, null, null, 0, limit);
-        while (data.size() > 0)
+        int skip = 0;
+        
+        while (true)
         {
+            List<EventRecord> data = resultService.getResults(queryWindowStartTime, queryWindowEndTime, null, null, chartOnly, skip, limit);
+            if (data.size() == 0)
+            {
+                if (queryWindowEndTime > lastEvent.getStartTime())
+                {
+                    // The query window covered all known events, so we're done
+                    break;
+                }
+                else
+                {
+                    // Push the window up
+                    queryWindowStartTime = queryWindowEndTime;
+                    queryWindowEndTime += oneHour;
+                    // Requery
+                    continue;
+                }
+            }
             for (EventRecord eventRecord : data)
             {
+                skip++;
                 // Skip based on chart flag
                 if (!chartOnly || eventRecord.isChart())
                 {
@@ -109,20 +137,7 @@ public class SummaryReporter extends AbstractEventReporter
                     long resultTime = eventRecord.getTime();
                     resultSummary.addSample(resultSuccess, resultTime);
                 }
-                // Update the skip details
-                long eventStartTime = eventRecord.getStartTime();
-                if (eventStartTime > lastEventStartTime)
-                {
-                    lastEventStartTime = eventStartTime;
-                    eventsOnLastEventStartTime = 1;
-                }
-                else
-                {
-                    eventsOnLastEventStartTime++;
-                }
             }
-            // Now search again
-            data = resultService.getResults(lastEventStartTime, null, null, eventsOnLastEventStartTime, limit);
         }
         // Done
         return results;

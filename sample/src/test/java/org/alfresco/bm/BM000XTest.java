@@ -31,6 +31,8 @@ import org.alfresco.bm.tools.BMTestRunner;
 import org.alfresco.bm.tools.BMTestRunnerListener;
 import org.alfresco.bm.tools.BMTestRunnerListenerAdaptor;
 import org.apache.commons.io.output.StringBuilderWriter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +50,8 @@ import org.springframework.context.ApplicationContext;
 @RunWith(JUnit4.class)
 public class BM000XTest extends BMTestRunnerListenerAdaptor
 {
+    private static Log logger = LogFactory.getLog(BM000XTest.class);
+    
     @Test
     public void runSample() throws Exception
     {
@@ -74,8 +78,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         
         // One successful START event
         Assert.assertEquals("Incorrect number of start events.", 1, resultService.countResultsByEventName(Event.EVENT_NAME_START));
-        List<EventRecord> results = resultService.getResults(0L, Event.EVENT_NAME_START, false, 0, 1);
-        if (results.size() > 0)
+        List<EventRecord> results = resultService.getResults(0L, Long.MAX_VALUE, Event.EVENT_NAME_START, Boolean.TRUE, false, 0, 1);
+        if (results.size() != 1)
         {
             Assert.fail(Event.EVENT_NAME_START + " failed: \n" + results.toString());
         }
@@ -112,6 +116,10 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
             sbWriter.close();
         }
         String summary = sbWriter.getBuilder().toString();
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("BM000X summary report: \n" + summary);
+        }
         Assert.assertTrue(summary.contains("scheduleProcesses"));
         Assert.assertTrue(summary.contains("process"));
     }
