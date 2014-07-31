@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -89,6 +90,7 @@ public abstract class AbstractResultService implements ResultService
         // Each LinkedList will have 'windowMultiple' entries.
         // The newest statistics will be the last in the linked list; results will be reported from the first entry each time.
         Map<String, LinkedList<DescriptiveStatistics>> statsByEventName = new HashMap<String, LinkedList<DescriptiveStatistics>>(eventNames.size());
+        Map<String, LinkedList<AtomicInteger>> failuresByEventName = new HashMap<String, LinkedList<AtomicInteger>>(eventNames.size());
         
         // Our even queries use separate windows
         EventRecord firstResult = getFirstResult();
@@ -134,7 +136,7 @@ breakStop:
                     if (unreportedResults)
                     {
                         // The query window ends in the future, so we are done
-                        reportAndCycleStats(statsByEventName, currentWindowStartTime, currentWindowEndTime, windowMultiple, handler);
+                        reportAndCycleStats(statsByEventName, failuresByEventName, currentWindowStartTime, currentWindowEndTime, windowMultiple, handler);
                         unreportedResults = false;
                     }
                     stop = true;
@@ -156,12 +158,13 @@ breakStop:
                 String eventRecordName = eventRecord.getEvent().getName();
                 long eventRecordStartTime = eventRecord.getStartTime();
                 long eventRecordTime = eventRecord.getTime();
+                boolean eventRecordSuccess = eventRecord.isSuccess();
                 
                 // If the current event is past the reporting period, then report
                 if (eventRecordStartTime >= currentWindowEndTime)
                 {
                     // Report the current stats
-                    stop = reportAndCycleStats(statsByEventName, currentWindowStartTime, currentWindowEndTime, windowMultiple, handler);
+                    stop = reportAndCycleStats(statsByEventName, failuresByEventName, currentWindowStartTime, currentWindowEndTime, windowMultiple, handler);
                     unreportedResults = false;
                     // Shift the window up by one report period
                     currentWindowStartTime += reportPeriod;
@@ -185,19 +188,38 @@ breakStop:
                 unreportedResults = true;
                 
                 // Get the linked list of stats for the event
-                LinkedList<DescriptiveStatistics> eventLL = statsByEventName.get(eventRecordName);
-                if (eventLL == null)
+                LinkedList<DescriptiveStatistics> eventStatsLL = statsByEventName.get(eventRecordName);
+                if (eventStatsLL == null)
                 {
                     // Create a LL for the event
-                    eventLL = new LinkedList<DescriptiveStatistics>();
-                    statsByEventName.put(eventRecordName, eventLL);
+                    eventStatsLL = new LinkedList<DescriptiveStatistics>();
+                    statsByEventName.put(eventRecordName, eventStatsLL);
                     // We need at least one entry in order to record stats
-                    eventLL.add(new DescriptiveStatistics());
+                    eventStatsLL.add(new DescriptiveStatistics());
                 }
                 // Write the current event to all the stats for the event
-                for (DescriptiveStatistics eventStats : eventLL)
+                for (DescriptiveStatistics eventStats : eventStatsLL)
                 {
                     eventStats.addValue(eventRecordTime);
+                }
+
+                // Get the linked list of failure counts for the event
+                LinkedList<AtomicInteger> eventFailuresLL = failuresByEventName.get(eventRecordName);
+                if (eventFailuresLL == null)
+                {
+                    // Create a LL for the event
+                    eventFailuresLL = new LinkedList<AtomicInteger>();
+                    failuresByEventName.put(eventRecordName, eventFailuresLL);
+                    // Need one entry to record failures
+                    eventFailuresLL.add(new AtomicInteger(0));
+                }
+                // Write any failures to all counts for the event
+                if (!eventRecordSuccess)
+                {
+                    for (AtomicInteger eventFailures : eventFailuresLL)
+                    {
+                        eventFailures.incrementAndGet();
+                    }
                 }
             }
         }
@@ -211,11 +233,13 @@ breakStop:
      */
     private boolean reportAndCycleStats(
             Map<String, LinkedList<DescriptiveStatistics>> statsByEventName,
+            Map<String, LinkedList<AtomicInteger>> failuresByEventName,
             long currentWindowStartTime,
             long currentWindowEndTime,
             int windowMultiple,
             ResultHandler handler)
     {
+        // Handle stats
         Map<String, DescriptiveStatistics> stats = new HashMap<String, DescriptiveStatistics>(statsByEventName.size() + 7);
         for (Map.Entry<String, LinkedList<DescriptiveStatistics>> entry : statsByEventName.entrySet())
         {
@@ -239,10 +263,34 @@ breakStop:
             }
         }
         
+        // Handle failures
+        Map<String, Integer> failures = new HashMap<String, Integer>(statsByEventName.size() + 7);
+        for (Map.Entry<String, LinkedList<AtomicInteger>> entry : failuresByEventName.entrySet())
+        {
+            // Grab the OLDEST stats from the beginning of the list
+            String eventName = entry.getKey();
+            LinkedList<AtomicInteger> ll = entry.getValue();
+            try
+            {
+                AtomicInteger eventFailures = ll.getFirst();
+                failures.put(eventName, Integer.valueOf(eventFailures.get()));
+                if (ll.size() == windowMultiple)
+                {
+                    // We have enough reporting points for the window, so pop the first and add a new to the end
+                    ll.pop();
+                }
+                ll.add(new AtomicInteger());
+            }
+            catch (NoSuchElementException e)
+            {
+                throw new RuntimeException("An event name did not have a failure count for the reporting period: " + failuresByEventName);
+            }
+        }
+        
         boolean stop = false;
         try
         {
-            boolean go = handler.processResult(currentWindowStartTime, currentWindowEndTime, stats);
+            boolean go = handler.processResult(currentWindowStartTime, currentWindowEndTime, stats, failures);
             stop = !go;
         }
         catch (Throwable e)

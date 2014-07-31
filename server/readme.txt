@@ -236,3 +236,20 @@ To request test run termination:
    
 To retrieve a csv stream of the test run results:
    GET:   <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/results/csv
+   
+To retrieve a chart data of results:
+   GET:   <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/results
+   Content-Type:application/json
+   {
+      "fromTime":<ms since Epoch. Optional and will be rebased to near the first event, if necessary.>,
+      "timeUnit":<The units of the 'reportPeriod' value.  Default: 'SECONDS'.>,
+      "reportPeriod":<How often to report statistics, expressed as a number of 'timeUnits'.  Default 1.>,
+      "smoothing":<Number of x-axis values to include in smoothing curve.  Default 1.>,
+      "chartOnly":<Whether or not to include only data interesting to end-users.  Default 'true'.>
+   }
+   Return JSON example for {reportPeriod:10, timeUnit:"seconds", smoothing:2}
+   [
+      { "time" : 1406839320000 , "events" : [ { "name" : "process" , "median" : 34.87096774193548 , "min" : 10.0, "max" : 60.0 , "stdDev" : 15.637789319012697 , "num" : 62 , "numPerSec" : 3.1 , "fail" : 13 , "failPerSec" : 0.65} , { "name" : "scheduleProcesses" , "median" : 7.0 , "min" : 7.0 , "max" : 7.0 , "stdDev" : 0.0 , "num" : 1 , "numPerSec" : 0.05 , "fail" : 0 , "failPerSec" : 0.0}]} ,
+      { "time" : 1406839330000 , "events" : [ { "name" : "process" , "median" : 36.13664596273292 , "min" : 10.0, "max" : 60.0 , "stdDev" : 14.265560317776668 , "num" : 161 , "numPerSec" : 8.05 , "fail" : 40 , "failPerSec" : 2.0} , { "name" : "scheduleProcesses" , "median" : 5.5 , "min" : 4.0 , "max" : 7.0 , "stdDev" : 2.1213203435596424 , "num" : 2 , "numPerSec" : 0.1 , "fail" : 0 , "failPerSec" : 0.0}]} ,
+      { "time" : 1406839340000 , "events" : [ { "name" : "process" , "median" : 35.63768115942029 , "min" : 10.0 , "max" : 60.0 , "stdDev" : 14.266464187847879 , "num" : 138 , "numPerSec" : 6.9 , "fail" : 37 , "failPerSec" : 1.85} , { "name" : "scheduleProcesses" , "median" : 4.0 , "min" : 4.0 , "max" : 4.0 , "stdDev" : 0.0 , "num" : 1 , "numPerSec" : 0.05 , "fail" : 0 , "failPerSec" : 0.0}]}
+]

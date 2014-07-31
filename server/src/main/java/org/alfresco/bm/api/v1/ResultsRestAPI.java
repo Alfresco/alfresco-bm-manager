@@ -22,28 +22,29 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.event.ResultService.ResultHandler;
 import org.alfresco.bm.report.SummaryReporter;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import com.mongodb.util.Hash;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 
 /**
  * <b>REST API V1</b><br/>
@@ -139,32 +140,27 @@ public class ResultsRestAPI extends AbstractRestResource
     }
     
     /**
-     * Retrieve results for each requested time unit.  If {@link TimeUnit#MINUTES} are requested
-     * and the report period is one, for example, there will be one result per event per minute.
-     * If results are infrequent, the window size factor can be increased to ensure that aggregation
-     * of results is done across a longer time frame.
+     * Retrieve an approximate number of results, allowing for a smoothing factor
+     * (<a href=http://en.wikipedia.org/wiki/Moving_average#Simple_moving_average>Simple Moving Average</a>) -
+     * the number of data results to including in the moving average.
      * 
-     * @param timeUnitStr       a {@link TimeUnit} value
-     * @param reportPeriod      the time between reports, aggregating data across the report
-     *                          period multipled by the window size factor.
-     * @param windowSizeFactor  the number of most reports to include in aggregation calculations.
-     *                          If this is 1, then each report will contain aggregation data from the
-     *                          current report period.  The larger this is, the more older results
-     *                          affect the current report, acting as a smoothing factor for line charts.
-     * @param fromTime          the time of the first result (inclusive)
-     * @param chartOnly         <tt>true</tt> to only return results that should be charted
-     * @return                  the JSON results
+     * @param fromTime              the approximate time to start from
+     * @param timeUnit              the units of the 'reportPeriod' (default SECONDS).  See {@link TimeUnit}.
+     * @param reportPeriod          how often a result should be output.  This is expressed as a multiple of the 'timeUnit'.
+     * @param smoothing             the number of results to include in the Simple Moving Average calculations
+     * @param chartOnly             <tt>true</tt> to filter out results that are not of interest in performance charts
+     * 
+     * @return                      JSON representing the event start time (x-axis) and the smoothed average execution time
+     *                              along with data such as the events per second, failures per second, etc.
      */
     @Path("/")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String getResults(
-            @DefaultValue("SECONDS") @QueryParam("timeUnit") String timeUnitStr,
-            @DefaultValue("1") @QueryParam("reportPeriod") int reportPeriod,
-            @DefaultValue("1") @QueryParam("windowSizeFactor") int windowSizeFactor,
-            @DefaultValue("0") @QueryParam("fromTime") long fromTime,
-            @DefaultValue("0") @QueryParam("skip") int skip,
-            @DefaultValue("1000") @QueryParam("limit") int limit,
+            @DefaultValue("0L") @QueryParam("fromTime") long fromTime,
+            @DefaultValue("SECONDS") @QueryParam("timeUnit") String timeUnit,
+            @DefaultValue("1") @QueryParam("reportPeriod") long reportPeriod,
+            @DefaultValue("1") @QueryParam("smoothing") int smoothing,
             @DefaultValue("true") @QueryParam("chartOnly") boolean chartOnly)
     {
         if (logger.isDebugEnabled())
@@ -172,41 +168,112 @@ public class ResultsRestAPI extends AbstractRestResource
             logger.debug(
                     "Inbound: " +
                     "[test:" + test +
-                    ",timeUnit:" + timeUnitStr +
-                    ",reportPeriod:" + reportPeriod +
-                    ",windowSizeFactor:" + windowSizeFactor +
                     ",fromTime:" + fromTime +
-                    ",skip:" + skip +
-                    ",limit:" + limit +
+                    ",timeUnit:" + timeUnit +
+                    ",reportPeriod:" + reportPeriod +
+                    ",smoothing:" + smoothing +
                     ",chartOnly:" + chartOnly +
                     "]");
         }
-        final ResultService resultService = getResultService();
-        
-        // A running total of the statistics for the windows
-        final Map<String, DescriptiveStatistics> results = new HashMap<String, DescriptiveStatistics>(17);
-        
+        if (reportPeriod < 1)
+        {
+            throwAndLogException(Status.BAD_REQUEST, "'reportPeriod' must be 1 or more.");
+        }
+        if (smoothing < 1)
+        {
+            throwAndLogException(Status.BAD_REQUEST, "'smoothing' must be 1 or more.");
+        }
+        TimeUnit timeUnitEnum = null;
         try
         {
-            // Convert TimeUnit
-            TimeUnit timeUnit = TimeUnit.valueOf(timeUnitStr);
-            
-            // Construct the utility that aggregates the results
-            StreamingOutput so = new StreamingOutput()
-            {
-                @Override
-                public void write(OutputStream output) throws IOException, WebApplicationException
-                {
-                    Writer writer = new OutputStreamWriter(output);
+            timeUnitEnum = TimeUnit.valueOf(timeUnit.toUpperCase());
+        }
+        catch (Exception e)
+        {
+            // Invalid time unit
+            throwAndLogException(Status.BAD_REQUEST, e);
+        }
+        
+        final ResultService resultService = getResultService();
 
-                    SummaryReporter summaryReporter = new SummaryReporter(resultService);
-                    summaryReporter.export(writer, "TODO: Allow editing of notes");
-                    writer.flush();
-                    writer.close();
+        // Calculate the window size
+        long reportPeriodMs = timeUnitEnum.toMillis(reportPeriod);
+        long windowSize = reportPeriodMs * smoothing;
+        
+        // This is just too convenient an API
+        final BasicDBList bsonList = new BasicDBList();
+        ResultHandler handler = new ResultHandler()
+        {
+            @Override
+            public boolean processResult(
+                    long fromTime, long toTime,
+                    Map<String, DescriptiveStatistics> statsByEventName,
+                    Map<String, Integer> failuresByEventName) throws Throwable
+            {
+                BasicDBList events = new BasicDBList();
+                for (Map.Entry<String, DescriptiveStatistics> entry : statsByEventName.entrySet())
+                {
+                    String eventName = entry.getKey();
+                    DescriptiveStatistics stats = entry.getValue();
+                    Integer failures = failuresByEventName.get(eventName);
+                    if (failures == null)
+                    {
+                        logger.error("Found null failure count: " + entry);
+                        // Do nothing with it and stop
+                        return false;
+                    }
+                    // Per second
+                    double numPerSec = (double) stats.getN() / ( (double) (toTime-fromTime) / 1000.0);
+                    double failuresPerSec = (double) failures / ( (double) (toTime-fromTime) / 1000.0);
+                    // Push into an object
+                    DBObject eventObj = BasicDBObjectBuilder
+                            .start()
+                            .add("name", eventName)
+                            .add("median", stats.getMean())
+                            .add("min", stats.getMin())
+                            .add("max", stats.getMax())
+                            .add("stdDev", stats.getStandardDeviation())
+                            .add("num", stats.getN())
+                            .add("numPerSec", numPerSec)
+                            .add("fail", failures)
+                            .add("failPerSec", failuresPerSec)
+                            .get();
+                    // Add the object to the list of events
+                    events.add(eventObj);
                 }
-            };
-//            return resultService.get;
-            return null;
+                // Add all the event details to the current time entry
+                // Output each result into the list
+                BasicDBObjectBuilder builder = BasicDBObjectBuilder
+                        .start()
+                        .add("time", toTime)
+                        .add("events", events);
+                bsonList.add(builder.get());
+                // Go for the next result
+                return true;
+            }
+        };
+        try
+        {
+            // Get all the results
+            resultService.getResults(handler, fromTime, null, null, windowSize, reportPeriodMs, chartOnly);
+            // Muster into JSON
+            String json = bsonList.toString();
+            
+            // Done
+            if (logger.isDebugEnabled())
+            {
+                int jsonLen = json.length();
+                if (jsonLen < 500)
+                {
+                    logger.debug("Outbound: " + json);
+                }
+                else
+                {
+                    logger.debug("Outbound: " + json.substring(0, 250) + " ... " + json.substring(jsonLen - 250, jsonLen));
+                }
+            }
+            return json;
+
         }
         catch (WebApplicationException e)
         {

@@ -99,14 +99,16 @@ public interface ResultService
          * 
          * @param fromTime      the start of the time window (inclusive)
          * @param toTime        the end of the time window (exclusive i.e. no result will have occured at this time)
-         * @param statsByEventName  statistics for the time window keyed by event name
+         * @param statsByEventName      statistics for the time window keyed by event name
+         * @param failuresByEventName   the number of failures in the time window keyed by event name
          * @return              <tt>true</tt> to continue processing otherwise <tt>false</tt>
          * @throws              all exceptions will be handled
          */
         boolean processResult(
                 long fromTime,
                 long toTime,
-                Map<String, DescriptiveStatistics> statsByEventName) throws Throwable;
+                Map<String, DescriptiveStatistics> statsByEventName,
+                Map<String, Integer> failuresByEventName) throws Throwable;
     }
     
     /**

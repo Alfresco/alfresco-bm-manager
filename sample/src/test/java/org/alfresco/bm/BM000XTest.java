@@ -18,19 +18,24 @@
  */
 package org.alfresco.bm;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import javax.ws.rs.core.StreamingOutput;
+
+import org.alfresco.bm.api.v1.ResultsRestAPI;
+import org.alfresco.bm.api.v1.TestRestAPI;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.process.ScheduleProcesses;
-import org.alfresco.bm.report.SummaryReporter;
 import org.alfresco.bm.test.TestRunServicesCache;
+import org.alfresco.bm.test.TestService;
+import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.alfresco.bm.tools.BMTestRunner;
 import org.alfresco.bm.tools.BMTestRunnerListener;
 import org.alfresco.bm.tools.BMTestRunnerListenerAdaptor;
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
@@ -72,6 +77,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
     public void testRunFinished(ApplicationContext testCtx, String test, String run)
     {
         TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
+        MongoTestDAO testDAO = services.getTestDAO(test, run);
+        TestService testService = services.getTestService(test, run);
         ResultService resultService = services.getResultService(test, run);
         Assert.assertNotNull(resultService);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
@@ -100,12 +107,18 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         // 202 events in total
         Assert.assertEquals("Incorrect number of results.", (403-failures), resultService.countResults());
         
-        // Generate the test results summary
-        SummaryReporter summaryReporter = new SummaryReporter(resultService);
-        StringBuilderWriter sbWriter = new StringBuilderWriter(1024);
+        // Test the charting API
+        TestRestAPI testAPI = new TestRestAPI(testDAO, testService, services);
+        ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
+        
+        // Get the summary CSV results for the time period and check some of the values
+        StreamingOutput out = resultsAPI.getResultsSummaryCSV();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(2048);
+        String summary = "";
         try
         {
-            summaryReporter.export(sbWriter, "No notes");
+            out.write(bos);
+            summary = bos.toString("UTF-8");
         }
         catch (IOException e)
         {
@@ -113,14 +126,20 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         }
         finally
         {
-            sbWriter.close();
+            try { bos.close(); } catch (Exception e) {}
         }
-        String summary = sbWriter.getBuilder().toString();
         if (logger.isDebugEnabled())
         {
             logger.debug("BM000X summary report: \n" + summary);
         }
         Assert.assertTrue(summary.contains("scheduleProcesses"));
         Assert.assertTrue(summary.contains("process"));
+        
+        // Get the chart results and check
+        String chartData = resultsAPI.getResults(0L, "seconds", 10, 2, true);
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("BM000X chart data: \n" + chartData);
+        }
     }
 }

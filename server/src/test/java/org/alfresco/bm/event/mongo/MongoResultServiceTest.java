@@ -107,7 +107,10 @@ public class MongoResultServiceTest
                 new ResultHandler()
                 {
                     @Override
-                    public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName) throws Throwable
+                    public boolean processResult(
+                            long fromTime, long toTime,
+                            Map<String, DescriptiveStatistics> statsByEventName,
+                            Map<String, Integer> failuresByEventName) throws Throwable
                     {
                         fail("Should not have any results");
                         return true;
@@ -320,8 +323,16 @@ public class MongoResultServiceTest
                 new ResultHandler()
                 {
                     @Override
-                    public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName) throws Throwable
+                    public boolean processResult(
+                            long fromTime, long toTime,
+                            Map<String, DescriptiveStatistics> statsByEventName,
+                            Map<String, Integer> failuresByEventName) throws Throwable
                     {
+                        // Check that we have a failure count for each event
+                        if (failuresByEventName.size() != statsByEventName.size())
+                        {
+                            throw new RuntimeException("Didn't have a failure count matching stats count.");
+                        }
                         // Increment
                         count.incrementAndGet();
                         return true;
@@ -350,7 +361,10 @@ public class MongoResultServiceTest
                 new ResultHandler()
                 {
                     @Override
-                    public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName) throws Throwable
+                    public boolean processResult(
+                            long fromTime, long toTime,
+                            Map<String, DescriptiveStatistics> statsByEventName,
+                            Map<String, Integer> failuresByEventName) throws Throwable
                     {
                         if (toTime <= firstEventTime)
                         {
@@ -394,7 +408,10 @@ public class MongoResultServiceTest
                 new ResultHandler()
                 {
                     @Override
-                    public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName) throws Throwable
+                    public boolean processResult(
+                            long fromTime, long toTime,
+                            Map<String, DescriptiveStatistics> statsByEventName,
+                            Map<String, Integer> failuresByEventName) throws Throwable
                     {
                         // Always keep the last stats
                         lastStatsByEventName.clear();

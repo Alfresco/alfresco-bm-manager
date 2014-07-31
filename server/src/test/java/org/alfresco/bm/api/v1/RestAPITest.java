@@ -891,8 +891,8 @@ public class RestAPITest implements TestConstants
         // Force another ping, which will deactivate the test run
         test.forcePing();
         
-        // Get the results CSV
         ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T1", "01");
+        // Get the results CSV
         StreamingOutput resultsOutput = resultsAPI.getResultsSummaryCSV();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         resultsOutput.write(bos);
@@ -902,5 +902,11 @@ public class RestAPITest implements TestConstants
         assertTrue(resultsCsv.contains("Started"));
         assertTrue(resultsCsv.contains("Finished"));
         assertTrue(resultsCsv.contains("Duration"));
+        
+        // Get the JSON results
+        String chartJson = resultsAPI.getResults(0L, "seconds", 1, 5, false);
+        assertTrue(chartJson.startsWith("[ { \"time\" : "));
+        assertTrue(chartJson.contains("000 , \"events\" : [ { \"name\" : \"start\" , \"median\" : "));
+        assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]}]"));
     }
 }

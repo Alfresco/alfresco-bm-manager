@@ -60,6 +60,7 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
     private static final Log logger = LogFactory.getLog(TestRunServicesCache.class);
     
     private final MongoTestDAO dao;
+    private final TestService testService;
     private final Map<String, ClassPathXmlApplicationContext> contexts;
     private final Map<String, Long> contextAccessTimes;
     private final ContextCleanerTask contextCleanerTask;
@@ -71,6 +72,8 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
     public TestRunServicesCache(MongoTestDAO dao)
     {
         this.dao = dao;
+        this.testService = new TestServiceImpl(dao);
+        
         this.contexts = new HashMap<String, ClassPathXmlApplicationContext>(13);
         this.contextAccessTimes = Collections.synchronizedMap(new HashMap<String, Long>(13));
         this.contextCleanerTask = new ContextCleanerTask();
@@ -227,6 +230,26 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
         {
             lock.writeLock().unlock();
         }
+    }
+    
+    /**
+     * Get the {@link MongoTestDAO} for the given test run
+     * 
+     * @return                  the DAO for accessing the low-level test config data
+     */
+    public MongoTestDAO getTestDAO(String test, String run)
+    {
+        return dao;
+    }
+    
+    /**
+     * Get the {@link TestService} for the given test run
+     * 
+     * @return                  the service for accessing test data
+     */
+    public TestService getTestService(String test, String run)
+    {
+        return testService;
     }
     
     /**
