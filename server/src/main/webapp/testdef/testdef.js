@@ -254,9 +254,12 @@
                     $scope.doDeleteTest = function(name) {
                         TestService.deleteTest({
                             id: name
+                        }, function(response){
+                            $scope.data.tests = TestService.getTests()
                         });
                         $scope.data.tests = TestService.getTests();
                     }
+                    
                     $scope.data.tests = TestService.getTests();
                 }
             ])
