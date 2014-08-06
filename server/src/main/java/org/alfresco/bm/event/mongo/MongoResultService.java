@@ -61,16 +61,34 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     public void start() throws Exception
     {
         // Initialize indexes
-        DBObject idx_EVENT_NAME_START_SUCCESS = BasicDBObjectBuilder
+        DBObject idx_EVENT_NAME_START = BasicDBObjectBuilder
                 .start(EventRecord.FIELD_EVENT_NAME, Integer.valueOf(1))
                 .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
-                .add(EventRecord.FIELD_SUCCESS, Integer.valueOf(1))
                 .get();
-        DBObject opt_EVENT_NAME_START_SUCCESS = BasicDBObjectBuilder
-                .start("name", "IDX_EVENT_NAME_START_SUCCESS")
+        DBObject opt_EVENT_NAME_START = BasicDBObjectBuilder
+                .start("name", "IDX_EVENT_NAME_START")
                 .add("unique", Boolean.FALSE)
                 .get();
-        collection.createIndex(idx_EVENT_NAME_START_SUCCESS, opt_EVENT_NAME_START_SUCCESS);
+        collection.createIndex(idx_EVENT_NAME_START, opt_EVENT_NAME_START);
+        
+        DBObject idx_SUCCESS_START = BasicDBObjectBuilder
+                .start(EventRecord.FIELD_SUCCESS, Integer.valueOf(1))
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .get();
+        DBObject opt_SUCCESS_START = BasicDBObjectBuilder
+                .start("name", "IDX_SUCCESS_START")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_SUCCESS_START, opt_SUCCESS_START);
+        
+        DBObject idx_START = BasicDBObjectBuilder
+                .start(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .get();
+        DBObject opt_START = BasicDBObjectBuilder
+                .start("name", "IDX_START")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idx_START, opt_START);
         
         DBObject idx_SESSION_START = BasicDBObjectBuilder
                 .start(EventRecord.FIELD_EVENT_SESSION_ID, Integer.valueOf(1))
@@ -81,27 +99,6 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 .add("unique", Boolean.FALSE)
                 .get();
         collection.createIndex(idx_SESSION_START, opt_SESSION_START);
-        
-        DBObject idx_START_EVENT_NAME_SUCCESS = BasicDBObjectBuilder
-                .start(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
-                .add(EventRecord.FIELD_EVENT_NAME, Integer.valueOf(1))
-                .add(EventRecord.FIELD_SUCCESS, Integer.valueOf(1))
-                .get();
-        DBObject opt_START_EVENT_NAME_SUCCESS = BasicDBObjectBuilder
-                .start("name", "IDX_START_EVENT_NAME_SUCCESS")
-                .add("unique", Boolean.FALSE)
-                .get();
-        collection.createIndex(idx_START_EVENT_NAME_SUCCESS, opt_START_EVENT_NAME_SUCCESS);
-
-        DBObject idx_SUCCESS_START = BasicDBObjectBuilder
-                .start(EventRecord.FIELD_SUCCESS, Integer.valueOf(1))
-                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
-                .get();
-        DBObject opt_SUCCESS_START = BasicDBObjectBuilder
-                .start("name", "IDX_SUCCESS_START")
-                .add("unique", Boolean.FALSE)
-                .get();
-        collection.createIndex(idx_SUCCESS_START, opt_SUCCESS_START);
     }
 
     @Override
@@ -326,8 +323,6 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     public List<EventRecord> getResults(
             long startTime,
             long endTime,
-            String eventName,
-            Boolean successOrFail,
             boolean chartOnly,
             int skip, int limit)
     {
@@ -335,14 +330,6 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 .start()
                 .and(EventRecord.FIELD_START_TIME).greaterThanEquals(new Date(startTime))
                 .and(EventRecord.FIELD_START_TIME).lessThan(new Date(endTime));
-        if (eventName != null)
-        {
-            queryBuilder.and(EventRecord.FIELD_EVENT_NAME).is(eventName);
-        }
-        if (successOrFail != null)
-        {
-            queryBuilder.and(EventRecord.FIELD_SUCCESS).is(successOrFail);
-        }
         if (chartOnly)
         {
             queryBuilder.and(EventRecord.FIELD_CHART).is(true);

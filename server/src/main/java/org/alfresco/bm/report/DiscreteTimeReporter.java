@@ -190,7 +190,7 @@ public class DiscreteTimeReporter extends AbstractEventReporter
                 return false;
             }
         };
-        resultService.getResults(handler, 0L, null, null, windowSize, reportPeriod, false);
+        resultService.getResults(handler, 0L, windowSize, reportPeriod, false);
     }
     
     /**

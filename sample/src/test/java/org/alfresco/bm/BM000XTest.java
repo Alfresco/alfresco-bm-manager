@@ -85,8 +85,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         
         // One successful START event
         Assert.assertEquals("Incorrect number of start events.", 1, resultService.countResultsByEventName(Event.EVENT_NAME_START));
-        List<EventRecord> results = resultService.getResults(0L, Long.MAX_VALUE, Event.EVENT_NAME_START, Boolean.TRUE, false, 0, 1);
-        if (results.size() != 1)
+        List<EventRecord> results = resultService.getResults(0L, Long.MAX_VALUE, false, 0, 1);
+        if (results.size() != 1 || !results.get(0).getEvent().getName().equals(Event.EVENT_NAME_START))
         {
             Assert.fail(Event.EVENT_NAME_START + " failed: \n" + results.toString());
         }
@@ -132,14 +132,16 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         {
             logger.debug("BM000X summary report: \n" + summary);
         }
-        Assert.assertTrue(summary.contains("scheduleProcesses"));
-        Assert.assertTrue(summary.contains("process"));
+        Assert.assertTrue(summary.contains(",,process,   200,"));
+        Assert.assertTrue(summary.contains(",,scheduleProcesses,     2,"));
         
         // Get the chart results and check
-        String chartData = resultsAPI.getResults(0L, "seconds", 10, 2, true);
+        String chartData = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 10, true);
         if (logger.isDebugEnabled())
         {
             logger.debug("BM000X chart data: \n" + chartData);
         }
+        // Check that we have 10.0 processes per second; across 10s, we should get 100 events
+        Assert.assertTrue("Expected 10 processes per second.", chartData.contains("\"num\" : 100 , \"numPerSec\" : 10.0"));
     }
 }
