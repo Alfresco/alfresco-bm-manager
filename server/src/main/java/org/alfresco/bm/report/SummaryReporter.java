@@ -102,7 +102,7 @@ public class SummaryReporter extends AbstractEventReporter
         
         while (true)
         {
-            List<EventRecord> data = resultService.getResults(queryWindowStartTime, queryWindowEndTime, null, null, chartOnly, skip, limit);
+            List<EventRecord> data = resultService.getResults(queryWindowStartTime, queryWindowEndTime, chartOnly, skip, limit);
             if (data.size() == 0)
             {
                 if (queryWindowEndTime > lastEvent.getStartTime())
@@ -122,21 +122,17 @@ public class SummaryReporter extends AbstractEventReporter
             for (EventRecord eventRecord : data)
             {
                 skip++;
-                // Skip based on chart flag
-                if (!chartOnly || eventRecord.isChart())
+                // Add the data
+                String eventName = eventRecord.getEvent().getName();
+                ResultSummary resultSummary = results.get(eventName);
+                if (resultSummary == null)
                 {
-                    // Add the data
-                    String eventName = eventRecord.getEvent().getName();
-                    ResultSummary resultSummary = results.get(eventName);
-                    if (resultSummary == null)
-                    {
-                        resultSummary = new ResultSummary(eventName);
-                        results.put(eventName, resultSummary);
-                    }
-                    boolean resultSuccess = eventRecord.isSuccess();
-                    long resultTime = eventRecord.getTime();
-                    resultSummary.addSample(resultSuccess, resultTime);
+                    resultSummary = new ResultSummary(eventName);
+                    results.put(eventName, resultSummary);
                 }
+                boolean resultSuccess = eventRecord.isSuccess();
+                long resultTime = eventRecord.getTime();
+                resultSummary.addSample(resultSuccess, resultTime);
             }
         }
         // Done

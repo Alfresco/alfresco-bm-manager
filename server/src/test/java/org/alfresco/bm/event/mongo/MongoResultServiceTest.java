@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.alfresco.bm.event.Event;
@@ -102,7 +103,7 @@ public class MongoResultServiceTest
         assertEquals(0, resultService.countResultsByEventName("e.1"));
         
         assertEquals(0, resultService.getResults("e.1", 0, 5).size());
-        assertEquals(0, resultService.getResults(0L, Long.MAX_VALUE, "e.1", Boolean.TRUE, false, 0, 5).size());
+        assertEquals(0, resultService.getResults(0L, Long.MAX_VALUE, false, 0, 5).size());
         resultService.getResults(
                 new ResultHandler()
                 {
@@ -116,7 +117,7 @@ public class MongoResultServiceTest
                         return true;
                     }
                 },
-                0L, "e.1", Boolean.TRUE, 1000L, 100L, false);
+                0L, 1000L, 100L, false);
     }
     
     /**
@@ -287,26 +288,19 @@ public class MongoResultServiceTest
         pumpRecords(100);
         long after = before + 100 * 10L + 10L;                  // Extra 10ms to Adjust for JVM accuracy
         
-        int totalA = 0;         // before, future, null, null
-        int totalB = 0;         // after, future, null, null
-        int totalC = 0;         // before, future, null, true
-        int totalD = 0;         // after, future, null, false
-        int totalE = 0;         // before, after, null, true
-        int totalF = 0;         // before, after, null, false
+        int totalA = 0;         // before, future, all
+        int totalB = 0;         // after, future, all
+        int totalC = 0;         // before, future, chart-only
         int limit = 5;
         for (int skip = 0; skip < 100 ; skip += limit)
         {
-            totalA += resultService.getResults(before, Long.MAX_VALUE, null, null, false, skip, limit).size();
-            totalB += resultService.getResults(after, Long.MAX_VALUE, null, null, false, skip, limit).size();
-            totalC += resultService.getResults(before, Long.MAX_VALUE, null, Boolean.TRUE, false, skip, limit).size();
-            totalD += resultService.getResults(before, Long.MAX_VALUE, null, Boolean.FALSE, false, skip, limit).size();
-            totalE += resultService.getResults(before, after, null, Boolean.TRUE, false, skip, limit).size();
-            totalE += resultService.getResults(before, after, null, Boolean.FALSE, false, skip, limit).size();
+            totalA += resultService.getResults(before, Long.MAX_VALUE, false, skip, limit).size();
+            totalB += resultService.getResults(after, Long.MAX_VALUE, false, skip, limit).size();
+            totalC += resultService.getResults(before, Long.MAX_VALUE, false, skip, limit).size();
         }
         assertEquals(100, totalA);
         assertEquals(000, totalB);
-        assertEquals(100, totalC + totalD);
-        assertEquals(100, totalE + totalF);
+        assertEquals(100, totalC);
     }
     
     /**
@@ -315,8 +309,8 @@ public class MongoResultServiceTest
     @Test
     public void getZeroResultsUsingHandler()
     {
-        //
         pumpRecords(10);
+        long after = resultService.getLastResult().getStartTime() + TimeUnit.HOURS.toMillis(1);     // Make sure the query window is out of range
         
         final AtomicInteger count = new AtomicInteger();
         resultService.getResults(
@@ -338,7 +332,7 @@ public class MongoResultServiceTest
                         return true;
                     }
                 },
-                0L, "NO-NAME", null, 20L, 10L, false);
+                after, 20L, 10L, false);
         
         // Check
         assertEquals(0, count.get());
@@ -386,7 +380,7 @@ public class MongoResultServiceTest
                         return true;
                     }
                 },
-                0L, null, null, 20L, 10L, false);
+                0L, 20L, 10L, false);
         
         // Check
         assertEquals(10, count.get());
@@ -421,7 +415,7 @@ public class MongoResultServiceTest
                         return true;
                     }
                 },
-                0L, null, null, 200L, 10L, false);
+                0L, 200L, 10L, false);
         // Check
         assertEquals(10, count.get());
         

@@ -237,8 +237,8 @@ To request test run termination:
 To retrieve a csv stream of the test run results:
    GET:   <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/results/csv
    
-To retrieve a chart data of results:
-   GET:   <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/results
+To retrieve results for charting (time-series):
+   GET:   <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/results/ts
    Content-Type:application/json
    {
       "fromTime":<ms since Epoch. Optional and will be rebased to near the first event, if necessary.>,

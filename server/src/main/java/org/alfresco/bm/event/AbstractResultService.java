@@ -18,7 +18,6 @@
  */
 package org.alfresco.bm.event;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,8 +46,6 @@ public abstract class AbstractResultService implements ResultService
     public void getResults(
             ResultHandler handler,
             long startTime,
-            String eventName,
-            Boolean successOrFail,
             long windowSize,
             long reportPeriod,
             boolean chartOnly)
@@ -83,14 +80,11 @@ public abstract class AbstractResultService implements ResultService
         // We have to keep statistics for each reporting period
         int windowMultiple = (int) (windowSize / reportPeriod);
         
-        // Grab the list of event names so that we can always report something for each event
-        List<String> eventNames = (eventName == null) ? getEventNames() : Collections.singletonList(eventName);
-        
         // Build stats for reporting back
         // Each LinkedList will have 'windowMultiple' entries.
         // The newest statistics will be the last in the linked list; results will be reported from the first entry each time.
-        Map<String, LinkedList<DescriptiveStatistics>> statsByEventName = new HashMap<String, LinkedList<DescriptiveStatistics>>(eventNames.size());
-        Map<String, LinkedList<AtomicInteger>> failuresByEventName = new HashMap<String, LinkedList<AtomicInteger>>(eventNames.size());
+        Map<String, LinkedList<DescriptiveStatistics>> statsByEventName = new HashMap<String, LinkedList<DescriptiveStatistics>>(13);
+        Map<String, LinkedList<AtomicInteger>> failuresByEventName = new HashMap<String, LinkedList<AtomicInteger>>(13);
         
         // Our even queries use separate windows
         EventRecord firstResult = getFirstResult();
@@ -103,7 +97,7 @@ public abstract class AbstractResultService implements ResultService
         EventRecord lastResult = getLastResult();
         long lastResultStartTime = lastResult.getStartTime();
 
-        long queryWindowStartTime = firstResultStartTime;                       // The start time is inclusive
+        long queryWindowStartTime = Math.max(firstResultStartTime, startTime);                       // The start time is inclusive
         long queryWindowSize = lastResult.getStartTime() - firstResult.getStartTime();
         if (queryWindowSize < 60000L)
         {
@@ -127,7 +121,7 @@ public abstract class AbstractResultService implements ResultService
 breakStop:
         while (!stop)
         {
-            List<EventRecord> results = getResults(queryWindowStartTime, queryWindowEndTime, eventName, successOrFail, chartOnly, skip, limit);
+            List<EventRecord> results = getResults(queryWindowStartTime, queryWindowEndTime, chartOnly, skip, limit);
             if (results.size() == 0)
             {
                 if (queryWindowEndTime > lastResultStartTime)

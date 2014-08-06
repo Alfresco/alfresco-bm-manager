@@ -153,10 +153,10 @@ public class ResultsRestAPI extends AbstractRestResource
      * @return                      JSON representing the event start time (x-axis) and the smoothed average execution time
      *                              along with data such as the events per second, failures per second, etc.
      */
-    @Path("/")
+    @Path("/ts")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String getResults(
+    public String getTimeSeriesResults(
             @DefaultValue("0") @QueryParam("fromTime") long fromTime,
             @DefaultValue("SECONDS") @QueryParam("timeUnit") String timeUnit,
             @DefaultValue("1") @QueryParam("reportPeriod") long reportPeriod,
@@ -255,7 +255,7 @@ public class ResultsRestAPI extends AbstractRestResource
         try
         {
             // Get all the results
-            resultService.getResults(handler, fromTime, null, null, windowSize, reportPeriodMs, chartOnly);
+            resultService.getResults(handler, fromTime, windowSize, reportPeriodMs, chartOnly);
             // Muster into JSON
             String json = bsonList.toString();
             

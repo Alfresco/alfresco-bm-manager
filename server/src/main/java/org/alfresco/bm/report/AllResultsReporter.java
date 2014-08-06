@@ -112,7 +112,7 @@ public class AllResultsReporter extends AbstractEventReporter
         int skip = 0;
         int limit = LIMIT_VALUE;
         // Get the first set of results
-        List<EventRecord> results = resultService.getResults(0L, Long.MAX_VALUE, null, null, false, skip, limit);
+        List<EventRecord> results = resultService.getResults(0L, Long.MAX_VALUE, false, skip, limit);
 
         // Keep looping through results until they've all been read
         while (results.size() > 0)
@@ -120,7 +120,7 @@ public class AllResultsReporter extends AbstractEventReporter
             writeData(results, writer, headerIndexes);
             // Get next results
             skip += results.size();
-            results = resultService.getResults(0L, Long.MAX_VALUE, null, null, false, skip, limit);
+            results = resultService.getResults(0L, Long.MAX_VALUE, false, skip, limit);
         }
     }
 

@@ -68,19 +68,15 @@ public interface ResultService
     List<EventRecord> getResults(String eventName, int skip, int limit);
     
     /**
-     * Retrieve a page of event results using a time window
+     * Retrieve a page of event results using a time window, filtering by chartability
      * 
      * @param startTime         the first event time (inclusive, milliseconds)
      * @param endTime           the last event time (exclusive, milliseconds)
-     * @param eventName         the name of the event to use or <tt>null</tt> for all event names
-     * @param successOrFail     <tt>true</tt> for success only or false for failures (<tt>null</tt> for all)
      * @param chartOnly         <tt>true</tt> to only retrieve results for charting
      */
     List<EventRecord> getResults(
             long startTime,
             long endTime,
-            String eventName,
-            Boolean successOrFail,
             boolean chartOnly,
             int skip, int limit);
     
@@ -121,7 +117,6 @@ public interface ResultService
      *                          The first reporting window will be moved to the first event after
      *                          this time and reset to a multiple of the <tt>windowSize</tt>.
      * @param eventName         the name of the event to use or <tt>null</tt> for all event names
-     * @param successOrFail     <tt>true</tt> for success only or false for failures (<tt>null</tt> for all)
      * @param windowSize        the length (milliseconds) of a time window.  This must be a multiple of the 'reportPeriod'.
      * @param reportPeriod      the result time report period (milliseconds).  This cannot be <i>more</i> than the 'windowSize'.
      * @param chartOnly         <tt>true</tt> if only {@link EventRecord#isChart() chartable} results must be retrieved
@@ -129,8 +124,6 @@ public interface ResultService
     void getResults(
             ResultHandler handler,
             long startTime,
-            String eventName,
-            Boolean successOrFail,
             long windowSize,
             long reportPeriod,
             boolean chartOnly);
