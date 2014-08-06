@@ -3,7 +3,7 @@
 <div ng-show="data.tests.length > 0">
     <div class="row">
         <a href="#/tests/create" class="btn btn-default pull-right" id="createTestBtn">
-            <span class="glyphicon glyphicon-plus"></span>
+            <span class="fa fa-plus"></span>
         </a>
     </div>
     <div id="server-def" class="row row-offcanvas row-offcanvas-right">
@@ -11,19 +11,19 @@
             <!-- Default panel contents -->
             <table class="table table-striped">
                 <tr ng-repeat="item in data.tests | filter:query | orderBy:orderProp">
-                    <td class="text-left"><a class="btn" id="test-{{item.name}}" href="#/tests/{{item.name}}/">{{item.name}}</a>
+                    <td class="col-sm-2 text-left"><a class="btn" id="test-{{item.name}}" href="#/tests/{{item.name}}/">{{item.name}}</a>
                     </td>
-                    <td class="text-left"><a class="btn" id="testDesc-{{item.name}}" href="#/tests/{{item.name}}/">{{item.description}}</a>
+                    <td class="col-sm-5 text-left"><a class="btn" id="testDesc-{{item.name}}" href="#/tests/{{item.name}}/">{{item.description}}</a>
                     </td>
-                    <td class="align-right">
+                    <td class="col-sm-5 text-right">
                         <a href="#/tests/{{item.name}}/copy" class="btn" id="copyTestBtn-{{item.name}}">
-                            <span class="glyphicon glyphicon-list"></span>
+                            <span class="fa fa-files-o fa-lg"></span>
                         </a>
                         <a class="btn" id="editTestBtn-{{item.name}}" href="#/tests/{{item.name}}/properties">
-                            <span class="glyphicon glyphicon-cog"></span>
+                            <span class="fa fa-cog fa-lg"></span>
                         </a>
                         <a ng-click="deleteTest(item.name)" class="btn" id="deleteTestBtn-{{item.name}}">
-                            <span class="glyphicon glyphicon-trash"></span>
+                            <span class="fa fa-trash-o fa-lg"></span>
                         </a>
                     </td>
                 </tr>
