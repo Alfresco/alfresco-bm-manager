@@ -225,6 +225,14 @@
                             id: 'id'
                         }
                     },
+                    getRunResult: {
+                        method: 'GET',
+                        params: {
+                            id: 'id',
+                            runname: 'runname',
+                            more: 'results/ts'
+                        }
+                    },
                 })
             }).value('version', '0.1')
 
@@ -259,7 +267,7 @@
                         });
                         $scope.data.tests = TestService.getTests();
                     }
-                    
+
                     $scope.data.tests = TestService.getTests();
                 }
             ])

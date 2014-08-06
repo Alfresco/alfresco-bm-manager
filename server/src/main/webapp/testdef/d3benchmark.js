@@ -295,7 +295,8 @@ d3Benchmark.directive('line', function() {
             //Angularjs replace html tag
             var el = element[0];
             var svg = d3.select(el).append("svg")
-                .attr("height",scope.height);
+                .attr("height",scope.height)
+                .attr("width",scope.width);
 
             //Main chart view
             var chart = svg.append("g")
