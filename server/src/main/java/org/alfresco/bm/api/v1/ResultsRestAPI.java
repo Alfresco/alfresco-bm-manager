@@ -157,7 +157,7 @@ public class ResultsRestAPI extends AbstractRestResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String getResults(
-            @DefaultValue("0L") @QueryParam("fromTime") long fromTime,
+            @DefaultValue("0") @QueryParam("fromTime") long fromTime,
             @DefaultValue("SECONDS") @QueryParam("timeUnit") String timeUnit,
             @DefaultValue("1") @QueryParam("reportPeriod") long reportPeriod,
             @DefaultValue("1") @QueryParam("smoothing") int smoothing,
