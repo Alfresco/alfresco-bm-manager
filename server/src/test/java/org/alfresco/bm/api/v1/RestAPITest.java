@@ -906,7 +906,8 @@ public class RestAPITest implements TestConstants
         // Get the JSON results
         String chartJson = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 5, false);
         assertTrue(chartJson.startsWith("[ { \"time\" : "));
-        assertTrue(chartJson.contains("000 , \"events\" : [ { \"name\" : \"start\" , \"median\" : "));
-        assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]}]"));
+        assertTrue(chartJson.contains("[ { \"time\" : "));
+        assertTrue(chartJson.contains("000 , \"name\" : \"start\" , \"median\" : "));
+        assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]"));
     }
 }
