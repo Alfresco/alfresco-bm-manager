@@ -1071,6 +1071,55 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return written;
     }
+    
+    /**
+     * Get the test run names associated with a given test
+     * 
+     * @param test              the name of the test
+     * @return                  the names of all test runs associated with the given test
+     */
+    public List<String> getTestRunNames(String test)
+    {
+        DBObject testObj = getTest(test, false);
+        if (testObj == null)
+        {
+            // The test no longer exists, so the run effectively doesn't either
+            logger.warn("Test not found: " + test);
+            return Collections.emptyList();
+        }
+        ObjectId testObjId = (ObjectId) testObj.get(FIELD_ID);
+        
+        DBObject queryObj = QueryBuilder
+                .start()
+                .and(FIELD_TEST).is(testObjId)
+                .get();
+        DBObject fieldsObj = BasicDBObjectBuilder
+                .start()
+                .add(FIELD_ID, true)
+                .add(FIELD_NAME, true)
+                .get();
+        DBCursor cursor = testRuns.find(queryObj, fieldsObj);
+        List<String> testRunNames = new ArrayList<String>(cursor.count());
+        try
+        {
+            while (cursor.hasNext())
+            {
+                DBObject testRunObj = cursor.next();
+                String testRunName = (String) testRunObj.get(FIELD_NAME);
+                testRunNames.add(testRunName);
+            }
+        }
+        finally
+        {
+            cursor.close();
+        }
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Found and returned " + testRunNames.size() + " test run names for test '" + test + "'");
+        }
+        return testRunNames;
+    }
 
     /**
      * @param test              only fetch runs for this test or <tt>null</tt> to get all test runs

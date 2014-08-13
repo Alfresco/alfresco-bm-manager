@@ -201,7 +201,7 @@ public class ResultsRestAPI extends AbstractRestResource
         long windowSize = reportPeriodMs * smoothing;
         
         // This is just too convenient an API
-        final BasicDBList bsonList = new BasicDBList();
+        final BasicDBList events = new BasicDBList();
         ResultHandler handler = new ResultHandler()
         {
             @Override
@@ -210,7 +210,6 @@ public class ResultsRestAPI extends AbstractRestResource
                     Map<String, DescriptiveStatistics> statsByEventName,
                     Map<String, Integer> failuresByEventName) throws Throwable
             {
-                BasicDBList events = new BasicDBList();
                 for (Map.Entry<String, DescriptiveStatistics> entry : statsByEventName.entrySet())
                 {
                     String eventName = entry.getKey();
@@ -228,6 +227,7 @@ public class ResultsRestAPI extends AbstractRestResource
                     // Push into an object
                     DBObject eventObj = BasicDBObjectBuilder
                             .start()
+                            .add("time", toTime)
                             .add("name", eventName)
                             .add("median", stats.getMean())
                             .add("min", stats.getMin())
@@ -241,13 +241,6 @@ public class ResultsRestAPI extends AbstractRestResource
                     // Add the object to the list of events
                     events.add(eventObj);
                 }
-                // Add all the event details to the current time entry
-                // Output each result into the list
-                BasicDBObjectBuilder builder = BasicDBObjectBuilder
-                        .start()
-                        .add("time", toTime)
-                        .add("events", events);
-                bsonList.add(builder.get());
                 // Go for the next result
                 return true;
             }
@@ -257,7 +250,7 @@ public class ResultsRestAPI extends AbstractRestResource
             // Get all the results
             resultService.getResults(handler, fromTime, windowSize, reportPeriodMs, chartOnly);
             // Muster into JSON
-            String json = bsonList.toString();
+            String json = events.toString();
             
             // Done
             if (logger.isDebugEnabled())

@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.api.v1;
 
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,10 +45,16 @@ import org.alfresco.bm.test.TestService.ConcurrencyException;
 import org.alfresco.bm.test.TestService.NotFoundException;
 import org.alfresco.bm.test.TestService.RunStateException;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
+import org.alfresco.mongo.MongoClientFactory;
+import org.alfresco.mongo.MongoDBFactory;
 
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.util.JSON;
 
 /**
@@ -387,19 +395,40 @@ public class TestRestAPI extends AbstractRestResource
         }
     }
     
+    /**
+     * Delete a test and optionally clean up all related test data
+     * 
+     * @param test              the name of the test
+     * @param clean             <tt>true</tt> to remove all related test runs as well
+     */
     @DELETE
     @Path("/{test}")
-    public void deleteTest(@PathParam("test") String test)
+    public void deleteTest(
+            @PathParam("test") String test,
+            @DefaultValue("true") @QueryParam("clean") boolean clean)
     {
         if (logger.isDebugEnabled())
         {
             logger.debug(
                     "Inbound: " +
                     "[test:" + test +
+                    ", clean:" + clean+
                     "]");
         }
         try
         {
+            // Clean up all test runs and related data
+            if (clean)
+            {
+                // Get all the test runs for the test
+                List<String> runs = testDAO.getTestRunNames(test);
+                // Delete each one, in turn, which will clean up associated collections and data
+                for (String run : runs)
+                {
+                    deleteTestRun(test, run, clean);
+                }
+            }
+            // Delete the test configuration
             boolean deleted = testDAO.deleteTest(test);
             if (!deleted)
             {
@@ -895,12 +924,19 @@ public class TestRestAPI extends AbstractRestResource
         }
     }
     
+    /**
+     * Delete a test run and optionally clean up all related test data
+     * 
+     * @param test              the name of the test
+     * @param run               the name of the test run
+     * @param clean             <tt>true</tt> to remove all related test run data as well
+     */
     @DELETE
     @Path("/{test}/runs/{run}")
     public void deleteTestRun(
             @PathParam("test") String test,
-            @PathParam("run") String run
-            )
+            @PathParam("run") String run,
+            @DefaultValue("true") @QueryParam("clean") boolean clean)
     {
         if (logger.isDebugEnabled())
         {
@@ -908,10 +944,49 @@ public class TestRestAPI extends AbstractRestResource
                     "Inbound: " +
                     "[test:" + test +
                     ",run:" + run +
+                    ",clean:" + clean +
                     "]");
         }
         try
         {
+            // Delete all the associated test run data
+            if (clean)
+            {
+                // Get the MongoDB connection properties for the test run
+                String mongoTestHost = getTestRunPropertyString(test, run, PROP_MONGO_TEST_HOST);
+                String mongoTestDB = getTestRunPropertyString(test, run, PROP_MONGO_TEST_DATABASE);
+                String mongoTestUsername = getTestRunPropertyString(test, run, PROP_MONGO_TEST_USERNAME);
+                String mongoTestPassword = getTestRunPropertyString(test, run, PROP_MONGO_TEST_PASSWORD);
+                MongoClient mongoClient = null;
+                try
+                {
+                    mongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoTestHost), mongoTestUsername, mongoTestPassword).getObject();
+                    DB mongoDB = new MongoDBFactory(mongoClient, mongoTestDB).getObject();
+                    Set<String> testRunCollections = mongoDB.getCollectionNames();
+                    // Drop all that match the test and test run
+                    for (String testRunCollection : testRunCollections)
+                    {
+                        if (!testRunCollection.startsWith(test + "." + run + "."))
+                        {
+                            continue;               // Keep looking
+                        }
+                        DBCollection collection = mongoDB.getCollection(testRunCollection);
+                        if (collection == null)
+                        {
+                            continue;               // Already removed
+                        }
+                        collection.drop();
+                    }
+                }
+                finally
+                {
+                    if (mongoClient != null)
+                    {
+                        try {mongoClient.close(); } catch (Exception e) { logger.error(e); }
+                    }
+                }
+            }
+            // Delete the test run and all associated configuration
             boolean deleted = testDAO.deleteTestRun(test, run);
             if (!deleted)
             {
@@ -926,6 +1001,28 @@ public class TestRestAPI extends AbstractRestResource
         {
             throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
         }
+    }
+    
+    /**
+     * Helper method to retrieve the property value in play for a particular test run
+     * 
+     * @return                  the property value or <tt>null</tt> if not available
+     */
+    private String getTestRunPropertyString(String test, String run, String propertyName)
+    {
+        DBObject propertyObj = testDAO.getProperty(test, run, propertyName);
+        
+        if (propertyObj == null)
+        {
+            return null;
+        }
+        
+        String propertyValue = (String) propertyObj.get(FIELD_DEFAULT);
+        if (propertyObj.get(FIELD_VALUE) != null)
+        {
+            propertyValue = (String) propertyObj.get(FIELD_VALUE);
+        }
+        return propertyValue;
     }
     
     @GET
