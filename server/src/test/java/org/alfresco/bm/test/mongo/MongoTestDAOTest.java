@@ -676,6 +676,15 @@ public class MongoTestDAOTest implements TestConstants
         cursor = dao.getTestRuns(testB, 0, 5, TestRunState.COMPLETED);
         assertEquals(0, cursor.size());
         cursor.close();
+        
+        // Get all the names
+        List<String> testRunNames = dao.getTestRunNames(testB);
+        assertEquals(5, testRunNames.size());
+        assertTrue(testRunNames.contains(runB1));
+        assertTrue(testRunNames.contains(runB2));
+        assertTrue(testRunNames.contains(runB3));
+        assertTrue(testRunNames.contains(runB4));
+        assertTrue(testRunNames.contains(runB5));
     }
     
     

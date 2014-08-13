@@ -40,6 +40,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
+import junit.framework.Assert;
+
 import org.alfresco.bm.log.LogWatcher;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRun;
@@ -47,6 +49,8 @@ import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.TestServiceImpl;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
+import org.alfresco.mongo.MongoClientFactory;
+import org.alfresco.mongo.MongoDBFactory;
 import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.bson.types.ObjectId;
 import org.junit.After;
@@ -62,6 +66,7 @@ import com.google.gson.Gson;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
 
 /**
@@ -415,7 +420,7 @@ public class RestAPITest implements TestConstants
         checkTestRunState("TEST1", "001", TestRunState.SCHEDULED, false);
         
         // Delete the test run
-        api.deleteTestRun("TEST1", "001");
+        api.deleteTestRun("TEST1", "001", false);
         try
         {
             api.getTestRun("TEST1", "001");
@@ -570,7 +575,21 @@ public class RestAPITest implements TestConstants
         testDetails.setRelease(RELEASE);
         testDetails.setSchema(SCHEMA);
         testDetails.setDescription(testDescription);
-        api.createTest(testDetails);
+        try
+        {
+            api.createTest(testDetails);
+        }
+        catch (WebApplicationException e)
+        {
+            if (e.getResponse().getStatus() == Status.CONFLICT.getStatusCode())
+            {
+                // Test already exists
+            }
+            else
+            {
+                throw e;
+            }
+        }
         
         // Create run 01
         testRunDetails = new TestRunDetails();
@@ -844,12 +863,11 @@ public class RestAPITest implements TestConstants
     }
     
     /**
-     * Checks the test application APIs for retrieving test results
+     * Utility method to create and execute a test run
      */
-    @Test
-    public synchronized void testScenario07() throws Exception
+    private void executeTestRun(String testName, String testDescription, String runName, String runDescription) throws Exception
     {
-        createTestRun("T1", "A test for scenario 07.", "01", "Scenario 07 - Run 01");
+        createTestRun(testName, testDescription, runName, runDescription);
         org.alfresco.bm.test.Test test = ctx.getBean(org.alfresco.bm.test.Test.class);
         test.forcePing();
         
@@ -857,13 +875,13 @@ public class RestAPITest implements TestConstants
         TestRunSchedule schedule = new TestRunSchedule();
         schedule.setScheduled(System.currentTimeMillis());
         schedule.setVersion(0);
-        api.scheduleTestRun("T1", "01", schedule);
+        api.scheduleTestRun(testName, runName, schedule);
         
         // Point to the correct MongoDB
         PropSetBean propSetBean = new PropSetBean();
         propSetBean.setValue(mongoHost);
         propSetBean.setVersion(0);
-        api.setTestRunProperty("T1", "01", PROP_MONGO_TEST_HOST, propSetBean);
+        api.setTestRunProperty(testName, runName, PROP_MONGO_TEST_HOST, propSetBean);
         
         // Force another ping, which will activate the test run
         test.forcePing();
@@ -875,7 +893,7 @@ public class RestAPITest implements TestConstants
             this.wait(1000L);
             // Need to keep checking progress
             test.forcePing();
-            String testRunSummaryJson = api.getTestRunSummary("T1", "01");
+            String testRunSummaryJson = api.getTestRunSummary(testName, runName);
             Map<String, Object> testRunSummaryMap = fromJson(testRunSummaryJson);
             if (TestRunState.COMPLETED.name().equals((String) testRunSummaryMap.get(FIELD_STATE)))
             {
@@ -883,14 +901,24 @@ public class RestAPITest implements TestConstants
                 break;              // This is what we were looking for
             }
         }
-        checkTestRunState("T1", "01", TestRunState.COMPLETED, true);
+        checkTestRunState(testName, runName, TestRunState.COMPLETED, true);
         
         // Check that it's completed
-        assertTrue("Test run did not progress to completion: " + api.getTestRunSummary("T1", "01"), completed);
+        assertTrue("Test run did not progress to completion: " + api.getTestRunSummary(testName, runName), completed);
 
         // Force another ping, which will deactivate the test run
         test.forcePing();
         
+    }
+    
+    /**
+     * Checks the test application APIs for retrieving test results
+     */
+    @Test
+    public synchronized void testScenario07() throws Exception
+    {
+        executeTestRun("T1", "A test for scenario 07.", "01", "Scenario 07 - Run 01");
+
         ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T1", "01");
         // Get the results CSV
         StreamingOutput resultsOutput = resultsAPI.getResultsSummaryCSV();
@@ -909,5 +937,59 @@ public class RestAPITest implements TestConstants
         assertTrue(chartJson.contains("[ { \"time\" : "));
         assertTrue(chartJson.contains("000 , \"name\" : \"start\" , \"median\" : "));
         assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]"));
+    }
+
+    /**
+     * Checks that test run deletion removes the associated collections
+     */
+    @Test
+    public synchronized void testScenario08() throws Exception
+    {
+        MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
+        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm20-data").getObject();
+        Set<String> testRunCollections = testMongoDB.getCollectionNames();
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
+
+        executeTestRun("T08", "A test for scenario 08.", "01", "Scenario 08 - Run 01");
+        
+        testRunCollections = testMongoDB.getCollectionNames();
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 4, testRunCollections.size());
+        Assert.assertTrue(testRunCollections.contains("T08.01.events"));
+        Assert.assertTrue(testRunCollections.contains("T08.01.results"));
+        Assert.assertTrue(testRunCollections.contains("T08.01.sessions"));
+        
+        // Delete the test run
+        api.deleteTestRun("T08", "01", true);
+        testRunCollections = testMongoDB.getCollectionNames();
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 1, testRunCollections.size());
+    }
+
+    /**
+     * Checks that test deletion removes the associated collections
+     */
+    @Test
+    public synchronized void testScenario09() throws Exception
+    {
+        MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
+        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm20-data").getObject();
+        Set<String> testRunCollections = testMongoDB.getCollectionNames();
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
+
+        executeTestRun("T09", "A test for scenario 09.", "01", "Scenario 09 - Run 01");
+        executeTestRun("T09", "A test for scenario 09.", "02", "Scenario 09 - Run 02");
+
+        testRunCollections = testMongoDB.getCollectionNames();
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 7, testRunCollections.size());
+        Assert.assertTrue(testRunCollections.contains("T09.01.events"));
+        Assert.assertTrue(testRunCollections.contains("T09.01.results"));
+        Assert.assertTrue(testRunCollections.contains("T09.01.sessions"));
+        Assert.assertTrue(testRunCollections.contains("T09.02.events"));
+        Assert.assertTrue(testRunCollections.contains("T09.02.results"));
+        Assert.assertTrue(testRunCollections.contains("T09.02.sessions"));
+        
+        // Delete the test run
+        api.deleteTest("T09", true);
+        testRunCollections = testMongoDB.getCollectionNames();
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 1, testRunCollections.size());
     }
 }
