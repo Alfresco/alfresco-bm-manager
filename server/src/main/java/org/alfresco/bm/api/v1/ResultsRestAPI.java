@@ -139,6 +139,51 @@ public class ResultsRestAPI extends AbstractRestResource
         }
     }
     
+    
+    @Path("/pdf")
+    @GET
+    @Produces("application/pdf")
+    public StreamingOutput getReportPDF()
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "Inbound: " +
+                    "[test:" + test +
+                    ",run:" + run +
+                    "]");
+        }
+        final ResultService resultService = getResultService();
+        
+        try
+        {
+            // Construct the utility that aggregates the results
+            StreamingOutput so = new StreamingOutput()
+            {
+                @Override
+                public void write(OutputStream output) throws IOException, WebApplicationException
+                {
+                    Writer writer = new OutputStreamWriter(output);
+
+                    SummaryReporter summaryReporter = new SummaryReporter(resultService);
+                    summaryReporter.export(writer, "TODO: Allow editing of notes");
+                    writer.flush();
+                    writer.close();
+                }
+            };
+            return so;
+        }
+        catch (WebApplicationException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+            return null;
+        }
+    }
+    
     /**
      * Retrieve an approximate number of results, allowing for a smoothing factor
      * (<a href=http://en.wikipedia.org/wiki/Moving_average#Simple_moving_average>Simple Moving Average</a>) -

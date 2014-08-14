@@ -58,7 +58,7 @@ public class SummaryReporter extends AbstractEventReporter
      *   <li><b>Min (ms):</b> Minimum event time (successes only).</li>
      *   <li><b>Max (ms):</b> Maximum event time (successes only).</li>
      *   <li><b>Arithmetic Mean (ms):</b> The arithmetic mean of all successful event times.</li>
-     *   <li><b>Variance (ms^2):</b> The sample variance of all successful event times.</li>
+     *   <li><b>Standard Deviation:</b> The standard deviation of all successful event times.</li>
      * </ul>
      */
     @Override

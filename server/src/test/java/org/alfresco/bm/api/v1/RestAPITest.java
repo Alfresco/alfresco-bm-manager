@@ -40,7 +40,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.alfresco.bm.log.LogWatcher;
 import org.alfresco.bm.test.TestConstants;
