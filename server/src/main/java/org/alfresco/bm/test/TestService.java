@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.test;
 
+import com.mongodb.DBObject;
+
 
 /**
  * Service to manage test deployments and test runs.
@@ -101,6 +103,15 @@ public interface TestService extends TestConstants
     }
     
     /**
+     * Get the complete metadata for a test
+     * 
+     * @param test                  the name of the test
+     * @return                      the test metadata
+     * @throws NotFoundException    if the test could not be found
+     */
+    DBObject getTestMetadata(String test) throws NotFoundException;
+    
+    /**
      * Retrieve the precise run state for the given test run
      * 
      * @param test                  the name of the test
@@ -110,6 +121,16 @@ public interface TestService extends TestConstants
      * @throws NotFoundException    if the test run could not be found
      */
     TestRunState getTestRunState(String test, String run) throws NotFoundException;
+    
+    /**
+     * Get the complete metadata for a test run
+     * 
+     * @param test                  the name of the test
+     * @param run                   the name of the test run
+     * @return                      the test run metadata
+     * @throws NotFoundException    if the test run could not be found
+     */
+    DBObject getTestRunMetadata(String test, String run) throws NotFoundException;
     
     /**
      * Schedule a test run.

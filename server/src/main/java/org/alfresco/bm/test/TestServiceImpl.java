@@ -39,19 +39,35 @@ public class TestServiceImpl implements TestService
 
     private final MongoTestDAO testDAO;
     
-    public TestServiceImpl(MongoTestDAO testDAO)
+    public TestServiceImpl(final MongoTestDAO testDAO)
     {
         this.testDAO = testDAO;
     }
     
     @Override
+    public DBObject getTestMetadata(String test) throws NotFoundException
+    {
+        DBObject testObj = testDAO.getTest(test, false);
+        if (testObj == null)
+        {
+            throw new NotFoundException(test, null);
+        }
+        
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Retreived test metadata for '" + test + ".");
+        }
+        return testObj;
+    }
+    
+    @Override
     public TestRunState getTestRunState(String test, String run) throws NotFoundException
     {
-        // Get the current state of play
         DBObject testRunObj = testDAO.getTestRun(test, run, false);
         if (testRunObj == null)
         {
-            throw new NotFoundException(test, run);
+            throw new NotFoundException(test, null);
         }
         
         // Check the state transition
@@ -63,6 +79,23 @@ public class TestServiceImpl implements TestService
             logger.debug("Retreived test run state for '" + test + "." + run + "': " + state);
         }
         return state;
+    }
+    
+    @Override
+    public DBObject getTestRunMetadata(String test, String run) throws NotFoundException
+    {
+        DBObject testRunObj = testDAO.getTestRun(test, run, false);
+        if (testRunObj == null)
+        {
+            throw new NotFoundException(test, null);
+        }
+        
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Retreived test run metadata for '" + test + "." + run + "'. ");
+        }
+        return testRunObj;
     }
 
     @Override

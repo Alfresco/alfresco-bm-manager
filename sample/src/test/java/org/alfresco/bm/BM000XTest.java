@@ -77,8 +77,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
     public void testRunFinished(ApplicationContext testCtx, String test, String run)
     {
         TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
-        MongoTestDAO testDAO = services.getTestDAO(test, run);
-        TestService testService = services.getTestService(test, run);
+        MongoTestDAO testDAO = services.getTestDAO();
+        TestService testService = services.getTestService();
         ResultService resultService = services.getResultService(test, run);
         Assert.assertNotNull(resultService);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
@@ -112,7 +112,7 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
         
         // Get the summary CSV results for the time period and check some of the values
-        StreamingOutput out = resultsAPI.getResultsSummaryCSV();
+        StreamingOutput out = resultsAPI.getReportCSV();
         ByteArrayOutputStream bos = new ByteArrayOutputStream(2048);
         String summary = "";
         try

@@ -18,16 +18,16 @@
  */
 package org.alfresco.bm.report;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
-import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
-import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.alfresco.bm.test.TestConstants;
+import org.alfresco.bm.test.TestRunServicesCache;
+import org.alfresco.bm.test.TestService;
+import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
  * @author Derek Hulley
  * @since 1.2
  */
-public abstract class AbstractEventReporter implements EventReporter
+public abstract class AbstractEventReporter implements ReportGenerator, TestConstants
 {
     protected static String ID_EVENT_LABEL = "Event Result Id";
     protected static String TIME_EVENT_LABEL = "Time";
@@ -48,75 +48,99 @@ public abstract class AbstractEventReporter implements EventReporter
     
     protected Log log = LogFactory.getLog(this.getClass());
 
-    protected final ResultService resultService;
+    protected final TestRunServicesCache services;
+    protected final String test;
+    protected final String run;
 
     /**
-     * @param resultService     service providing access to results
+     * @param services          services for a test run
+     * @param test              the name of the test for this report
+     * @param run               the name of the test run for this report
      */
-    protected AbstractEventReporter(ResultService resultService)
+    protected AbstractEventReporter(TestRunServicesCache services, String test, String run)
     {
-        this.resultService = resultService;
-    }
-
-    /**
-     * Helper method to build header labels of csv file.
-     * The head labels also include failed results.
-     * 
-     * @param headers       collection of event names to use as labels for header
-     * @return collection   with a given order where first 2 labels are time and start
-     */
-    public static List<String> buildHeaders(final List<String> headers)
-    {
-        ArrayList<String> tableHead = new ArrayList<String>();
-        ArrayList<String> failedHeaderLabel = new ArrayList<String>();
-        tableHead.add(ID_EVENT_LABEL);
-        tableHead.add(TIME_EVENT_LABEL);
-        tableHead.add(Event.EVENT_NAME_START);
-        for (String header : headers)
-        {
-            if (!Event.EVENT_NAME_START.equals(header))
-            {
-                tableHead.add(header);
-                failedHeaderLabel.add(FAILED_LABEL_PREFIX + header);
-            }
-        }
-        tableHead.addAll(failedHeaderLabel);
-        failedHeaderLabel = null;
-        return tableHead;
+        this.services = services;
+        this.test = test;
+        this.run = run;
     }
     
-    /**
-     * Dump summary data for a test
-     */
-    protected void writeTestDetails(Writer writer, String notes) throws IOException
+    protected ResultService getResultService()
     {
-        // Get the test result times
-        EventRecord firstResult = resultService.getFirstResult();
-        long firstEventTime = firstResult == null ? System.currentTimeMillis() : firstResult.getStartTime();
-        Date firstEventDate = new Date(firstEventTime);
-        EventRecord lastResult = resultService.getLastResult();
-        long lastEventTime = lastResult == null ? System.currentTimeMillis() : lastResult.getStartTime();
-        Date lastEventDate = new Date(lastEventTime);
-        String durationStr = DurationFormatUtils.formatDurationHMS(lastEventTime - firstEventTime);
-        
-        writer.write("Data:,");
-        writer.write(resultService.getDataLocation());
-        writer.write(NEW_LINE);
-        writer.write("Started:,");
-        writer.write(firstEventDate.toString());
-        writer.write(NEW_LINE);
-        writer.write("Finished:,");
-        writer.write(lastEventDate.toString());
-        writer.write(NEW_LINE);
-        writer.write("Duration:,");
-        writer.write("'" + durationStr);            // ' is needed for Excel
-        writer.write(NEW_LINE);
-        writer.write(NEW_LINE);
+        return services.getResultService(test, run);
+    }
 
-        writer.write("Notes:");
-        writer.write(NEW_LINE);
-        writer.write(notes.replace(',', ' '));
-        writer.write(NEW_LINE);
-        writer.write(NEW_LINE);
+    protected TestService getTestService()
+    {
+        return services.getTestService();
+    }
+
+    protected MongoTestDAO getTestDAO()
+    {
+        return services.getTestDAO();
+    }
+
+    @Override
+    public String toString()
+    {
+        return this.getClass().getSimpleName() + " [test=" + test + ", run=" + run + "]";
+    }
+
+    protected TreeMap<String, ResultSummary> collateResults(boolean chartOnly)
+    {
+        ResultService resultService = getResultService();
+        // Do a quick check to see if there are results
+        EventRecord firstEvent = resultService.getFirstResult();
+        if (firstEvent == null)
+        {
+            return new TreeMap<String, ResultSummary>();
+        }
+        EventRecord lastEvent = resultService.getLastResult();
+
+        long oneHour = TimeUnit.HOURS.toMillis(1L);
+        long queryWindowStartTime = firstEvent.getStartTime();
+        long queryWindowEndTime = queryWindowStartTime + oneHour;
+        
+        // Prepare recorded data
+        TreeMap<String, ResultSummary> results = new TreeMap<String, ResultSummary>();
+        int limit = 10000;
+        int skip = 0;
+        
+        while (true)
+        {
+            List<EventRecord> data = resultService.getResults(queryWindowStartTime, queryWindowEndTime, chartOnly, skip, limit);
+            if (data.size() == 0)
+            {
+                if (queryWindowEndTime > lastEvent.getStartTime())
+                {
+                    // The query window covered all known events, so we're done
+                    break;
+                }
+                else
+                {
+                    // Push the window up
+                    queryWindowStartTime = queryWindowEndTime;
+                    queryWindowEndTime += oneHour;
+                    // Requery
+                    continue;
+                }
+            }
+            for (EventRecord eventRecord : data)
+            {
+                skip++;
+                // Add the data
+                String eventName = eventRecord.getEvent().getName();
+                ResultSummary resultSummary = results.get(eventName);
+                if (resultSummary == null)
+                {
+                    resultSummary = new ResultSummary(eventName);
+                    results.put(eventName, resultSummary);
+                }
+                boolean resultSuccess = eventRecord.isSuccess();
+                long resultTime = eventRecord.getTime();
+                resultSummary.addSample(resultSuccess, resultTime);
+            }
+        }
+        // Done
+        return results;
     }
 }

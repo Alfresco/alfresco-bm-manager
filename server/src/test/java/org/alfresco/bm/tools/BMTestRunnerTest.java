@@ -18,15 +18,14 @@
  */
 package org.alfresco.bm.tools;
 
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.util.Properties;
 
 import org.alfresco.bm.event.ResultService;
-import org.alfresco.bm.report.SummaryReporter;
+import org.alfresco.bm.report.CSVReporter;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.mongo.MongoDBForTestsFactory;
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -222,22 +221,18 @@ public class BMTestRunnerTest implements TestConstants
                 Assert.assertEquals("Incorrect number of results.", 1, rs.countResults());
                 
                 // Access the summary results
-                SummaryReporter summaryReporter = new SummaryReporter(rsCheck);
-                StringBuilderWriter sbWriter = new StringBuilderWriter(500);
+                CSVReporter summaryReporter = new CSVReporter(services, test, run);
+                ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+                String summary = "";
                 try
                 {
-                    summaryReporter.export(sbWriter, "testAccessToResults");
+                    summaryReporter.export(bos);
+                    summary = new String(bos.toByteArray(), "UTF-8");
                 }
-                catch (IOException e)
+                catch (Exception e)
                 {
                     throw new RuntimeException(e);
                 }
-                finally
-                {
-                    sbWriter.close();
-                }
-                String summary = sbWriter.getBuilder().toString();
-                Assert.assertTrue(summary.contains("testAccessToResults"));
                 Assert.assertTrue(summary.contains("Standard Deviation (ms)"));
             }
         };

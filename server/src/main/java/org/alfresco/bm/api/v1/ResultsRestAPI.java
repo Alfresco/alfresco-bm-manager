@@ -38,7 +38,8 @@ import javax.ws.rs.core.StreamingOutput;
 import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.event.ResultService.ResultHandler;
-import org.alfresco.bm.report.SummaryReporter;
+import org.alfresco.bm.report.CSVReporter;
+import org.alfresco.bm.report.XLSXReporter;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -98,7 +99,7 @@ public class ResultsRestAPI extends AbstractRestResource
     @Path("/csv")
     @GET
     @Produces("text/csv")
-    public StreamingOutput getResultsSummaryCSV()
+    public StreamingOutput getReportCSV()
     {
         if (logger.isDebugEnabled())
         {
@@ -108,22 +109,20 @@ public class ResultsRestAPI extends AbstractRestResource
                     ",run:" + run +
                     "]");
         }
-        final ResultService resultService = getResultService();
         
         try
         {
+            // First confirm that the test exists
+            services.getTestService().getTestRunState(test, run);
+            
             // Construct the utility that aggregates the results
             StreamingOutput so = new StreamingOutput()
             {
                 @Override
                 public void write(OutputStream output) throws IOException, WebApplicationException
                 {
-                    Writer writer = new OutputStreamWriter(output);
-
-                    SummaryReporter summaryReporter = new SummaryReporter(resultService);
-                    summaryReporter.export(writer, "TODO: Allow editing of notes");
-                    writer.flush();
-                    writer.close();
+                    CSVReporter csvReporter = new CSVReporter(services, test, run);
+                    csvReporter.export(output);
                 }
             };
             return so;
@@ -140,10 +139,10 @@ public class ResultsRestAPI extends AbstractRestResource
     }
     
     
-    @Path("/pdf")
+    @Path("/xlsx")
     @GET
-    @Produces("application/pdf")
-    public StreamingOutput getReportPDF()
+    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public StreamingOutput getReportXLSX()
     {
         if (logger.isDebugEnabled())
         {
@@ -153,10 +152,12 @@ public class ResultsRestAPI extends AbstractRestResource
                     ",run:" + run +
                     "]");
         }
-        final ResultService resultService = getResultService();
         
         try
         {
+            // First confirm that the test exists
+            services.getTestService().getTestRunState(test, run);
+            
             // Construct the utility that aggregates the results
             StreamingOutput so = new StreamingOutput()
             {
@@ -165,8 +166,8 @@ public class ResultsRestAPI extends AbstractRestResource
                 {
                     Writer writer = new OutputStreamWriter(output);
 
-                    SummaryReporter summaryReporter = new SummaryReporter(resultService);
-                    summaryReporter.export(writer, "TODO: Allow editing of notes");
+                    XLSXReporter xlsxReporter = new XLSXReporter(services, test, run);
+                    xlsxReporter.export(output);
                     writer.flush();
                     writer.close();
                 }

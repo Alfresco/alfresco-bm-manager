@@ -27,6 +27,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.alfresco.bm.test.TestConstants;
+import org.alfresco.bm.test.TestService.NotFoundException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -91,6 +93,12 @@ public abstract class AbstractRestResource implements TestConstants
      */
     protected void throwAndLogException(Status status, Exception e)
     {
+        Throwable cause = ExceptionUtils.getRootCause(e);
+        // Handle any well-known exceptions
+        if (e instanceof NotFoundException || (cause != null && cause instanceof NotFoundException))
+        {
+            status = Status.NOT_FOUND;
+        }
         // Only log locally if it's an internal server error
         switch (status)
         {
