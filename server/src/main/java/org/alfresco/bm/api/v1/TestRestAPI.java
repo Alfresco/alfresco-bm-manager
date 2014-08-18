@@ -412,7 +412,7 @@ public class TestRestAPI extends AbstractRestResource
             logger.debug(
                     "Inbound: " +
                     "[test:" + test +
-                    ", clean:" + clean+
+                    ", clean:" + clean +
                     "]");
         }
         try

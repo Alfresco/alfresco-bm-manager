@@ -18,8 +18,8 @@
  */
 package org.alfresco.json;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotSame;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 
 import org.apache.http.entity.StringEntity;
 import org.json.simple.JSONObject;

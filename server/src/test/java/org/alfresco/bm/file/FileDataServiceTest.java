@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

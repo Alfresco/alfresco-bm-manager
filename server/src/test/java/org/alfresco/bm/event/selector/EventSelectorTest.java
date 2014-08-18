@@ -3,7 +3,7 @@ package org.alfresco.bm.event.selector;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventProcessor;

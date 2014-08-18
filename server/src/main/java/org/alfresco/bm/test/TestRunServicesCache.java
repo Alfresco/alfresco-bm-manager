@@ -237,7 +237,7 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
      * 
      * @return                  the DAO for accessing the low-level test config data
      */
-    public MongoTestDAO getTestDAO(String test, String run)
+    public MongoTestDAO getTestDAO()
     {
         return dao;
     }
@@ -247,7 +247,7 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
      * 
      * @return                  the service for accessing test data
      */
-    public TestService getTestService(String test, String run)
+    public TestService getTestService()
     {
         return testService;
     }

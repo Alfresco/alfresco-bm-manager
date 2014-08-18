@@ -18,21 +18,20 @@
  */
 package org.alfresco.bm.report;
 
+import java.io.OutputStream;
 
 /**
- * Service interface providing methods to access results and export it to a
- * given format.
+ * Interface for report generators.
  * 
  * @author Derek Hulley
- * @since 1.2
+ * @since 2.0
  */
-public interface EventReporter
+public interface ReportGenerator
 {
     /**
-     * Exports results in a csv format to a file.
+     * Write the report to the given stream, <b>closing the stream</b> when done.
      * 
-     * @param file      file name path to write
-     * @param notes     any notes for the export
+     * @param os                    the stream to write to
      */
-    void export(String fileName, String notes);
+    void export(OutputStream os);
 }

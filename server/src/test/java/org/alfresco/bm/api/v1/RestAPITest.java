@@ -26,8 +26,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,13 +37,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.alfresco.bm.log.LogWatcher;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRun;
@@ -52,6 +54,9 @@ import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.alfresco.mongo.MongoClientFactory;
 import org.alfresco.mongo.MongoDBFactory;
 import org.alfresco.mongo.MongoDBForTestsFactory;
+import org.apache.poi.POIXMLProperties;
+import org.apache.poi.POIXMLProperties.CoreProperties;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
@@ -326,7 +331,7 @@ public class RestAPITest implements TestConstants
         assertEquals("Empty Json results must still be an array", "[]", json);
         
         testDetails = new TestDetails();
-        testDetails.setName("T1");
+        testDetails.setName("T01");
         testDetails.setRelease(RELEASE);
         testDetails.setSchema(SCHEMA);
         testDetails.setDescription("A test for scenario 01.");
@@ -336,14 +341,14 @@ public class RestAPITest implements TestConstants
         assertTrue(json, json.indexOf("\"description\" : \"The password for the user executing the process.\"") >= 0);
         assertTrue(json, json.indexOf("A test for scenario 01.") >= 0);
         
-        assertEquals("Expect exact match from createTest and getTest", json, api.getTest("T1"));
+        assertEquals("Expect exact match from createTest and getTest", json, api.getTest("T01"));
         
-        assertTrue(api.getTests(RELEASE, SCHEMA, 0, 2).contains("\"name\" : \"T1\""));
+        assertTrue(api.getTests(RELEASE, SCHEMA, 0, 2).contains("\"name\" : \"T01\""));
         
         // Update test
         testDetails = new TestDetails();
-        testDetails.setOldName("T1");
-        testDetails.setName("TEST1");
+        testDetails.setOldName("T01");
+        testDetails.setName("TEST01");
         testDetails.setVersion(0);
         testDetails.setDescription("The test for scenario 01.");
         json = api.updateTest(testDetails);
@@ -353,44 +358,44 @@ public class RestAPITest implements TestConstants
         propSetBean = new PropSetBean();
         propSetBean.setVersion(0);
         propSetBean.setValue("pwd1");
-        json = api.setTestProperty("TEST1", "proc.pwd", propSetBean);
+        json = api.setTestProperty("TEST01", "proc.pwd", propSetBean);
         assertFalse(json, json.indexOf("pwd1") >= 0);
         assertTrue(json, json.indexOf(MASK) >= 0);
         assertTrue(json, json.indexOf("\"description\" : \"The password for the user executing the process.\"") >= 0);
-        dbObject = dao.getProperty("TEST1", null, "proc.pwd");
+        dbObject = dao.getProperty("TEST01", null, "proc.pwd");
         assertEquals("NEVER-LEAVES-THE-SERVER", dbObject.get(FIELD_DEFAULT));
         assertEquals("pwd1", dbObject.get(FIELD_VALUE));
 
-        // Set 'processCount' for test 'T1'
+        // Set 'processCount' for test 'T01'
         propSetBean = new PropSetBean();
         propSetBean.setVersion(0);
         propSetBean.setValue("500");
-        json = api.setTestProperty("TEST1", "processCount", propSetBean);
+        json = api.setTestProperty("TEST01", "processCount", propSetBean);
         assertTrue(json, json.indexOf("\"default\" : \"200\"") >= 0);
         assertTrue(json, json.indexOf("\"value\" : \"500\"") >= 0);
         assertTrue(json, json.indexOf("\"title\" : \"Process Count\"") >= 0);
-        dbObject = dao.getProperty("TEST1", null, "processCount");
+        dbObject = dao.getProperty("TEST01", null, "processCount");
         assertEquals("200", dbObject.get(FIELD_DEFAULT));
         assertEquals("500", dbObject.get(FIELD_VALUE));
         
         // Check the response when there are no test runs
-        json = api.getTestRuns("TEST1", 0, 10, "");
+        json = api.getTestRuns("TEST01", 0, 10, "");
         assertEquals("Empty Json results must still be an array", "[]", json);
         
         // Create run 01
         testRunDetails = new TestRunDetails();
         testRunDetails.setName("01");
         testRunDetails.setDescription("Scenario 01 - Run 01");
-        json = api.createTestRun("TEST1", testRunDetails);
+        json = api.createTestRun("TEST01", testRunDetails);
         assertTrue(json, json.indexOf("\"description\" : \"Scenario 01 - Run 01\"") >= 0);
         assertFalse(json, json.indexOf("\"default\" : \"NEVER-LEAVES-THE-SERVER\"") >= 0);
         assertTrue(json, json.indexOf("\"default\" : \"admin\"") >= 0);
         assertTrue(json, json.indexOf("\"default\" : \"" + MASK) >= 0);
         assertTrue(json, json.indexOf("\"default\" : \"500\"") >= 0);
 
-        assertEquals("Expect exact match from createTestRun and getTestRun", json, api.getTestRun("TEST1", "01"));
+        assertEquals("Expect exact match from createTestRun and getTestRun", json, api.getTestRun("TEST01", "01"));
 
-        assertTrue(api.getTestRuns("TEST1", 0, 2, "").contains("\"name\" : \"01\""));
+        assertTrue(api.getTestRuns("TEST01", 0, 2, "").contains("\"name\" : \"01\""));
         
         // Update test run
         testRunDetails = new TestRunDetails();
@@ -398,7 +403,7 @@ public class RestAPITest implements TestConstants
         testRunDetails.setName("001");
         testRunDetails.setVersion(0);
         testRunDetails.setDescription("The test run 001.");
-        json = api.updateTestRun("TEST1", testRunDetails);
+        json = api.updateTestRun("TEST01", testRunDetails);
         assertTrue(json, json.indexOf("The test run 001.") >= 0);
         assertTrue(json, json.indexOf("\"progress\" : 0.0") >= 0);
 
@@ -406,24 +411,24 @@ public class RestAPITest implements TestConstants
         propSetBean = new PropSetBean();
         propSetBean.setVersion(0);
         propSetBean.setValue("125");
-        json = api.setTestRunProperty("TEST1", "001", "processCount", propSetBean);
+        json = api.setTestRunProperty("TEST01", "001", "processCount", propSetBean);
         assertTrue(json, json.indexOf("\"version\" : 1") >= 0);
         assertTrue(json, json.indexOf("\"default\" : \"500\"") >= 0);
         assertTrue(json, json.indexOf("\"value\" : \"125\"") >= 0);
         assertTrue(json, json.indexOf("\"title\" : \"Process Count\"") >= 0);
-        dbObject = dao.getProperty("TEST1", "001", "processCount");
+        dbObject = dao.getProperty("TEST01", "001", "processCount");
         assertEquals("500", dbObject.get(FIELD_DEFAULT));
         assertEquals("125", dbObject.get(FIELD_VALUE));
         
         // Get the test run by its state
-        checkTestRunState("TEST1", "001", TestRunState.NOT_SCHEDULED, true);
-        checkTestRunState("TEST1", "001", TestRunState.SCHEDULED, false);
+        checkTestRunState("TEST01", "001", TestRunState.NOT_SCHEDULED, true);
+        checkTestRunState("TEST01", "001", TestRunState.SCHEDULED, false);
         
         // Delete the test run
-        api.deleteTestRun("TEST1", "001", false);
+        api.deleteTestRun("TEST01", "001", false);
         try
         {
-            api.getTestRun("TEST1", "001");
+            api.getTestRun("TEST01", "001");
         }
         catch (WebApplicationException e)
         {
@@ -444,7 +449,7 @@ public class RestAPITest implements TestConstants
         PropSetBean propSetBean;
         
         testDetails = new TestDetails();
-        testDetails.setName("T1");
+        testDetails.setName("T02");
         testDetails.setRelease(RELEASE);
         testDetails.setSchema(SCHEMA);
         testDetails.setDescription("A test for scenario 02.");
@@ -454,30 +459,30 @@ public class RestAPITest implements TestConstants
         propSetBean = new PropSetBean();
         propSetBean.setVersion(0);
         propSetBean.setValue("pwd1");
-        json = api.setTestProperty("T1", "proc.pwd", propSetBean);
+        json = api.setTestProperty("T02", "proc.pwd", propSetBean);
 
         // Copy the test
-        testDetails.setName("T1_CP");
+        testDetails.setName("T02_CP");
         testDetails.setRelease(null);
         testDetails.setSchema(null);
         testDetails.setDescription(null);
-        testDetails.setCopyOf("T1");
+        testDetails.setCopyOf("T02");
         testDetails.setVersion(0);
         json = api.createTest(testDetails);
         
-        assertTrue(json, json.indexOf("T1_CP") >= 0);
+        assertTrue(json, json.indexOf("T02_CP") >= 0);
         assertTrue(json, json.indexOf("A test for scenario 02.") >= 0);
         
-        assertEquals("Expect exact match from createTest and getTest", json, api.getTest("T1_CP"));
+        assertEquals("Expect exact match from createTest and getTest", json, api.getTest("T02_CP"));
         
-        assertTrue(api.getTests(RELEASE, SCHEMA, 0, 2).contains("\"name\" : \"T1\""));
-        assertTrue(api.getTests(RELEASE, SCHEMA, 0, 2).contains("\"name\" : \"T1_CP\""));
+        assertTrue(api.getTests(RELEASE, SCHEMA, 0, 2).contains("\"name\" : \"T02\""));
+        assertTrue(api.getTests(RELEASE, SCHEMA, 0, 2).contains("\"name\" : \"T02_CP\""));
         
-        json = api.getTestProperty("T1_CP", "proc.pwd");
+        json = api.getTestProperty("T02_CP", "proc.pwd");
         assertFalse(json, json.indexOf("pwd1") >= 0);
         assertTrue(json, json.indexOf(MASK) >= 0);
         assertTrue(json, json.indexOf("\"description\" : \"The password for the user executing the process.\"") >= 0);
-        dbObject = dao.getProperty("T1_CP", null, "proc.pwd");
+        dbObject = dao.getProperty("T02_CP", null, "proc.pwd");
         assertEquals("NEVER-LEAVES-THE-SERVER", dbObject.get(FIELD_DEFAULT));
         assertEquals("pwd1", dbObject.get(FIELD_VALUE));
 
@@ -485,7 +490,7 @@ public class RestAPITest implements TestConstants
         testRunDetails = new TestRunDetails();
         testRunDetails.setName("01");
         testRunDetails.setDescription("Scenario 02 - Run 01");
-        json = api.createTestRun("T1_CP", testRunDetails);
+        json = api.createTestRun("T02_CP", testRunDetails);
         assertTrue(json, json.indexOf("\"description\" : \"Scenario 02 - Run 01\"") >= 0);
         assertFalse(json, json.indexOf("\"default\" : \"NEVER-LEAVES-THE-SERVER\"") >= 0);
         assertTrue(json, json.indexOf("\"default\" : \"admin\"") >= 0);
@@ -496,7 +501,7 @@ public class RestAPITest implements TestConstants
         testRunDetails.setName("02");
         testRunDetails.setCopyOf("01");
         testRunDetails.setVersion(0);
-        json = api.createTestRun("T1_CP", testRunDetails);
+        json = api.createTestRun("T02_CP", testRunDetails);
         assertTrue(json, json.indexOf("\"description\" : \"Scenario 02 - Run 01\"") >= 0);
         assertFalse(json, json.indexOf("\"default\" : \"NEVER-LEAVES-THE-SERVER\"") >= 0);
         assertTrue(json, json.indexOf("\"default\" : \"admin\"") >= 0);
@@ -515,7 +520,7 @@ public class RestAPITest implements TestConstants
         PropSetBean propSetBean;
         
         testDetails = new TestDetails();
-        testDetails.setName("T1");
+        testDetails.setName("T03");
         testDetails.setRelease(RELEASE);
         testDetails.setSchema(SCHEMA);
         testDetails.setDescription("A test for scenario 03.");
@@ -525,19 +530,19 @@ public class RestAPITest implements TestConstants
         propSetBean = new PropSetBean();
         propSetBean.setVersion(0);
         propSetBean.setValue("pwd1");
-        json = api.setTestProperty("T1", "proc.pwd", propSetBean);
+        json = api.setTestProperty("T03", "proc.pwd", propSetBean);
 
         // Create run 01
         testRunDetails = new TestRunDetails();
         testRunDetails.setName("01");
         testRunDetails.setDescription("Scenario 03 - Run 01");
-        json = api.createTestRun("T1", testRunDetails);
+        json = api.createTestRun("T03", testRunDetails);
 
         // Set 'processCount' for run '01'
         propSetBean = new PropSetBean();
         propSetBean.setVersion(0);
         propSetBean.setValue("125");
-        json = api.setTestRunProperty("T1", "01", "processCount", propSetBean);
+        json = api.setTestRunProperty("T03", "01", "processCount", propSetBean);
         
         // Schedule the run
         TestRunSchedule testRunSchedule = new TestRunSchedule();
@@ -545,7 +550,7 @@ public class RestAPITest implements TestConstants
         testRunSchedule.setScheduled(System.currentTimeMillis());
         try
         {
-            api.scheduleTestRun("T1", "01", testRunSchedule);
+            api.scheduleTestRun("T03", "01", testRunSchedule);
             fail("Version number not checked for test run scheduling.");
         }
         catch (WebApplicationException e)
@@ -553,13 +558,13 @@ public class RestAPITest implements TestConstants
             // Expected
         }
         testRunSchedule.setVersion(0);          // Correct
-        json = api.scheduleTestRun("T1", "01", testRunSchedule);
+        json = api.scheduleTestRun("T03", "01", testRunSchedule);
         assertTrue("'scheduled' not set", json.contains("" + testRunSchedule.getScheduled()));
 
         // Get the test run by its state
-        checkTestRunState("T1", "01", TestRunState.NOT_SCHEDULED, false);
-        checkTestRunState("T1", "01", TestRunState.SCHEDULED, true);
-        checkTestRunState("T1", "01", TestRunState.STARTED, false);
+        checkTestRunState("T03", "01", TestRunState.NOT_SCHEDULED, false);
+        checkTestRunState("T03", "01", TestRunState.SCHEDULED, true);
+        checkTestRunState("T03", "01", TestRunState.STARTED, false);
     }
     
     /**
@@ -604,7 +609,7 @@ public class RestAPITest implements TestConstants
     @Test
     public synchronized void testScenario04() throws Exception
     {
-        String json = createTestRun("T1", "A test for scenario 04.", "01", "Scenario 04 - Run 01");
+        String json = createTestRun("T04", "A test for scenario 04.", "01", "Scenario 04 - Run 01");
         
         // First check that we get the correct response for a missing test run
         try
@@ -618,7 +623,7 @@ public class RestAPITest implements TestConstants
         }
         try
         {
-            api.getTestRunSummary("T1", "Fred");
+            api.getTestRunSummary("T04", "Fred");
             fail("Missing test run must throw NOT FOUND.");
         }
         catch (WebApplicationException e)
@@ -627,19 +632,19 @@ public class RestAPITest implements TestConstants
         }
 
         // It should not have started
-        json = api.getTestRunSummary("T1", "01");
+        json = api.getTestRunSummary("T04", "01");
         assertTrue(json.contains("\"started\" : -1"));
         
         // Attempt to override the test run properties
-        json = api.getTestRunProperty("T1", "01", "proc.pwd");
+        json = api.getTestRunProperty("T04", "01", "proc.pwd");
         PropSetBean propSetBean = new PropSetBean();
         propSetBean.setValue("NEW VALUE BEFORE START");
         propSetBean.setVersion(0);
-        api.setTestRunProperty("T1", "01", "proc.pwd", propSetBean);
+        api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
         try
         {
             // Using an incorrect version
-            api.setTestRunProperty("T1", "01", "proc.pwd", propSetBean);
+            api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
         }
         catch (WebApplicationException e)
         {
@@ -649,25 +654,25 @@ public class RestAPITest implements TestConstants
         // Point to the correct MongoDB
         propSetBean.setValue(mongoHost);
         propSetBean.setVersion(0);
-        api.setTestRunProperty("T1", "01", PROP_MONGO_TEST_HOST, propSetBean);
+        api.setTestRunProperty("T04", "01", PROP_MONGO_TEST_HOST, propSetBean);
         
         // Monitor the test.  We do this here so that we don't have to wait a long time for the monitor to kick in.
         // The defaults here do not matter as the test definition was written in the @Before phase
         org.alfresco.bm.test.Test test = ctx.getBean(org.alfresco.bm.test.Test.class);
 
         // Extract the test run wrapper
-        DBObject testRunObj = dao.getTestRun("T1", "01", false);
+        DBObject testRunObj = dao.getTestRun("T04", "01", false);
         ObjectId testRunId = (ObjectId) testRunObj.get(FIELD_ID);
         TestRun testRun = test.getTestRun(testRunId);
         
         // The test run should not even be on the menu
-        assertNull("Should even be considering the test run", testRun);
+        assertNull("Should not even be considering the test run", testRun);
         
         // Now schedule it
         TestRunSchedule schedule = new TestRunSchedule();
         schedule.setScheduled(System.currentTimeMillis() + 20000L);         // It is scheduled for 20s from now
         schedule.setVersion(0);
-        json = api.scheduleTestRun("T1", "01", schedule);
+        json = api.scheduleTestRun("T04", "01", schedule);
         
         // Poke the test and check that the test run's new state brings it into view
         test.forcePing();
@@ -675,26 +680,26 @@ public class RestAPITest implements TestConstants
         assertNotNull("The test should have found the test run as it is now scheduled.", testRun);
         assertNull("The test run has not hit scheduled time so it must have started its context.", testRun.getCtx());
         // The test run should not have started as the scheduled time will not have passed
-        checkTestRunState("T1", "01", TestRunState.SCHEDULED, true);
-        checkTestRunState("T1", "01", TestRunState.STARTED, false);
+        checkTestRunState("T04", "01", TestRunState.SCHEDULED, true);
+        checkTestRunState("T04", "01", TestRunState.STARTED, false);
 
         // Now update the schedule to make it runnable immediately
         schedule.setScheduled(System.currentTimeMillis() - 20000L);             // Overdue
         schedule.setVersion(1);
-        json = api.scheduleTestRun("T1", "01", schedule);
+        json = api.scheduleTestRun("T04", "01", schedule);
         test.forcePing();
         assertNotNull("Should be a test run context", testRun.getCtx());
-        checkTestRunState("T1", "01", TestRunState.SCHEDULED, false);
-        checkTestRunState("T1", "01", TestRunState.STARTED, true);
+        checkTestRunState("T04", "01", TestRunState.SCHEDULED, false);
+        checkTestRunState("T04", "01", TestRunState.STARTED, true);
         
         // Attempt to override the test run properties
-        json = api.getTestRunProperty("T1", "01", "proc.pwd");
+        json = api.getTestRunProperty("T04", "01", "proc.pwd");
         propSetBean = new PropSetBean();
         propSetBean.setValue("NEW VALUE AFTER START");
         propSetBean.setVersion(1);
         try
         {
-            api.setTestRunProperty("T1", "01", "proc.pwd", propSetBean);
+            api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
             fail("Should not be able to override properties of a running test.");
         }
         catch (WebApplicationException e)
@@ -703,16 +708,16 @@ public class RestAPITest implements TestConstants
         }
 
         // Terminate
-        checkTestRunState("T1", "01", TestRunState.STARTED, true);
-        json = api.terminateTestRun("T1", "01");
-        checkTestRunState("T1", "01", TestRunState.STOPPED, true);
+        checkTestRunState("T04", "01", TestRunState.STARTED, true);
+        json = api.terminateTestRun("T04", "01");
+        checkTestRunState("T04", "01", TestRunState.STOPPED, true);
         String nowStr = "" + System.currentTimeMillis();
         assertTrue(json.contains("\"stopped\" : " + nowStr.substring(0, 5)));
         
         // Must still not be able to edit any properties
         try
         {
-            api.setTestRunProperty("T1", "01", "proc.pwd", propSetBean);
+            api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
             fail("Should not be able to override properties of a terminated test.");
         }
         catch (WebApplicationException e)
@@ -738,7 +743,7 @@ public class RestAPITest implements TestConstants
     @Test
     public synchronized void testScenario05() throws Exception
     {
-        createTestRun("T1", "A test for scenario 05.", "01", "Scenario 05 - Run 01");
+        createTestRun("T05", "A test for scenario 05.", "01", "Scenario 05 - Run 01");
         
         // Monitor the test.  We do this here so that we don't have to wait a long time for the monitor to kick in.
         // The defaults here do not matter as the test definition was written in the @Before phase
@@ -748,7 +753,7 @@ public class RestAPITest implements TestConstants
         test.forcePing();
         
         // Extract the test run wrapper
-        DBObject testRunObj = dao.getTestRun("T1", "01", false);
+        DBObject testRunObj = dao.getTestRun("T05", "01", false);
         ObjectId testRunId = (ObjectId) testRunObj.get(FIELD_ID);
         TestRun testRun = test.getTestRun(testRunId);
         assertNull("The test run should not be instantiated until it has been scheduled.", testRun);
@@ -757,13 +762,13 @@ public class RestAPITest implements TestConstants
         TestRunSchedule schedule = new TestRunSchedule();
         schedule.setScheduled(System.currentTimeMillis());
         schedule.setVersion(0);
-        api.scheduleTestRun("T1", "01", schedule);
+        api.scheduleTestRun("T05", "01", schedule);
         
         // Point to the correct MongoDB
         PropSetBean propSetBean = new PropSetBean();
         propSetBean.setValue(mongoHost);
         propSetBean.setVersion(0);
-        api.setTestRunProperty("T1", "01", PROP_MONGO_TEST_HOST, propSetBean);
+        api.setTestRunProperty("T05", "01", PROP_MONGO_TEST_HOST, propSetBean);
         
         // Force another ping, which will activate the test run
         test.forcePing();
@@ -777,17 +782,17 @@ public class RestAPITest implements TestConstants
             this.wait(1000L);
             // Need to keep checking progress
             test.forcePing();
-            String testRunStateJson = api.getTestRunSummary("T1", "01");
+            String testRunStateJson = api.getTestRunSummary("T05", "01");
             if (testRunStateJson.contains(TestRunState.COMPLETED.toString()))
             {
                 completed = true;
                 break;              // This is what we were looking for
             }
         }
-        checkTestRunState("T1", "01", TestRunState.COMPLETED, true);
+        checkTestRunState("T05", "01", TestRunState.COMPLETED, true);
         
         // Check that it's completed
-        assertTrue("Test run did not progress to completion: " + api.getTestRunSummary("T1", "01"), completed);
+        assertTrue("Test run did not progress to completion: " + api.getTestRunSummary("T05", "01"), completed);
 
         // Force another ping, which will deactivate the test run
         test.forcePing();
@@ -795,7 +800,7 @@ public class RestAPITest implements TestConstants
         // Terminate
         try
         {
-            api.terminateTestRun("T1", "01");
+            api.terminateTestRun("T05", "01");
             fail("Cannot terminate a test run that has completed.");
         }
         catch (WebApplicationException e)
@@ -813,13 +818,13 @@ public class RestAPITest implements TestConstants
     @Test
     public synchronized void testScenario06() throws Exception
     {
-        createTestRun("T1", "A test for scenario 06.", "01", "Scenario 06 - Run 01");
+        createTestRun("T06", "A test for scenario 06.", "01", "Scenario 06 - Run 01");
         
         // Set an incorrect MongoDB host
         PropSetBean propSetBean = new PropSetBean();
         propSetBean.setValue("localhostFAIL");
         propSetBean.setVersion(0);
-        api.setTestRunProperty("T1", "01", PROP_MONGO_TEST_HOST, propSetBean);
+        api.setTestRunProperty("T06", "01", PROP_MONGO_TEST_HOST, propSetBean);
 
         // Direct monitor
         org.alfresco.bm.test.Test test = ctx.getBean(org.alfresco.bm.test.Test.class);
@@ -828,13 +833,13 @@ public class RestAPITest implements TestConstants
         TestRunSchedule schedule = new TestRunSchedule();
         schedule.setScheduled(System.currentTimeMillis());
         schedule.setVersion(0);
-        api.scheduleTestRun("T1", "01", schedule);
+        api.scheduleTestRun("T06", "01", schedule);
         
         // Poke the test and check that the test run's new state brings it into view
         test.forcePing();
         // The test run should not have started as the mongo host is invalid
-        checkTestRunState("T1", "01", TestRunState.SCHEDULED, true);
-        checkTestRunState("T1", "01", TestRunState.STARTED, false);
+        checkTestRunState("T06", "01", TestRunState.SCHEDULED, true);
+        checkTestRunState("T06", "01", TestRunState.STARTED, false);
         
         // Now check that the logs reflect the situation
         LogWatcher logWatcher = ctx.getBean(LogWatcher.class);
@@ -912,24 +917,42 @@ public class RestAPITest implements TestConstants
     }
     
     /**
-     * Checks the test application APIs for retrieving test results
+     * Checks the test application APIs for retrieving test results.
      */
     @Test
     public synchronized void testScenario07() throws Exception
     {
-        executeTestRun("T1", "A test for scenario 07.", "01", "Scenario 07 - Run 01");
+        /*
+         * In-memory byte[] are used because we know the size of the documents will be manageable.
+         */
+        
+        executeTestRun("T07", "A test for scenario 07.", "01", "Scenario 07 - Run 01");
 
-        ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T1", "01");
+        // Get report for test run that does not exist
+        try
+        {
+            ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T07MISSING", "01");
+            resultsAPI.getReportCSV();
+            Assert.fail("Expected exception regarding missing test.");
+        }
+        catch (WebApplicationException e)
+        {
+            assertEquals(Status.NOT_FOUND.getStatusCode(), e.getResponse().getStatus());
+        }
+        
+        ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T07", "01");
+        
         // Get the results CSV
-        StreamingOutput resultsOutput = resultsAPI.getResultsSummaryCSV();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        resultsOutput.write(bos);
-        String resultsCsv = new String(bos.toByteArray());
+        StreamingOutput csvOutput = resultsAPI.getReportCSV();
+        ByteArrayOutputStream csvBos = new ByteArrayOutputStream();
+        csvBos.close();
+        csvOutput.write(csvBos);
+        String csvResults = new String(csvBos.toByteArray());
         // Check
-        assertTrue(resultsCsv.contains("Data:,bm20-data.T1.01.results"));
-        assertTrue(resultsCsv.contains("Started"));
-        assertTrue(resultsCsv.contains("Finished"));
-        assertTrue(resultsCsv.contains("Duration"));
+        assertTrue(csvResults.contains("Data:,bm20-data.T07.01.results"));
+        assertTrue(csvResults.contains("Started"));
+        assertTrue(csvResults.contains("Finished"));
+        assertTrue(csvResults.contains("Duration"));
         
         // Get the JSON results
         String chartJson = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 5, false);
@@ -937,6 +960,28 @@ public class RestAPITest implements TestConstants
         assertTrue(chartJson.contains("[ { \"time\" : "));
         assertTrue(chartJson.contains("000 , \"name\" : \"start\" , \"median\" : "));
         assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]"));
+        
+        // Get the XLSX report
+        StreamingOutput xlsxOutput = resultsAPI.getReportXLSX();
+        ByteArrayOutputStream xlsxBos = new ByteArrayOutputStream();
+        xlsxOutput.write(xlsxBos);
+        xlsxBos.close();
+        ByteArrayInputStream xlsxBis = new ByteArrayInputStream(xlsxBos.toByteArray());
+        XSSFWorkbook xlsxWorkbook = new XSSFWorkbook(xlsxBis);
+        xlsxBis.close();
+        // Write it to a temp file just for fun
+        File xlsxFile = File.createTempFile(UUID.randomUUID().toString(), ".xlsx");
+        FileOutputStream xlsxFos = new FileOutputStream(xlsxFile);
+        xlsxWorkbook.write(xlsxFos);
+        xlsxFos.close();
+        
+        // Check
+        POIXMLProperties xlsxProperties = xlsxWorkbook.getProperties();
+        CoreProperties xlsxCoreProperties = xlsxProperties.getCoreProperties();
+        Assert.assertNotNull("No XLSX description: " + xlsxFile, xlsxCoreProperties.getDescription());
+        Assert.assertTrue("Title in XLSX must contain test run FQN: " + xlsxFile, xlsxCoreProperties.getTitle().contains("T07.01"));
+        Assert.assertTrue("Description in XLSX must contain test name and description: " + xlsxFile, xlsxCoreProperties.getDescription().contains("A test for scenario 07."));
+        Assert.assertTrue("Description in XLSX must contain test name and description." + xlsxFile, xlsxCoreProperties.getDescription().contains("Scenario 07 - Run 01"));
     }
 
     /**

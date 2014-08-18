@@ -224,6 +224,11 @@ public class BMTestRunner implements TestConstants
                     // We deal with this specifically as it's a simple case of not finding the MongoDB
                     logger.error("Set the configuration property '" + PROP_MONGO_CONFIG_HOST + "' (<server>:<port>) as required.");
                 }
+                else
+                {
+                    // Log application start failure because test frameworks might not do so nicely
+                    logger.error("Failed to start application.", e);
+                }
                 throw new RuntimeException("Failed to start application.", e);
             }
             

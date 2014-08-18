@@ -18,7 +18,7 @@
  */
 package org.alfresco.bm.report;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class ResultSummaryTest
     public void empty()
     {
         ResultSummary summary = new ResultSummary("A");
-        Assert.assertEquals(Double.NaN, summary.getSuccessPercentage());
+        Assert.assertEquals(Double.NaN, summary.getSuccessPercentage(), 0.0001);
         Assert.assertEquals("A", summary.getName());
         Assert.assertEquals(0, summary.getTotalResults());
         Assert.assertEquals(0, summary.getStats(true).getN());
@@ -62,12 +62,12 @@ public class ResultSummaryTest
         ResultSummary summary = new ResultSummary("A");
         summary.addSample(true, 20L);
         summary.addSample(false, 20L);
-        Assert.assertEquals(50.0, summary.getSuccessPercentage());
+        Assert.assertEquals(50.0, summary.getSuccessPercentage(), 0.001);
         Assert.assertEquals(2, summary.getTotalResults());
         Assert.assertEquals(1, summary.getStats(true).getN());
-        Assert.assertEquals(20.0, summary.getStats(true).getMean());
+        Assert.assertEquals(20.0, summary.getStats(true).getMean(), 0.001);
         Assert.assertEquals(1, summary.getStats(false).getN());
-        Assert.assertEquals(20.0, summary.getStats(false).getMean());
+        Assert.assertEquals(20.0, summary.getStats(false).getMean(), 0.001);
     }
 
     @Test
@@ -78,11 +78,11 @@ public class ResultSummaryTest
         summary.addSample(false, 20L);
         summary.addSample(true, 40L);
         summary.addSample(false, 40L);
-        Assert.assertEquals(50.0, summary.getSuccessPercentage());
+        Assert.assertEquals(50.0, summary.getSuccessPercentage(), 0.001);
         Assert.assertEquals(4, summary.getTotalResults());
         Assert.assertEquals(2, summary.getStats(true).getN());
-        Assert.assertEquals(30.0, summary.getStats(true).getMean());
+        Assert.assertEquals(30.0, summary.getStats(true).getMean(), 0.001);
         Assert.assertEquals(2, summary.getStats(false).getN());
-        Assert.assertEquals(30.0, summary.getStats(false).getMean());
+        Assert.assertEquals(30.0, summary.getStats(false).getMean(), 0.001);
     }
 }
