@@ -17,13 +17,14 @@ angular.module('benchmark', ['ngRoute','benchtest', 'd3benchmark', 'modal','brea
      when('/testdefs/:testId/:schemaId', {templateUrl: 'testdef/testdef-detail.html', controller: 'TestDefDetailCtrl'}).
      otherwise({redirectTo: '/home'});
 }])
+
 .filter('checkmark', function() {
     return function(input) {
         return input ? '\u2713' : '\u2718';
     };
 })
 /**
- * General utility service the provides:
+ * General utility service that provides:
  * Group elements in an array.
  * @return {[type]} [description]
  */

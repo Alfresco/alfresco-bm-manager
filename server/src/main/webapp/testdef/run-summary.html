@@ -1,8 +1,17 @@
 <div class="row" ng-show="summary.started > 0">
     <div class="form-group col-sm-12 col-xs-12">
-        <a download="{{testname}}-{{summary.name}}.csv" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/csv" class="btn btn-default pull-right" id="downloadCSVBtn">
-            <span class="fa fa-download fa-3x" alt="Download CSV result"></span>
-        </a>
+        <span class="pull-right">
+            <button class="btn btn-default btn-lg">
+                <a download="{{testname}}-{{summary.name}}.csv" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/csv" id="downloadCSVBtn">
+                    <i class="fa fa-download fa-3x" alt="Download CSV result"></i>
+                </a>
+            </button>
+            <button class="btn btn-default btn-lg">
+                <a download="{{testname}}-{{summary.name}}.xlsx" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/xlsx" id="downloadXlsxBtn">
+                    <i class="fa fa-file-excel-o fa-3x" alt="Download xlsx result"></i>
+                </a>
+            </button>
+        </span>
     </div>
 </div>
 <div class="row row-offcanvas row-offcanvas-right">
