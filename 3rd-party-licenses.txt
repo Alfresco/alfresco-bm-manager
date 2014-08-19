@@ -1,0 +1,7 @@
+The following licenses are used, in addition to those available when building via Maven:
+
+Library: "Font Awesome"
+http://fortawesome.github.io/Font-Awesome/license/
+License: http://opensource.org/licenses/mit-license.html
+License: http://scripts.sil.org/OFL
+
