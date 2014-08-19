@@ -1,5 +1,5 @@
 'use strict';
-angular.module('breadcrumbs', [])
+angular.module('benchmark-breadcrumbs', [])
     .factory('BreadcrumbsFactory', ['$rootScope', '$location',
         function($rootScope, $location) {
             var breadcrumbs = [];

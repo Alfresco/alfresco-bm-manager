@@ -1,5 +1,5 @@
 'use strict';
-angular.module('benchmark', ['ngRoute','benchtest', 'd3benchmark', 'modal','breadcrumbs'])
+angular.module('benchmark', ['ngRoute','benchtest', 'd3benchmark', 'modal','benchmark-breadcrumbs','property-accordion'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.
      when('/home', {templateUrl: 'testdef/list-tests.html',   controller:'ListTestsCtrl'}).
@@ -42,13 +42,20 @@ angular.module('benchmark', ['ngRoute','benchtest', 'd3benchmark', 'modal','brea
          */
         groupBy:function(array, f){
         var groups = {};
+        var count = 0;
         array.forEach(function(o) {
             var group = JSON.stringify(f(o));
             groups[group] = groups[group] || [];
             groups[group].push(o);});
-        return Object.keys(groups).map(function(group) {
-            return groups[group];
-             })
+            var result = Object.keys(groups).map(function(group) { 
+                count ++;
+                return {
+                    "uid" : count,
+                    "collapsed" : true,
+                    "properties" : groups[group]}; 
+                });
+            return result;
         }
+        
     }
 });
