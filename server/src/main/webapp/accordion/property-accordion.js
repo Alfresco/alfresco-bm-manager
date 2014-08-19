@@ -20,7 +20,6 @@ accordion.directive('propertyAccordion', function () {
             });
         
             scope.toggleCollapsedStates = function(ind){
-                console.log(ind.collapsed);
                 if(ind.collapsed)
                 {
                     ind.collapsed = false;
@@ -29,7 +28,6 @@ accordion.directive('propertyAccordion', function () {
                     ind.collapsed = true;
                     $("#property-" + ind.uid + " >> ul").collapse('hide');
                 };
-console.log(ind.collapsed);
             }
         }
     };
