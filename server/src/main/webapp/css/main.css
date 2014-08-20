@@ -11,6 +11,10 @@ h1, h2, h3 {
     margin-top: 2px;
     margin-bottom: 10px;
 }
+h3 .fa{
+    margin-top: 4px;
+    padding-top: 1px;
+}
 donut-chart {
     width: 350px;
     height: 350px;

@@ -1,10 +1,12 @@
 <div class="panel panel-default" >                                    
     <div class="panel-heading">
     	<a ng-click="toggleCollapsedStates(prop)" href="">{{item.title}}
-        	<i class="fa fa-chevron-down fa-lg pull-right" ng-hide="prop.collapsed"></i>
-        	<i class="fa fa-chevron-right fa-lg pull-right" ng-show="prop.collapsed"></i>
+        	<h3>{{prop.properties[0].group}}
+			<i class="fa fa-chevron-down  pull-right" ng-hide="prop.collapsed"></i>
+        	<i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed"></i>
+        	</h3>
         </a>
-        <h3>{{prop.properties[0].group}}</h3>
+        
     </div>
     <!-- Collapse group -->
     <!-- List group -->
