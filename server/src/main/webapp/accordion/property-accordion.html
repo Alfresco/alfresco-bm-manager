@@ -8,7 +8,7 @@
     </div>
     <!-- Collapse group -->
     <!-- List group -->
-    <ul class="test list-group collapse" data-toggle="collapse">
+    <ul class="test list-group collapse" data-toggle="collapse" id="property-{{prop.uid}}">
     	<li class="list-group-item" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse ">
 	    	<div class="row">                                               
 	            <div class="col-lg-6">
