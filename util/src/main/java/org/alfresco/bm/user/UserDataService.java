@@ -107,9 +107,9 @@ public interface UserDataService
     public List<UserData> getUsersInDomain(String domain, int startIndex, int count);
 
     /**
-     * An iterator over networks in the users collection.
+     * An iterator over domains in the users collection.
      * 
-     * @return an iterator over networks
+     * @return an iterator over domains
      * 
      * @see #DEFAULT_DOMAIN
      */
