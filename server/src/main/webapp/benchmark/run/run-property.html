@@ -78,7 +78,7 @@
         </div>
         <!-- Collapse group -->
         <!-- List group -->
-        <ul class="test list-group collapse" data-toggle="collapse" id="property-{{prop.uid}}">
+        <ul class="test list-group" id="property-{{prop.uid}}" ng-hide="prop.collapsed">
             <li class="list-group-item" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse ">
                 <div class="row">                                               
                     <div class="col-lg-6">
@@ -109,7 +109,7 @@
                                     <button class="btn btn-sm btn-dark" ng-click="reset();propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
                                         <span class="glyphicon glyphicon-remove" />
                                     </button>
-                                    <button class="btn btn-sm btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item.name, item.value, item.version)">                                                                          
+                                    <button class="btn btn-sm btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item)">                                                                          
                                         <span class="glyphicon glyphicon-ok" />
                                     </button>
                                 </span>

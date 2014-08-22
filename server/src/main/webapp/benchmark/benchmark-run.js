@@ -392,19 +392,20 @@
                 });
             };
             // call back for update test property field
-            $scope.updateProperty = function(propertyName, propertyValue, propertyVersion) {
+            $scope.updateProperty = function(item) {
                 var propData = {
-                    "version": propertyVersion,
-                    "value": propertyValue
+                    "version": item.version,
+                    "value": item.value
                 };
-                $scope.updateTestRunProperty(testname, runname, propertyName, propData);
+                $scope.updateTestRunProperty(testname, runname, item.name, propData);
             }
 
-            $scope.resetProperty = function(propertyName, propertyVersion) {
+            $scope.resetProperty = function(item) {
                 var restData = {
-                    "version": propertyVersion
+                    "version": item.version
                 };
-                $scope.updateTestRunProperty(testname, runname, propertyName, restData);
+                $scope.updateTestRunProperty(testname, runname, item.name, restData);
+                item.value = item.default;
             }
 
             $scope.updateTestRunProperty = function(testname, runname, propertyName, propData) {
@@ -425,19 +426,14 @@
                         var result = UtilService.groupBy(collection, function(item) {
                             return [item.group];
                         });
-                        $scope.data.properties = result;
-                        var redirect = "/tests/" + testname + "/" + runname + "/properties";
-                        $location.path(redirect);
                     });
             }
             $scope.toggleCollapsedStates = function(ind){
                 if(ind.collapsed)
                 {
                     ind.collapsed = false;
-                    $("#property-" + ind.uid).collapse('show');
                 } else {
                     ind.collapsed = true;
-                    $("#property-" + ind.uid).collapse('hide');
                 };
             }
         }
