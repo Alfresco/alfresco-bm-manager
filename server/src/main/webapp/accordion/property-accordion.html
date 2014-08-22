@@ -33,7 +33,7 @@
 					<div>
 						<div class="input-group">
 							<span class="input-group-btn" ng-hide="!item.value">
-	    						<button class="btn btn-sm btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item.name, item.version)" type="button"> Reset to {{item.default}} </button>
+	    						<button class="btn btn-sm btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset to {{item.default}} </button>
 							</span>
 							<input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
 							<input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  

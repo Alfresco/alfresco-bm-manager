@@ -1,20 +1,20 @@
 'use strict';
-angular.module('benchmark', ['ngRoute','benchtest', 'd3benchmark', 'modal','benchmark-breadcrumbs','property-accordion'])
+angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal','benchmark-breadcrumbs','property-accordion'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.
-     when('/home', {templateUrl: 'testdef/list-tests.html',   controller:'ListTestsCtrl'}).
-     when('/tests', {templateUrl: 'testdef/list-tests.html',   controller:'ListTestsCtrl'}).
-     when('/tests/create', {templateUrl: 'testdef/test-create.html', controller: 'TestCreateCtrl'}).
-     when('/tests/:testId/properties', {templateUrl: 'testdef/test-detail.html', controller: 'TestDetailCtrl'}).
-     when('/tests/:testId', {templateUrl: 'testdef/list-runs.html', controller: 'TestRunListCtrl'}).
-     when('/tests/:testId/create', {templateUrl: 'testdef/run-create.html', controller: 'TestRunCreateCtrl'}).
-     when('/tests/:testId/copy', {templateUrl: 'testdef/test-copy.html', controller: 'TestCopyCtrl'}).
-     when('/tests/:testId/:runId', {templateUrl: 'testdef/run-summary.html', controller: 'TestRunSummaryCtrl'}).
-     when('/tests/:testId/:runId/copy', {templateUrl: 'testdef/run-copy.html', controller: 'TestRunCopyCtrl'}).
-     when('/tests/:testId/:runId/properties', {templateUrl: 'testdef/run-detail.html', controller: 'TestRunDetailCtrl'}).
-     when('/tests/:testId/:runId/status', {templateUrl: 'testdef/run-result.html', controller: 'TestRunStateCtrl'}).
-     when('/testdefs', {templateUrl: 'testdef/list-testdefs.html', controller:'TestDefListCtrl'}).
-     when('/testdefs/:testId/:schemaId', {templateUrl: 'testdef/testdef-detail.html', controller: 'TestDefDetailCtrl'}).
+     when('/home', {templateUrl: 'benchmark/test/list-tests.html',   controller:'ListTestsCtrl'}).
+     when('/tests', {templateUrl: 'benchmark/test/list-tests.html',   controller:'ListTestsCtrl'}).
+     when('/tests/create', {templateUrl: 'benchmark/test/test-create.html', controller: 'TestCreateCtrl'}).
+     when('/tests/:testId/properties', {templateUrl: 'benchmark/test/test-property.html', controller: 'TestPropertyCtrl'}).
+     when('/tests/:testId', {templateUrl: 'benchmark/run/list-runs.html', controller: 'TestRunListCtrl'}).
+     when('/tests/:testId/create', {templateUrl: 'benchmark/run/run-create.html', controller: 'TestRunCreateCtrl'}).
+     when('/tests/:testId/copy', {templateUrl: 'benchmark/run/test-copy.html', controller: 'TestCopyCtrl'}).
+     when('/tests/:testId/:runId', {templateUrl: 'benchmark/run/run-summary.html', controller: 'TestRunSummaryCtrl'}).
+     when('/tests/:testId/:runId/copy', {templateUrl: 'benchmark/run/run-copy.html', controller: 'TestRunCopyCtrl'}).
+     when('/tests/:testId/:runId/properties', {templateUrl: 'benchmark/run/run-property.html', controller: 'TestRunPropertyCtrl'}).
+     when('/tests/:testId/:runId/status', {templateUrl: 'benchmark/run/run-result.html', controller: 'TestRunStateCtrl'}).
+     when('/testdefs', {templateUrl: 'benchmark/list-testdefs.html', controller:'TestDefListCtrl'}).
+     when('/testdefs/:testId/:schemaId', {templateUrl: 'benchmark/testdef-detail.html', controller: 'TestDefDetailCtrl'}).
      otherwise({redirectTo: '/home'});
 }])
 
