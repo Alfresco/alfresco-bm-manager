@@ -1,0 +1,38 @@
+<!-- popup modal message -->
+<modal data="modal"></modal>
+<div ng-show="data.tests.length > 0">
+    <div class="row">
+        <a href="#/tests/create" class="btn btn-default pull-right" id="createTestBtn">
+            <span class="fa fa-plus"></span>
+        </a>
+    </div>
+    <div id="server-def" class="row row-offcanvas row-offcanvas-right">
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <table class="table table-striped">
+                <tr ng-repeat="item in data.tests | filter:query | orderBy:orderProp">
+                    <td class="col-sm-2 text-left"><a class="btn" id="test-{{item.name}}" href="#/tests/{{item.name}}/">{{item.name}}</a>
+                    </td>
+                    <td class="col-sm-5 text-left"><a class="btn" id="testDesc-{{item.name}}" href="#/tests/{{item.name}}/">{{item.description}}</a>
+                    </td>
+                    <td class="col-sm-5 text-right">
+                        <a href="#/tests/{{item.name}}/copy" class="btn" id="copyTestBtn-{{item.name}}">
+                            <span class="fa fa-files-o fa-lg"></span>
+                        </a>
+                        <a class="btn" id="editTestBtn-{{item.name}}" href="#/tests/{{item.name}}/properties">
+                            <span class="fa fa-cog fa-lg"></span>
+                        </a>
+                        <a ng-click="deleteTest(item.name)" class="btn" id="deleteTestBtn-{{item.name}}">
+                            <span class="fa fa-trash-o fa-lg"></span>
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<div ng-show="data.tests.length == 0" class="main">
+    <h1 align="center">No tests found, would you like to create one?</h1>
+    <div ng-include src="'testdef/test-create.html'"></div>
+</div>
+</div>

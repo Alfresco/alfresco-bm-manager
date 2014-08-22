@@ -241,7 +241,7 @@
                     }
                 });
 
-                $location.path("/tests/" + postData.name + "/properties");
+                // $location.path("/tests/" + postData.name + "/properties");
             }
 
             //-------------- Test properties crud ----------
@@ -253,6 +253,8 @@
                     "value": item.value
                 };
                 $scope.updateTestProperty(testname, item, propData);
+                var scope = $scope.data.properties;
+                $compile(content.contents(scope));
             }
 
             $scope.resetProperty = function(item) {
@@ -262,6 +264,7 @@
                     "value": item.default
                 };
                 $scope.updateTestProperty(testname, item, restData);
+                item.value = item.default;
             }
 
             $scope.updateTestProperty = function(testname, item, propData) {
@@ -280,10 +283,9 @@
                                 return [data.group];
                             });
                             var expand = item.group;
-                            $scope.data.properties = result;
+                            // $scope.data.properties = result;
                             $scope.master = angular.copy($scope.data.test);
                         });
-                        $location.path(redirect);
                     });
             }
 
@@ -291,10 +293,10 @@
                 if(ind.collapsed)
                 {
                     ind.collapsed = false;
-                    $("#property-" + ind.uid).collapse('show');
+                    // $("#property-" + ind.uid).collapse('show');
                 } else {
                     ind.collapsed = true;
-                    $("#property-" + ind.uid).collapse('hide');
+                    // $("#property-" + ind.uid).collapse('hide');
                 };
             }
         }
