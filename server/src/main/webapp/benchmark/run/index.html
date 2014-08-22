@@ -1,0 +1,63 @@
+<div ng-show="hasError" class="alert alert-danger">{{error.msg}}</div>
+<!-- popup modal message -->
+<modal data="modal"></modal>
+<div ng-show="data.runs.length > 0">
+    <div class="row">
+        <div class="form-group">
+            <a href="#/tests/{{data.testname}}/create" class="btn btn-default pull-right" id="createTestRunBtn">
+                <span class="fa fa-plus" alt="Add New Test Run"></span>
+            </a>
+        </div>
+    </div>
+    <div class="row row-offcanvas row-offcanvas-right">
+        <div class="panel panel-default">
+            <table class="table table-striped">
+                <tr ng-repeat="item in data.runs | filter:query | orderBy:orderProp">
+                    <td class="col-sm-2 text-left">
+                        <a id="testRun-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.name}}</a>
+                    </td>
+                    <td class="col-sm-3 text-left">
+                        <a id="testRunDesc-{{item.name}}" class="btn" href="#/tests/{{data.testname}}/{{item.name}}">{{item.description}}</a>
+                    </td>
+                    <td class="col-sm-4">
+                        <a href="#/tests/{{data.testname}}/{{item.name}}">
+                            <div class="progress ">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="{{item.progress*100}}" aria-valuemin="0" aria-valuemax="100" style="width: {{item.progress*100}}%; ">
+                                    <span class="progress-value">{{item.progress*100}}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </td>
+                    <td class="col-sm-3">
+                        <div class="pull-right">
+                            <span ng-show="!item.run">
+                                <a ng-hide="item.hasStarted" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(data.testname, $index)" class="btn">
+                                    <span class="fa fa-play fa-lg"></span>
+                                </a>
+                                <a ng-show="item.hasStarted && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
+                                    <span class="fa fa-stop fa-lg"></span>
+                                </a>
+                            </span>
+                            <a href="#/tests/{{data.testname}}/{{item.name}}/copy" class="btn" id="copyTestRun-{{item.name}}">
+                                <span class="fa fa-files-o fa-lg"></span>
+                            </a>
+                            <a class="btn" id="editTestRunBtn-{{item.name}}" href="#/tests/{{data.testname}}/{{item.name}}/properties">
+                                <span class="fa fa-cog fa-lg"></span>
+                            </a>
+                            <a ng-click="deleteRun(item.name,data.testname)" class="btn" id="deleteTestRunBtn-{{item.name}}">
+                                <span class="fa fa-trash-o fa-lg"></span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="panel-body">
+            <p>{{item.description}} {{item.started}}</p>
+        </div>
+    </div>
+</div>
+<div ng-show="data.runs.length == 0" class="main">
+    <h1 align="center">No test runs found, would you like to create one?</h1>
+    <div ng-include src="'testdef/run-create.html'"></div>
+</div>

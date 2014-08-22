@@ -1,0 +1,133 @@
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="row" ng-show="testNameEditorEnabled">
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <input class="form-control input-sm ng-valid ng-pristine" ng-model="data.test.name">
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-dark" ng-click="reset();testNameEditorEnabled=!testNameEditorEnabled" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-remove" />
+                        </button>
+                        <button class="btn btn-sm btn-default" ng-click="renameTest(data.test.name)" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-ok" />
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <h3>
+            <span ng-hide="testNameEditorEnabled">
+                {{data.test.name}}
+                <a ng-click="testNameEditorEnabled=!testNameEditorEnabled">
+                    <span class="glyphicon glyphicon-edit"></span>
+                </a>
+            </span>
+        </h3>
+        <div ng-show="hasError" class="alert alert-danger">{{error.msg}}</div>
+        <div ng-hide="testDescEditorEnabled">
+            {{data.test.description}}
+            <a ng-click="testDescEditorEnabled=!testDescEditorEnabled">
+                <span class="glyphicon glyphicon-edit"></span>
+            </a>
+        </div>
+        <div class="row" ng-show="testDescEditorEnabled">
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <input class="form-control input-sm ng-valid" ng-model="data.test.description">
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-dark" ng-click="reset();testDescEditorEnabled=!testDescEditorEnabled" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-remove" />
+                        </button>
+                        <button class="btn btn-sm btn-default" ng-click="updateTestDesc(data.test.description)" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-ok" />
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <span ng-hide="testVersionEditorEnabled">
+            Release: {{data.test.release}} Schema:{{data.test.schema}}
+            <a ng-click="testVersionEditorEnabled=!testVersionEditorEnabled">
+                <span class="glyphicon glyphicon-edit"></span>
+            </a>
+        </span>
+
+        <div class="row" ng-show="testVersionEditorEnabled">
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <div class="col-lg-10" ng-controller="TestDefListCtrl">
+                            <select class="form-control" ng-controller="TestDefListCtrl">
+                                <option ng-repeat="item in data.tests" ng-model="data.test.def" value="{{item.release}}-schema:{{item.schema}}">{{item.release}}-schema:{{item.schema}}</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-dark" ng-click="reset();testVersionEditorEnabled=!testVersionEditorEnabled" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-remove" />
+                        </button>
+                        <button class="btn btn-sm btn-default" ng-click="updateTestSchema(data.test.release, data.test.schema)" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-ok" />
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Properties -->
+<div ng-repeat="prop in data.properties">
+    <div class="panel panel-default" >                                    
+        <div class="panel-heading">
+            <a ng-click="toggleCollapsedStates(prop)" href="">{{item.title}}
+                <h3>{{prop.properties[0].group}}
+                <i class="fa fa-chevron-down  pull-right" ng-hide="prop.collapsed"></i>
+                <i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed"></i>
+                </h3>
+            </a>
+            
+        </div>
+        <!-- Collapse group -->
+        <!-- List group -->
+        <ul class="test list-group"  id="property-{{prop.uid}}" ng-hide="prop.collapsed">
+            <li class="list-group-item" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse ">
+                <div class="row">                                               
+                    <div class="col-lg-6">
+                        <h4 class="panel-title">{{item.title}} </h4> 
+                        <p> 
+                            {{item.description}}
+                        </p>
+                    </div>
+                    <span ng-show="readOnly">{{item.value}}</span>                                             
+                    <span ng-show="!readOnly"> 
+                        <div ng-hide="propertyEditorEnabled">
+                            <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="!item.value">
+                                <b ng-show="item.default != item.value">{{item.value}}</b>
+                                <span ng-show="item.value == item.default"> {{item.value}} </span>
+                            </a>
+                            <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
+                        </div>
+                    </span> 
+                    <div class="col-lg-6" ng-show="propertyEditorEnabled"> 
+                        <div>
+                            <div class="input-group">
+                                <span class="input-group-btn" ng-hide="!item.value">
+                                    <button class="btn btn-sm btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset to {{item.default}} </button>
+                                </span>
+                                <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
+                                <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
+                                <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-dark" ng-click="reset();propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
+                                        <span class="glyphicon glyphicon-remove" />
+                                    </button>
+                                    <button class="btn btn-sm btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item, prop.uid)">                                                 
+                                        <span class="glyphicon glyphicon-ok" />
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>                                         
+    </div> 
+</div>

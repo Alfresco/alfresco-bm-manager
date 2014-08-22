@@ -1,0 +1,124 @@
+<div class="panel panel-default">
+    <div class="panel-body ">
+        <div class="row" ng-show="runNameEditorEnabled">
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <input class="form-control input-sm ng-valid ng-pristine" ng-model="data.name">
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-dark" ng-click="reset();runNameEditorEnabled=!runNameEditorEnabled" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-remove" />
+                        </button>
+                        <button class="btn btn-sm btn-default" ng-click="updateRunName(data.name)" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-ok" />
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <h3>
+            <div ng-show="readOnly">
+                {{data.name}}
+            </div>
+            <div ng-show="!readOnly">
+                <span ng-hide="runNameEditorEnabled">
+                    {{data.name}}
+                    <a ng-click="runNameEditorEnabled=!runNameEditorEnabled">
+                        <span class="glyphicon glyphicon-edit"></span>
+                    </a>
+                </span>
+            </div>
+        </h3>
+        <div ng-show="data.description == 'Description'">
+            <div ng-show="readOnly">
+                {{data.description}}
+            </div>
+            <span ng-show="!readOnly">
+                <span ng-hide="runDescEditorEnabled">
+                    <span ng-show="data.description">
+                        {{data.description}}
+                    </span>
+                    <span ng-show="!data.description">
+                        Description
+                    </span>
+                    <a ng-click="runDescEditorEnabled=!runDescEditorEnabled">
+                        <span class="glyphicon glyphicon-edit"></span>
+                    </a>
+                </span>
+            </span>
+        </div>
+        <div class="row" ng-show="runDescEditorEnabled">
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <input class="form-control input-sm ng-valid" ng-model="data.description">
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-dark" ng-click="reset();runDescEditorEnabled=!runDescEditorEnabled" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-remove" />
+                        </button>
+                        <button class="btn btn-sm btn-default" ng-click="updateRunDesc(data.description)" type="button" tabindex="-1">
+                            <span class="glyphicon glyphicon-ok" />
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Properties -->
+<!-- Properties -->
+<div ng-repeat="prop in data.properties">
+    <div class="panel panel-default" >                                    
+        <div class="panel-heading">
+            <a ng-click="toggleCollapsedStates(prop)" href="">{{item.title}}
+                <h3>{{prop.properties[0].group}}
+                <i class="fa fa-chevron-down  pull-right" ng-hide="prop.collapsed"></i>
+                <i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed"></i>
+                </h3>
+            </a>
+            
+        </div>
+        <!-- Collapse group -->
+        <!-- List group -->
+        <ul class="test list-group" id="property-{{prop.uid}}" ng-hide="prop.collapsed">
+            <li class="list-group-item" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse ">
+                <div class="row">                                               
+                    <div class="col-lg-6">
+                        <h4 class="panel-title">{{item.title}} </h4> 
+                        <p> 
+                            {{item.description}}
+                        </p>
+                    </div>
+                    <span ng-show="readOnly">{{item.value}}</span>                                             
+                    <span ng-show="!readOnly"> 
+                        <div ng-hide="propertyEditorEnabled">
+                            <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="!item.value">
+                                <b ng-show="item.default != item.value">{{item.value}}</b>
+                                <span ng-show="item.value == item.default"> {{item.value}} </span>
+                            </a>
+                            <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
+                        </div>
+                    </span> 
+                    <div class="col-lg-6" ng-show="propertyEditorEnabled"> 
+                        <div>
+                            <div class="input-group">
+                                <span class="input-group-btn" ng-hide="!item.value">
+                                    <button class="btn btn-sm btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset to {{item.default}} </button>
+                                </span>
+                                <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
+                                <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
+                                <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-dark" ng-click="reset();propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
+                                        <span class="glyphicon glyphicon-remove" />
+                                    </button>
+                                    <button class="btn btn-sm btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item)">                                                                          
+                                        <span class="glyphicon glyphicon-ok" />
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>                                         
+    </div> 
+</div>
+
