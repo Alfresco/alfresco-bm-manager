@@ -1,53 +1,50 @@
+<div class="col-lg-3 col-md-6" ng-repeat="item in data.tests">
+                <a href="#/tests/{{item.name}}/">
+    <div class="panel panel-default"  ng-mouseover="item.show=true" ng-mouseleave="item.show=false">
+        <div class="panel-heading">
+            <div class="row">
+                
+                <div class="col-xs-3">
+                    <i class="fa fa-check fa-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                    <div class="huge">{{item.count}}</div>
 
-
-    <div class="col-lg-3 col-md-6" ng-repeat="item in data.tests">
-                    <a href="#/tests/{{item.name}}/">
-        <div class="panel panel-default"  ng-mouseover="item.show=true" ng-mouseleave="item.show=false">
-            <div class="panel-heading">
-                <div class="row">
-                    
-                    <div class="col-xs-3">
-                        <i class="fa fa-check fa-5x"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div class="huge">{{item.count}}</div>
-
-                        <div>{{item.name}}</div>
-                    </div>
+                    <div>{{item.name}}</div>
                 </div>
             </div>
-            <div class="panel-footer" ng-show="item.show">
-                <a href="#/tests/{{item.name}}/copy"  id="copyTestBtn-{{item.name}}">
-                    <i class="btn fa fa-files-o fa-lg"></i>
-                </a>
-                <a id="editTestBtn-{{item.name}}" href="#/tests/{{item.name}}/properties">
-                    <i class="btn fa fa-cog fa-lg"></i>
-                </a>
-                <a ng-click="deleteTest(item.name)"  id="deleteTestBtn-{{item.name}}">
-                    <i class="btn fa fa-trash-o fa-lg"></i>
-                </a>
-                <a href="#/tests/{{item.name}}/" id="view-{{item.name}}">
-                    <i class="btn fa fa-arrow-circle-right fa-lg"></i>
-                </a>
-                
-                <div class="clearfix"></div>
-            </div>
         </div>
-        </a>
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-        <a href="#/tests/create">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-xs-3">
-                        <i class="fa fa-plus fa-5x pull-center"></i>
-                    </div>
-                    <div class="col-xs-9 text-right">
-                        <div>Add another test</div>
-                    </div>
-            </div>
+        <div class="panel-footer" ng-show="item.show">
+            <a href="#/tests/{{item.name}}/copy"  id="copyTestBtn-{{item.name}}">
+                <i class="btn fa fa-files-o fa-lg"></i>
+            </a>
+            <a id="editTestBtn-{{item.name}}" href="#/tests/{{item.name}}/properties">
+                <i class="btn fa fa-cog fa-lg"></i>
+            </a>
+            <a ng-click="deleteTest(item.name)"  id="deleteTestBtn-{{item.name}}">
+                <i class="btn fa fa-trash-o fa-lg"></i>
+            </a>
+            <a href="#/tests/{{item.name}}/" id="view-{{item.name}}">
+                <i class="btn fa fa-arrow-circle-right fa-lg"></i>
+            </a>
+            
+            <div class="clearfix"></div>
         </div>
-        </a>
     </div>
+    </a>
+</div>
+<div class="col-lg-3 col-md-6">
+    <a href="#/tests/create">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-xs-3">
+                    <i class="fa fa-plus fa-5x pull-center"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                    <div>Add another test</div>
+                </div>
+        </div>
+    </div>
+    </a>
+</div>
