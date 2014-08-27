@@ -3,7 +3,7 @@ package org.alfresco.bm.user;
 import java.util.Iterator;
 import java.util.List;
 
-import org.alfresco.bm.user.UserData.UserCreationState;
+import org.alfresco.bm.data.DataCreationState;
 
 import com.mongodb.DuplicateKeyException;
 
@@ -41,20 +41,20 @@ public interface UserDataService
     /**
      * Change the 'created' state of the user i.e. whether the user exists on the server or not
      */
-    public void setUserCreationState(String username, UserCreationState creationState);
+    public void setUserCreationState(String username, DataCreationState creationState);
     
     /**
      * @param domain                the domain to search or <tt>null</tt> for all domains
      * @param creationState         optional creation state to filter the count or <tt>null</tt> for all 
      */
-    public long countUsers(String domain, UserCreationState creationState);
+    public long countUsers(String domain, DataCreationState creationState);
 
     /**
      * Delete users by create state
      * 
      * @param creationState         the user creation state to target or <tt>null<tt> to delete all users
      */
-    public long deleteUsers(UserCreationState creationState);
+    public long deleteUsers(DataCreationState creationState);
     
     /**
      * Find a user by username
@@ -78,7 +78,7 @@ public interface UserDataService
      * @param count         number of users to fetch
      * @return              List of user data, which may be empty or less than the required count
      */
-    public List<UserData> getUsersByCreationState(UserCreationState creationState, int startIndex, int count);
+    public List<UserData> getUsersByCreationState(DataCreationState creationState, int startIndex, int count);
     
     /**
      * Select a random, pre-created user.

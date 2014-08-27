@@ -21,10 +21,10 @@ package org.alfresco.bm.user;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.alfresco.bm.data.DataCreationState;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
-import org.alfresco.bm.user.UserData.UserCreationState;
 
 /**
  * <h1>Input</h1>
@@ -118,10 +118,10 @@ public class CreateUsers extends AbstractEventProcessor
         List<Event> nextEvents = new ArrayList<Event>();
         
         // Schedule events for each user to be created
-        long createdUsers = userDataService.countUsers(null, UserCreationState.Created);
+        long createdUsers = userDataService.countUsers(null, DataCreationState.Created);
         long toCreate = numberOfUsers - createdUsers;
         int index = 0;
-        List<UserData> pendingUsers = userDataService.getUsersByCreationState(UserCreationState.NotScheduled, index, batchSize);
+        List<UserData> pendingUsers = userDataService.getUsersByCreationState(DataCreationState.NotScheduled, index, batchSize);
         
         // Terminate the user creation process if there is no more do to or nothing to do
         if (toCreate <= 0)
@@ -147,7 +147,7 @@ public class CreateUsers extends AbstractEventProcessor
             Event nextEvent = new Event(EVENT_NAME_CREATE_USER, username);
             nextEvents.add(nextEvent);
             toCreate--;
-            userDataService.setUserCreationState(username, UserCreationState.Scheduled);
+            userDataService.setUserCreationState(username, DataCreationState.Scheduled);
             // Check if we still need to do more
             if (toCreate <= 0)
             {

@@ -18,10 +18,10 @@
  */
 package org.alfresco.bm.user;
 
+import org.alfresco.bm.data.DataCreationState;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
-import org.alfresco.bm.user.UserData.UserCreationState;
 
 import com.mongodb.DuplicateKeyException;
 
@@ -254,10 +254,10 @@ public class PrepareUsers extends AbstractEventProcessor
     public EventResult processEvent(Event event) throws Exception
     {
         // First wipe out any users that were not created
-        userDataService.deleteUsers(UserCreationState.Unknown);
-        userDataService.deleteUsers(UserCreationState.NotScheduled);
-        userDataService.deleteUsers(UserCreationState.Scheduled);
-        userDataService.deleteUsers(UserCreationState.Failed);
+        userDataService.deleteUsers(DataCreationState.Unknown);
+        userDataService.deleteUsers(DataCreationState.NotScheduled);
+        userDataService.deleteUsers(DataCreationState.Scheduled);
+        userDataService.deleteUsers(DataCreationState.Failed);
         
         // How many domains must we create?
         long domainsToCreate = (long) (Math.ceil((double)numberOfUsers/(double)usersPerDomain));
@@ -324,7 +324,7 @@ public class PrepareUsers extends AbstractEventProcessor
                 }
                 // Create data
                 user = new UserData();
-                user.setCreationState(UserCreationState.NotScheduled);
+                user.setCreationState(DataCreationState.NotScheduled);
                 user.setDomain(domain);
                 user.setEmail(email);
                 user.setFirstName(firstName);
@@ -334,7 +334,7 @@ public class PrepareUsers extends AbstractEventProcessor
                 // Check if the user must be assumed to exist
                 if (assumeCreated)
                 {
-                    user.setCreationState(UserCreationState.Created);
+                    user.setCreationState(DataCreationState.Created);
                 }
                 // Persist
                 try

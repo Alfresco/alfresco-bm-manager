@@ -21,7 +21,7 @@ package org.alfresco.bm.user;
 import java.util.Collections;
 import java.util.Properties;
 
-import org.alfresco.bm.user.UserData.UserCreationState;
+import org.alfresco.bm.data.DataCreationState;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -87,7 +87,7 @@ public class UserDataServiceTest
         
         UserData user = new UserData();
         user.setUsername(username);
-        user.setCreationState(UserCreationState.NotScheduled);
+        user.setCreationState(DataCreationState.NotScheduled);
         user.setDomain("example.com");
         user.setEmail(username + "@example.com");
         user.setFirstName(first);
@@ -140,18 +140,18 @@ public class UserDataServiceTest
     {
         // Start with 1 created user and 5 uncreated users
         UserData createdUser = createUserData("testDeletedByCreated.createdUser" + System.nanoTime());
-        createdUser.setCreationState(UserCreationState.Created);
+        createdUser.setCreationState(DataCreationState.Created);
         userDataService.createNewUser(createdUser);
         
         Assert.assertEquals(6, userDataService.countUsers(null, null));
-        Assert.assertEquals(1, userDataService.countUsers(null, UserCreationState.Created));
-        Assert.assertEquals(5, userDataService.countUsers(null, UserCreationState.NotScheduled));
+        Assert.assertEquals(1, userDataService.countUsers(null, DataCreationState.Created));
+        Assert.assertEquals(5, userDataService.countUsers(null, DataCreationState.NotScheduled));
 
-        long deleted = userDataService.deleteUsers(UserCreationState.NotScheduled);
+        long deleted = userDataService.deleteUsers(DataCreationState.NotScheduled);
         Assert.assertEquals(5L, deleted);
         Assert.assertEquals(1, userDataService.countUsers(null, null));
-        Assert.assertEquals(1, userDataService.countUsers(null, UserCreationState.Created));
-        Assert.assertEquals(0, userDataService.countUsers(null, UserCreationState.NotScheduled));
+        Assert.assertEquals(1, userDataService.countUsers(null, DataCreationState.Created));
+        Assert.assertEquals(0, userDataService.countUsers(null, DataCreationState.NotScheduled));
     }
     
     @Test
@@ -165,7 +165,7 @@ public class UserDataServiceTest
             user = userDataService.findUserByUsername(USERS[i]);
             Assert.assertNotNull("No user found for " + USERS[i], user);
             // Mark user created
-            userDataService.setUserCreationState(USERS[i], UserCreationState.Created);
+            userDataService.setUserCreationState(USERS[i], DataCreationState.Created);
             // Repeat and repeat ...
             for (int j = 0; j < 1000; j++)
             {
@@ -181,7 +181,7 @@ public class UserDataServiceTest
         // Convert all the users to created users
         for (String username : USERS)
         {
-            userDataService.setUserCreationState(username, UserCreationState.Created);
+            userDataService.setUserCreationState(username, DataCreationState.Created);
         }
         
         UserData userData = userDataService.getRandomUserFromDomain("example.net");
@@ -195,7 +195,7 @@ public class UserDataServiceTest
         userDataService.createNewUser(userData);
         userData = userDataService.getRandomUserFromDomain("example.net");
         Assert.assertNull("User in example.net was not created so should not show up", userData);
-        userDataService.setUserCreationState("fblogs", UserCreationState.Created);
+        userDataService.setUserCreationState("fblogs", DataCreationState.Created);
         userData = userDataService.getRandomUserFromDomain("example.net");
         Assert.assertNotNull("User in example.net is created so should show up", userData);
         
@@ -209,7 +209,7 @@ public class UserDataServiceTest
     {
         try
         {
-            userDataService.setUserCreationState("Bob", UserCreationState.Created);
+            userDataService.setUserCreationState("Bob", DataCreationState.Created);
             Assert.fail("Missing username not detected.");
         }
         catch (RuntimeException e)

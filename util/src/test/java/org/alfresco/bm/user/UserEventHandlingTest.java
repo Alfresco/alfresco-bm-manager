@@ -20,9 +20,9 @@ package org.alfresco.bm.user;
 
 import java.util.Properties;
 
+import org.alfresco.bm.data.DataCreationState;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
-import org.alfresco.bm.user.UserData.UserCreationState;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -88,13 +88,13 @@ public class UserEventHandlingTest
         Assert.assertEquals(user.getLastName(), PrepareUsers.DEFAULT_LAST_NAME_PATTERN);
         
         // Schedule user creation
-        userDataService.setUserCreationState("0000199.Test@00009.example.com", UserCreationState.Scheduled);
-        Assert.assertEquals(199,  userDataService.countUsers(null, UserCreationState.NotScheduled));
-        Assert.assertEquals(1,  userDataService.countUsers(null, UserCreationState.Scheduled));
+        userDataService.setUserCreationState("0000199.Test@00009.example.com", DataCreationState.Scheduled);
+        Assert.assertEquals(199,  userDataService.countUsers(null, DataCreationState.NotScheduled));
+        Assert.assertEquals(1,  userDataService.countUsers(null, DataCreationState.Scheduled));
         Assert.assertEquals("Domain query should only bring back created users.", 0, userDataService.getUsersInDomain("00009.example.com", 0, 200).size());
         
         // Complete user creation
-        userDataService.setUserCreationState("0000199.Test@00009.example.com", UserCreationState.Created);
+        userDataService.setUserCreationState("0000199.Test@00009.example.com", DataCreationState.Created);
         Assert.assertEquals("Domain query should bring back created users.", 1, userDataService.getUsersInDomain("00009.example.com", 0, 200).size());
         
         // Check that the cleanup is active: create the 201st user
@@ -123,8 +123,8 @@ public class UserEventHandlingTest
         // Since the email pattern changed, it will not find the previously-created user
         Assert.assertEquals("Total number of users not present", 201,  userDataService.countUsers(null, null));
         Assert.assertEquals("Target number of users not created", 20,  userDataService.countUsers("00009.second.com", null));
-        Assert.assertEquals("Target number of users not created", 1,  userDataService.countUsers(null, UserCreationState.Created));
-        Assert.assertEquals("Target number of users not created", 200,  userDataService.countUsers(null, UserCreationState.NotScheduled));
+        Assert.assertEquals("Target number of users not created", 1,  userDataService.countUsers(null, DataCreationState.Created));
+        Assert.assertEquals("Target number of users not created", 200,  userDataService.countUsers(null, DataCreationState.NotScheduled));
         user = userDataService.findUserByUsername("0000000.Test@00000.example.com");
         Assert.assertNull("Email pattern has changed so user should not have been found.", user);
         user = userDataService.findUserByUsername("0000199.Test@00009.second.com");

@@ -18,11 +18,10 @@
  */
 package org.alfresco.bm.user;
 
+import org.alfresco.bm.data.DataCreationState;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
-import org.alfresco.bm.user.UserData.UserCreationState;
-import org.alfresco.bm.user.UserDataService;
 
 /**
  * An event processor that ensures the presence of a minimum number of users.
@@ -75,7 +74,7 @@ public class CheckUserCountEventProcessor extends AbstractEventProcessor
     public EventResult processEvent(Event event) throws Exception
     {
         // Check the number of users
-        long actualUserCount = userDataService.countUsers(null, UserCreationState.Created);
+        long actualUserCount = userDataService.countUsers(null, DataCreationState.Created);
         if (actualUserCount < userCount)
         {
             // Not enough

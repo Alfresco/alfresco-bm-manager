@@ -20,6 +20,8 @@ package org.alfresco.bm.user;
 
 import java.io.Serializable;
 
+import org.alfresco.bm.data.DataCreationState;
+
 /**
  * Data representing a single user.
  * 
@@ -31,25 +33,10 @@ public class UserData implements Serializable
 {
     private static final long serialVersionUID = 6819295613500413737L;
     
-    /**
-     * The different states for user creation
-     * 
-     * @author Derek Hulley
-     * @since 2.0
-     */
-    public enum UserCreationState
-    {
-        Unknown,
-        NotScheduled,
-        Scheduled,
-        Failed,
-        Created
-    }
-    
     private int randomizer;
     private String username;
     private String password;
-    private UserCreationState creationState;
+    private DataCreationState creationState;
     private String firstName;
     private String lastName;
     private String email;
@@ -58,7 +45,7 @@ public class UserData implements Serializable
     public UserData()
     {
         randomizer = (int)(Math.random() * 1E6);
-        creationState = UserCreationState.Unknown;
+        creationState = DataCreationState.Unknown;
     }
 
     public int getRandomizer()
@@ -92,11 +79,11 @@ public class UserData implements Serializable
         this.password = password;
     }
 
-    public UserCreationState getCreationState()
+    public DataCreationState getCreationState()
     {
         return creationState;
     }
-    public void setCreationState(UserCreationState creationState)
+    public void setCreationState(DataCreationState creationState)
     {
         this.creationState = creationState;
     }
