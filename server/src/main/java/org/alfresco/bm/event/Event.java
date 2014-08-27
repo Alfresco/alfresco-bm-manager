@@ -71,6 +71,9 @@ public class Event
     
     /**
      * Construct an event with some data, scheduling it for the current time.
+     * <p/>
+     * Use a {@link DBObject} to allow full MongoDB-friendly persistence, allowing
+     * searching for <b>data.X</b>-style searches where the object has key *X*, say.
      * The data, if a {@link String}, will be persisted directly with this event.
      * 
      * @param name                  the event name
@@ -86,8 +89,11 @@ public class Event
     }
 
     /**
-     * Construct a scheduled event with some data.  The data, if a {@link String},
-     * will be persisted directly with this event.
+     * Construct a scheduled event with some data.
+     * <p/>
+     * Use a {@link DBObject} to allow full MongoDB-friendly persistence, allowing
+     * searching for <b>data.X</b>-style searches where the object has key *X*, say.
+     * The data, if a {@link String}, will be persisted directly with this event.
      * <p/>
      * Events that keep their data in memory <i>cannot</i> be executed by any other
      * running service and will therefore be lost if the server goes down.
@@ -106,6 +112,10 @@ public class Event
      * in memory.  If the option is selected to force in-memory storage or if the data is
      * not {@link String}, then the data will be stored in local memory and a unique
      * look-up key will be persisted.
+     * <p/>
+     * Use a {@link DBObject} to allow full MongoDB-friendly persistence, allowing
+     * searching for <b>data.X</b>-style searches where the object has key *X*, say.
+     * The data, if a {@link String}, will be persisted directly with this event.
      * <p/>
      * Events that keep their data in memory <i>cannot</i> be executed by any other
      * running service and will therefore be lost if the server goes down.

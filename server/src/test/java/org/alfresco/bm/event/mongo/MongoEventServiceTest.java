@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -129,6 +130,20 @@ public class MongoEventServiceTest
         Event event = new Event(name, now, data);
         // Done
         return event;
+    }
+    
+    @Test
+    public synchronized void persistenceAndSearchOfDBObject() throws Exception
+    {
+        Event event = createEvent();
+        String eventId = eventService.putEvent(event);
+        // Check that we can find it using the keys
+        DBObject findObj = new BasicDBObject("data.D-1", Integer.valueOf(1));
+        DBObject foundObj = es.findOne(findObj);
+        assertNotNull("Did not find event with DBObject data.", foundObj);
+        // Retrieve
+        event = eventService.getEvent(eventId);
+        assertEquals("Original DBObject not pulled out.", foundObj.get(Event.FIELD_DATA), event.getDataObject());
     }
     
     /**

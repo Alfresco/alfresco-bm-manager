@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -170,6 +171,21 @@ public class MongoResultServiceTest
         }
         // Done
         return eventRecord;
+    }
+    
+    @Test
+    public synchronized void persistenceAndSearchOfDBObject() throws Exception
+    {
+        EventRecord eventRecord = createEventRecord(System.currentTimeMillis());
+        resultService.recordResult(eventRecord);
+        // Check that we can find it using the data keys
+        DBObject findObj = new BasicDBObject("data.D-1", Integer.valueOf(1));
+        DBObject foundObj = rs.findOne(findObj);
+        assertNotNull("Did not find result with DBObject data.", foundObj);
+        // Check that we can find it using the data keys
+        findObj = new BasicDBObject("event.data.D-1", Integer.valueOf(1));
+        foundObj = rs.findOne(findObj);
+        assertNotNull("Did not find result with DBObject data.", foundObj);
     }
     
     /**
