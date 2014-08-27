@@ -40,6 +40,7 @@ d3Benchmark.directive('donutChart', function() {
                 height: height
             })
             .append('g')
+            .attr('id','donut-chart')
             .attr('class', 'progress-meter')
             .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
         //add label in the middle of the donut.
@@ -84,6 +85,8 @@ d3Benchmark.directive('donutChart', function() {
                     var total = newData[0] + newData[1];
                     var label = svg.select('#donut-label');
                     if (typeof label !== 'undefined') {
+                        //clear any charts that may exists.
+                        svg.text("");
                         svg.insert("text", "g")
                             .text(total)
                             .attr("id", "donut-label")
