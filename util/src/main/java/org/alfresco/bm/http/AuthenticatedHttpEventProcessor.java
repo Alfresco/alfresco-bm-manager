@@ -147,8 +147,7 @@ public abstract class AuthenticatedHttpEventProcessor extends AbstractEventProce
     }
 
     /**
-     * Execute the given method, authenticated as the given user using Basic
-     * Authentication.
+     * Execute the given method, authenticated as the given user using Basic Authentication.
      * 
      * @param request       request to execute
      * @param username      name of user to authenticate

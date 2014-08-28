@@ -43,8 +43,8 @@ import org.apache.http.params.HttpParams;
 
 /**
  * A class responsible for managing shared {@link HttpClient HTTP} connections. This uses a
- * thread-safe connection-manager instead of creating a new istance on every call.
- * 
+ * thread-safe connection-manager instead of creating a new instance on every call.
+ * <p/>
  * This is done for the folowing reasons:
  * <br> 
  * <ul>
