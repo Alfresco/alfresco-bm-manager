@@ -120,6 +120,7 @@ public class RestAPITest implements TestConstants
             ctxProperties.put(PROP_MONGO_CONFIG_DATABASE, database);
             ctxProperties.put(PROP_APP_RELEASE, RELEASE);
             ctxProperties.put(PROP_APP_SCHEMA, "" + SCHEMA);
+            ctxProperties.put(PROP_APP_INHERITANCE, "COMMON, TEST");
             ctxProperties.put(PROP_TEST_RUN_MONITOR_PERIOD, "" + 20000);
             ctxProperties.put(PROP_SYSTEM_CAPABILITIES, "Java");
             ctxProperties.put(PROP_APP_CONTEXT_PATH, "/");

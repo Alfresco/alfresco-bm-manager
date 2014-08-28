@@ -54,6 +54,7 @@ public interface TestConstants
     public static final String PROP_APP_RELEASE = "app.release";
     public static final String PROP_APP_DESCRIPTION = "app.description";
     public static final String PROP_APP_SCHEMA = "app.schema";
+    public static final String PROP_APP_INHERITANCE = "app.inheritance";
     
     public static final Integer VERSION_ZERO = Integer.valueOf(0);
     public static final String MASK = "******";

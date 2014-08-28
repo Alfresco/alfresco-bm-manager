@@ -92,23 +92,22 @@ public abstract class TestPropertyFactory
     /**
      * Convert Java properties into instances of {@link TestProperty} instances.
      * 
+     * @param inheritanceCSV        comma-separated list of project property namespaces to inherit
      * @param properties            Java properties with values defining defaults, types, etc
      * @return                      objects mapping all the values required to persist and present the test properties
      */
-    public static List<TestProperty> getTestProperties(Properties properties)
+    public static List<TestProperty> getTestProperties(String inheritanceCSV, Properties properties)
     {
+        // Get property inheritance order
+        TreeSet<String> inheritance = getInheritance(inheritanceCSV);
+        if (inheritance.size() == 0)
+        {
+            logger.error("The property inheritance set is empty: " + inheritanceCSV);
+        }
+        
         // Extract project and property names
         Set<String> allPropNames = new HashSet<String>(113);
-        Set<String> allProjectNames = new HashSet<String>(5);
-        getPropertyAndProjectNames(properties, allPropNames, allProjectNames);
-        
-        // Get property inheritance order
-        TreeSet<String> inheritance = getInheritance(properties);
-        // Append all other projects and warn appropriately
-        if (inheritance.addAll(allProjectNames))
-        {
-            logger.warn("The project property inheritance has not been explicitly defined.  Projects are: " + inheritance);
-        }
+        getPropertyAndProjectNames(properties, allPropNames, inheritance);
         
         // Build the properties
         List<TestProperty> testProperties = new ArrayList<TestProperty>(57);
@@ -133,15 +132,14 @@ public abstract class TestPropertyFactory
     /**
      * Get an ordered set of project inheritance
      */
-    private static TreeSet<String> getInheritance(Properties properties)
+    private static TreeSet<String> getInheritance(String inheritance)
     {
         TreeSet<String> projects = new TreeSet<String>();
         
-        String inheritance = properties.getProperty(PROP_INHERITANCE, DEFAULT_INHERITANCE);
-        StringTokenizer st = new StringTokenizer(inheritance, ".");
+        StringTokenizer st = new StringTokenizer(inheritance, ",");
         while (st.hasMoreTokens())
         {
-            String project = st.nextToken();
+            String project = st.nextToken().trim();
             if (project.length() == 0)
             {
                 continue;
@@ -185,7 +183,12 @@ public abstract class TestPropertyFactory
             }
             String projectName = propDeclaration.substring(0, projectEndDot);
             String propName = propDeclaration.substring(propNameStart, propEndDot);
-            // Add it
+            // Check that the project is inherited at all
+            if (!projectNames.contains(projectName))
+            {
+                logger.debug("Ignoring property not in project set (" + projectNames + ") : " + propDeclaration);
+                continue;
+            }
             projectNames.add(projectName);
             propNames.add(propName);
         }

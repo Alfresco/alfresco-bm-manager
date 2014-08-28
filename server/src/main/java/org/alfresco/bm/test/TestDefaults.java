@@ -37,6 +37,7 @@ import org.alfresco.bm.test.prop.TestPropertyFactory;
 public class TestDefaults implements LifecycleListener
 {
     private final Properties rawProperties;
+    private final String inheritance;
     
     private List<TestProperty> testProperties;
     private Map<String, TestProperty> testPropertiesMap;
@@ -47,19 +48,24 @@ public class TestDefaults implements LifecycleListener
      * 
      * @see TestPropertyFactory
      */
-    public TestDefaults(Properties rawProperties)
+    public TestDefaults(Properties rawProperties, String inheritance)
     {
         if (rawProperties == null)
         {
             throw new IllegalArgumentException("rawProperties cannot be null");
         }
+        if (inheritance == null || inheritance.length() == 0)
+        {
+            throw new IllegalArgumentException("inheritance must be supplied e.g. \"MYTEST,COMMON,HTTP\".");
+        }
         this.rawProperties = rawProperties;
+        this.inheritance = inheritance;
     }
 
     @Override
     public synchronized void start() throws Exception
     {
-        testProperties = TestPropertyFactory.getTestProperties(rawProperties);
+        testProperties = TestPropertyFactory.getTestProperties(inheritance, rawProperties);
         testPropertiesMap = TestPropertyFactory.groupByName(testProperties);
     }
 

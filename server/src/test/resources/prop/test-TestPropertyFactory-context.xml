@@ -10,7 +10,7 @@
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
     <!-- Bean that produces test properties -->
-    <bean id="testPropertyDescriptions" class="org.springframework.beans.factory.config.PropertiesFactoryBean" >
+    <bean id="testRawProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean" >
         <property name="locations">
             <list>
                 <value>classpath*:prop/*.properties</value>

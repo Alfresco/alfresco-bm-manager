@@ -45,6 +45,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 @RunWith(JUnit4.class)
 public class TestPropertyFactoryTest
 {
+    private static final String INHERITANCE = "TEST, crud, sample, common";
+    
     private ClassPathXmlApplicationContext ctx;
     private Properties rawProperties;
 
@@ -53,7 +55,7 @@ public class TestPropertyFactoryTest
     {
         // Initialize the app context; the following starts it, too.
         ctx = new ClassPathXmlApplicationContext("prop/test-TestPropertyFactory-context.xml");
-        rawProperties = (Properties) ctx.getBean("testPropertyDescriptions");
+        rawProperties = (Properties) ctx.getBean("testRawProperties");
     }
     
     @After
@@ -68,8 +70,8 @@ public class TestPropertyFactoryTest
     @Test
     public void basic()
     {
-        List<TestProperty> listOne = TestPropertyFactory.getTestProperties(rawProperties);
-        List<TestProperty> listTwo = TestPropertyFactory.getTestProperties(rawProperties);
+        List<TestProperty> listOne = TestPropertyFactory.getTestProperties(INHERITANCE, rawProperties);
+        List<TestProperty> listTwo = TestPropertyFactory.getTestProperties(INHERITANCE, rawProperties);
         assertFalse("The factory does not produce singletons", listOne == listTwo);
     }
     
@@ -79,14 +81,14 @@ public class TestPropertyFactoryTest
         TestDefaults defaults = null;
         try
         {
-            defaults = new TestDefaults(null);
+            defaults = new TestDefaults(null, INHERITANCE);
             fail("Null properties not detected");
         }
         catch (IllegalArgumentException e)
         {
             // Expected
         }
-        defaults = new TestDefaults(rawProperties);
+        defaults = new TestDefaults(rawProperties, INHERITANCE);
         // Don't initialize
         try
         {
@@ -112,9 +114,17 @@ public class TestPropertyFactoryTest
     }
     
     @Test
+    public void testTrap()
+    {
+        List<TestProperty> testProps = TestPropertyFactory.getTestProperties("trap", rawProperties);
+        Map<String, TestProperty> mapProps = TestPropertyFactory.groupByName(testProps);
+        assertEquals("Incorrect number of properties", 2, mapProps.size());
+    }
+    
+    @Test
     public void testDefinitions()
     {
-        List<TestProperty> testProps = TestPropertyFactory.getTestProperties(rawProperties);
+        List<TestProperty> testProps = TestPropertyFactory.getTestProperties(INHERITANCE, rawProperties);
         Map<String, TestProperty> mapProps = TestPropertyFactory.groupByName(testProps);
         assertEquals("Incorrect number of properties", 13, mapProps.size());
         

@@ -64,6 +64,7 @@ import com.mongodb.DBObject;
 public class MongoTestDAOTest implements TestConstants
 {
     private static final Set<String> capabilities = Collections.singleton(CAPABILITY_JAVA7);
+    private static final String INHERITANCE = "sample,common,crud";
 
     private static Properties properties;
     private MongoDBForTestsFactory mongoFactory;
@@ -201,7 +202,7 @@ public class MongoTestDAOTest implements TestConstants
         Integer schema1 = 1;
         String description = "For Definitions Testing";
         
-        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(properties);
+        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(INHERITANCE, properties);
         boolean written = dao.writeTestDef(releaseA, schema1, description, testProperties);
         assertTrue(written);
         boolean writtenAgain = dao.writeTestDef(releaseA, schema1, "Another", testProperties);
@@ -232,7 +233,7 @@ public class MongoTestDAOTest implements TestConstants
         Integer schema1 = 1;
         String description = "For Definitions Testing";
         
-        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(properties);
+        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(INHERITANCE, properties);
         boolean written = dao.writeTestDef(releaseA, schema1, description, testProperties);
         assertTrue(written);
         boolean writtenAgain = dao.writeTestDef(releaseA, schema1, "Another", testProperties);
@@ -271,7 +272,7 @@ public class MongoTestDAOTest implements TestConstants
         Integer schema1 = 1;
         String description = "For Definitions Testing";
         
-        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(properties);
+        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(INHERITANCE, properties);
         boolean written = dao.writeTestDef(releaseA, schema1, description, testProperties);
         assertTrue(written);
         boolean writtenAgain = dao.writeTestDef(releaseA, schema1, "Another", testProperties);
@@ -319,7 +320,7 @@ public class MongoTestDAOTest implements TestConstants
         String releaseA = "T" + UUID.randomUUID().toString().replace("-", "_");
         Integer schema1 = 1;
         
-        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(properties);
+        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(INHERITANCE, properties);
         dao.writeTestDef(releaseA, schema1, description, testProperties);
         
         boolean created = dao.createTest(testA, description, releaseA, schema1);
@@ -437,7 +438,7 @@ public class MongoTestDAOTest implements TestConstants
         Integer schema2 = 2;
         String description = "For Test Testing";
         
-        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(properties);
+        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(INHERITANCE, properties);
         dao.writeTestDef(releaseA, schema1, description, testProperties);
         
         try

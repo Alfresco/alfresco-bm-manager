@@ -47,7 +47,6 @@
     <bean id="testRawProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean" >
         <property name="locations">
             <list>
-                <value>classpath*:config/defaults/app-schema.properties</value>
                 <value>classpath*:config/defaults/events.properties</value>
                 <value>classpath*:config/defaults/http-client.properties</value>
                 <value>classpath*:config/defaults/mongo.properties</value>
@@ -78,6 +77,7 @@
     
     <bean id="testDefaults" class="org.alfresco.bm.test.TestDefaults">
         <constructor-arg name="rawProperties" ref="testRawProperties" />
+        <constructor-arg name="inheritance" value="${app.inheritance}" />
     </bean>
     
     <bean id="test" class="org.alfresco.bm.test.Test">
