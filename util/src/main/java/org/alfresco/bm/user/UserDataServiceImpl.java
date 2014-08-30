@@ -88,7 +88,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .start(FIELD_USERNAME, 1)
                 .get();
         DBObject optUserName = BasicDBObjectBuilder
-                .start("name", "uidx_username")
+                .start("name", "uidxUserName")
                 .add("unique", Boolean.TRUE)
                 .get();
         collection.createIndex(uidxUserName, optUserName);
@@ -97,30 +97,30 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .start(FIELD_EMAIL, 1)
                 .get();
         DBObject optEmail = BasicDBObjectBuilder
-                .start("name", "uidx_email")
+                .start("name", "uidxEmail")
                 .add("unique", Boolean.TRUE)
                 .get();
         collection.createIndex(uidxEmail, optEmail);
 
-        DBObject idxDomain = BasicDBObjectBuilder
+        DBObject idxDomainRand = BasicDBObjectBuilder
                 .start(FIELD_DOMAIN, 1)
+                .add(FIELD_RANDOMIZER, 2)
                 .get();
-        DBObject optDomain = BasicDBObjectBuilder
-                .start("name", "idx_domain")
+        DBObject optDomainRand = BasicDBObjectBuilder
+                .start("name", "idxDomainRand")
                 .add("unique", Boolean.FALSE)
                 .get();
-        collection.createIndex(idxDomain, optDomain);
+        collection.createIndex(idxDomainRand, optDomainRand);
         
-        DBObject idxCreationState = BasicDBObjectBuilder
+        DBObject idxCreationStateRand = BasicDBObjectBuilder
                 .start(FIELD_CREATION_STATE, 1)
                 .add(FIELD_RANDOMIZER, 2)
-                .add(FIELD_DOMAIN, 3)
                 .get();
-        DBObject optCreationState = BasicDBObjectBuilder
-                .start("name", "idx_creation_state")
+        DBObject optCreationStateRand = BasicDBObjectBuilder
+                .start("name", "idxCreationStateRand")
                 .add("unique", Boolean.FALSE)
                 .get();
-        collection.createIndex(idxCreationState, optCreationState);
+        collection.createIndex(idxCreationStateRand, optCreationStateRand);
     }
     
     /**
@@ -321,7 +321,10 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         DBObject queryObj = BasicDBObjectBuilder.start()
                 .add(FIELD_CREATION_STATE, creationState.toString())
                 .get();
-        DBCursor cursor = collection.find(queryObj).skip(startIndex).limit(count);
+        DBObject sortObj = BasicDBObjectBuilder.start()
+                .add(FIELD_RANDOMIZER, 1)
+                .get();
+        DBCursor cursor = collection.find(queryObj).sort(sortObj).skip(startIndex).limit(count);
         return fromDBCursor(cursor);
     }
 
