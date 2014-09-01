@@ -12,10 +12,16 @@ Bring the archetype's pom in
 Remove unecessary files:
 > del src\main\resources\archetype-resources\archetype-*.xml
 > del src\main\resources\archetype-resources\building-the-archetype.txt
+> del src\main\resources\archetype-resources\*.log
+> del src\main\resources\archetype-resources\*.log.*
+> del src\main\resources\archetype-resources\.project
+> del src\main\resources\archetype-resources\.classpath
+> rmdir /S src\main\resources\archetype-resources\bin
+> rmdir /S src\main\resources\archetype-resources\.settings
 
 Check and deploy archetype artifact:
 > mvn clean install
 > mvn deploy
 
 To use, follow instructions on:
-   https://ts.alfresco.com/share/page/site/bm/wiki-page?title=Benchmark_client_project_setup
+   https://ts.alfresco.com/share/page/site/bm/wiki-page?title=Benchmark_Test_Project_Development
