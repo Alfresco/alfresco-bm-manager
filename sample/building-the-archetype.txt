@@ -1,27 +1,39 @@
 To create an archetype:
+Note: Commands are for Windows with Git tools installed
 
+Copy the 'src' folder to the archetype
+> cp -R src archetype\src\main\resources\archetype-resources\src
+> cd archetype
+
+Check all properties and configuration files
+> start pom.xml
+> start src\main\resources\archetype-resources\pom.xml
+> start src\main\resources\META-INF\maven\archetype-metadata.xml
+> start src\test\resources\projects\basic\archetype.properties
+
+Build the archetype
 > mvn clean install
 
-> mvn archetype:create-from-project
-> cd target\generated-sources\archetype
+Test locally
+> cd target
+> mvn archetype:generate -DarchetypeCatalog=local
 
-Bring the archetype's pom in
-> del pom.xml
-> copy ..\..\..\archetype-pom.xml pom.xml
-
-Remove unecessary files:
-> del src\main\resources\archetype-resources\archetype-*.xml
-> del src\main\resources\archetype-resources\building-the-archetype.txt
-> del src\main\resources\archetype-resources\*.log
-> del src\main\resources\archetype-resources\*.log.*
-> del src\main\resources\archetype-resources\.project
-> del src\main\resources\archetype-resources\.classpath
-> rmdir /S src\main\resources\archetype-resources\bin
-> rmdir /S src\main\resources\archetype-resources\.settings
-
-Check and deploy archetype artifact:
-> mvn clean install
+Deploy archetype
+> cd ..
 > mvn deploy
 
 To use, follow instructions on:
    https://ts.alfresco.com/share/page/site/bm/wiki-page?title=Benchmark_Test_Project_Development
+   If you are familiar with Maven then it is just this:
+      mvn archetype:generate -DarchetypeRepository=http://artifacts.alfresco.com/nexus/content/repositories/snapshots/ -DarchetypeGroupId=org.alfresco -DarchetypeArtifactId=alfresco-benchmark-sample-archetype
+   Parameters can be chosen at the prompt or specified up front:
+      -Dpackage=com.example
+      -DartifactId=mytest
+      -Dversion=1.0-SNAPSHOT
+      -Djunit-version=4.11
+      -Dserver-version=2.0.0-SNAPSHOT
+
+Use the New Project
+> cd mytest
+> mvn clean install
+> mvn tomcat7:run -Dmongo.config.host=localhost

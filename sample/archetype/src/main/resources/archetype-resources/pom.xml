@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>${groupId}</groupId>
+    <artifactId>${artifactId}</artifactId>
+    <version>${version}</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <server.version>${server-version}</server.version>
+        <junit.version>${junit-version}</junit.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-benchmark-server</artifactId>
+            <version>${server.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <!-- Uncomment this for your project
+    <scm>
+        <connection>scm:svn:SomeURL></connection>
+    </scm>
+    -->
+    <!-- Reconfigure this for your project -->
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>config/startup/*.properties</include>
+                    <include>log4j.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <configuration>
+                    <port>9090</port>
+                    <path>/${project.artifactId}</path>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.1.1</version>
+                <configuration>
+                    <attachClasses>true</attachClasses>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
