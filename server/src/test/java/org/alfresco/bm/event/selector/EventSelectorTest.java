@@ -39,9 +39,9 @@ public class EventSelectorTest
         registry.register("C", cProcessor);
         
         List<EventSuccessorInfo> list1 = new ArrayList<EventSuccessorInfo>();
-        list1.add(new EventSuccessorInfo("A", "10"));
-        list1.add(new EventSuccessorInfo("B", "10"));
-        list1.add(new EventSuccessorInfo("  C  ", "80", 0, 1000l));
+        list1.add(new EventSuccessorInfo("A", "2,5"));
+        list1.add(new EventSuccessorInfo("B", "2,5"));
+        list1.add(new EventSuccessorInfo("  C  ", "2,5", 80, 1000L));
         
         random1 = new RandomWeightedEventSelector(registry, list1);
     }

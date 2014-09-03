@@ -108,9 +108,6 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
     /**
      * Get session data associated with the given sessionId, creating it with the expected minimum session end time if it doesn't exist.
      * Override this method to control what is persisted.
-     * 
-     * @param sessionId
-     * @return
      */
     protected PersistedSessionData getSessionData(String sessionId)
     {

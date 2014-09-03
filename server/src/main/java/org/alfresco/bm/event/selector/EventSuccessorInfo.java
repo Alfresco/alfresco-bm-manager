@@ -27,36 +27,45 @@ import java.util.StringTokenizer;
  */
 public class EventSuccessorInfo
 {
-    private String eventName;
-    private int weighting;
-    private Long delay;
+    private final String eventName;
+    private final int weighting;
+    private final long delay;
     
-    public EventSuccessorInfo(String eventName, Integer weightingOverride)
+    public EventSuccessorInfo(String eventName, int weightingOverride)
     {
-        this(eventName, null, weightingOverride, null);
+        this(eventName, "", weightingOverride, 0L);
     }
 
     public EventSuccessorInfo(String eventName, String weightingsStr)
     {
-        this(eventName, weightingsStr, null, null);
+        this(eventName, weightingsStr, -1, 0L);
     }
 
-    public EventSuccessorInfo(String eventName, String weightings, Integer weightingOverride)
+    public EventSuccessorInfo(String eventName, String weightings, int weightingOverride)
     {
-        this(eventName, weightings, weightingOverride, null);
+        this(eventName, weightings, weightingOverride, 0L);
     }
 
-    public EventSuccessorInfo(String eventName, String weightings, Integer weightingOverride, Long delay)
+    /**
+     * @param eventName                     the name of the event being lent some weight
+     * @param weightings                    a comma-separated list of weighting values that will be multiplied together e.g. "1, 5" will give a weighting of 5.
+     * @param weightingOverride             a value to override the weightings (ignored if less than zero)
+     * @param delay                         the delay before the next event
+     */
+    public EventSuccessorInfo(String eventName, String weightings, int weightingOverride, long delay)
     {
-        super();
         this.eventName = eventName.trim();
-        if(weightings != null)
+        if (weightingOverride >= 0)
+        {
+            this.weighting = weightingOverride;
+        }
+        else if (weightings != null)
         {
             this.weighting = parseWeightings(weightings);
         }
-        if(weightingOverride != null)
+        else
         {
-            this.weighting += weightingOverride.intValue();
+            this.weighting = 1;
         }
         this.delay = delay;
     }
@@ -66,7 +75,7 @@ public class EventSuccessorInfo
         int weighting = 1;
 
         StringTokenizer st = new StringTokenizer(weightings, ",");
-        while(st.hasMoreTokens())
+        while (st.hasMoreTokens())
         {
             String weighingStr = st.nextToken().trim();
             weighting *= Integer.parseInt(weighingStr);
@@ -74,22 +83,22 @@ public class EventSuccessorInfo
 
         return weighting;
     }
-
+    
     public String getEventName()
     {
         return eventName;
     }
-
+    
     public int getWeighting()
     {
         return weighting;
     }
-
-    public Long getDelay()
+    
+    public long getDelay()
     {
-        return (delay == null ? 0l : delay);
+        return delay;
     }
-
+    
     @Override
     public String toString()
     {

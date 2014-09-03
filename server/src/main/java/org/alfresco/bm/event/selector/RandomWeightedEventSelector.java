@@ -66,9 +66,8 @@ public class RandomWeightedEventSelector extends AbstractEventSelector
                 throw new RuntimeException(ERR_FORM + ".  Actual: " + eventSuccessorInfo);
             }
 
-            Long delayVal = eventSuccessorInfo.getDelay();
+            long delay = eventSuccessorInfo.getDelay();
             int weighting = eventSuccessorInfo.getWeighting();
-            long delay = (delayVal == null ? 0L : delayVal.longValue());
             EventSuccessor eventSuccessor = new EventSuccessor(eventName, weighting, delay);
             selector.add(weighting, eventSuccessor);
         }

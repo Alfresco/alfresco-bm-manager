@@ -18,68 +18,75 @@
  */
 package org.alfresco.bm.event.selector;
 
+import com.mongodb.DBObject;
+
 /**
  * Represents a full response from an event processor:
  * a success/failure indication, a response message and the raw response data.
  *  
  * @author Steve Glover
+ * @author Derek Hulley
  * @since 1.3
  */
 public class EventProcessorResponse
 {
-    private String message;
-    private EventProcessorResult result;
-    private Object responseData;
-    private Object input;
-    private boolean persistAsString = false;
+    private final String message;
+    private final EventProcessorResult result;
+    private final Object responseData;
+    private final Object input;
+    private final boolean persistAsString;
 
     /**
-     * Constructor for an event response
-     * 
-     * @param message              any message associated with the response
-     * @param success              whether the event processing was successful or not
-     * @param responseData         any other data associated with the response
+     * @see EventProcessorResponse#EventProcessorResponse(String, EventProcessorResult, Object, Object, boolean)
      */
     public EventProcessorResponse(String message, boolean success, Object responseData)
     {
-        this.message = message;
-        this.result = success ? EventProcessorResult.SUCCESS : EventProcessorResult.FAIL;
-        this.responseData = responseData;
+        this(message, success, null, responseData, false);
     }
     
+    /**
+     * @see EventProcessorResponse#EventProcessorResponse(String, EventProcessorResult, Object, Object, boolean)
+     */
     public EventProcessorResponse(String message, EventProcessorResult result, Object responseData)
     {
-        this.message = message;
-        this.result = result;
-        this.responseData = responseData;
+        this(message, result, null, responseData, false);
     }
 
     /**
-     * Constructor for an event response
-     * 
-     * @param message              any message associated with the response
-     * @param success              whether the event processing was successful or not
-     * @param responseData         any other data associated with the response
-     * @param forceStringResponse  call 
+     * @see EventProcessorResponse#EventProcessorResponse(String, EventProcessorResult, Object, Object, boolean)
      */
     public EventProcessorResponse(String message, boolean success, Object responseData, boolean persistAsString)
     {
-        this(message, success, responseData);
-        this.persistAsString = persistAsString;
+        this(message, success, null, responseData, persistAsString);
     }
     
+    /**
+     * @param success                   <tt>true</tt> if successful otherwise <tt>false</tt>
+     * 
+     * @see EventProcessorResponse#EventProcessorResponse(String, EventProcessorResult, Object, Object, boolean)
+     */
     public EventProcessorResponse(String message, boolean success, Object input, Object responseData, boolean persistAsString)
     {
-        this(message, success, responseData);
-        this.persistAsString = persistAsString;
-        this.input = input;
+        this(message, (success ? EventProcessorResult.SUCCESS : EventProcessorResult.FAIL), input, responseData, persistAsString);
     }
     
+    /**
+     * An event response containing all the input and output details
+     * 
+     * @param message                   the response message
+     * @param result                    the result (positive, negative or irrelevant)
+     * @param input                     the original input data
+     * @param responseData              the response data
+     * @param persistAsString           <tt>true</tt> if the response data must be converted to a String (default is <tt>false</tt>).
+     *                                  Use a {@link DBObject MongoDB DBObject} for full JSON-aware searchable data.
+     */
     public EventProcessorResponse(String message, EventProcessorResult result, Object input, Object responseData, boolean persistAsString)
     {
-        this(message, result, responseData);
-        this.persistAsString = persistAsString;
+        this.message = message;
+        this.result = result;
         this.input = input;
+        this.responseData = responseData;
+        this.persistAsString = persistAsString;
     }
 
     @Override
