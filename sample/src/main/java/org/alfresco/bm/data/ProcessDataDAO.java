@@ -18,8 +18,12 @@
  */
 package org.alfresco.bm.data;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 
 /**
  * Sample DAO for demonstration.
@@ -42,19 +46,38 @@ public class ProcessDataDAO
         this.collection = db.getCollection(collection);
         
         // Initialize indexes
-        ProcessData.checkIndexes(this.collection);
+        DBObject idx_PROCNAME = BasicDBObjectBuilder
+                .start(ProcessData.FIELD_NAME, 1)
+                .get();
+        DBObject opt_PROCNAME = BasicDBObjectBuilder
+                .start("name", "IDX_PROCNAME")
+                .add("unique", true)
+                .get();
+        this.collection.createIndex(idx_PROCNAME, opt_PROCNAME);
     }
 
     /**
      * Create a new process
      * 
-     * @param collection            DB collection containing data
-     * @param processName           the name of the process to find
      * @return                      <tt>true</tt> if the insert was successful
      */
     public boolean createProcess(String processName)
     {
-        return ProcessData.insertProcess(collection, processName);
+        DBObject insertObj = BasicDBObjectBuilder
+                .start()
+                .add(ProcessData.FIELD_NAME, processName)
+                .add(ProcessData.FIELD_STATE, DataCreationState.NotScheduled.toString())
+                .get();
+        try
+        {
+            collection.insert(insertObj);
+            return true;
+        }
+        catch (MongoException e)
+        {
+            // Log and rethrow
+            return false;
+        }
     }
     
     /**
@@ -65,6 +88,37 @@ public class ProcessDataDAO
      */
     public ProcessData findProcessByName(String processName)
     {
-        return ProcessData.findProcessByName(collection, processName);
+        DBObject queryObj = BasicDBObjectBuilder
+                .start()
+                .add(ProcessData.FIELD_NAME, processName)
+                .get();
+        DBObject resultObj = collection.findOne(queryObj);
+        if (resultObj == null)
+        {
+            return null;
+        }
+        else
+        {
+            ProcessData result = new ProcessData();
+            String stateStr = (String) resultObj.get(ProcessData.FIELD_STATE);
+            DataCreationState state = DataCreationState.valueOf(stateStr);
+            result.setState(state);
+            result.setName( (String) resultObj.get(ProcessData.FIELD_NAME));
+            return result;
+        }
+    }
+    
+    public boolean updateProcessState(String processName, DataCreationState state)
+    {
+        DBObject findObj = new BasicDBObject()
+                .append(ProcessData.FIELD_NAME, processName);
+        DBObject setObj = BasicDBObjectBuilder
+                .start()
+                .push("$set")
+                    .append(ProcessData.FIELD_STATE, state.toString())
+                 .pop()
+                 .get();
+        DBObject foundObj = collection.findAndModify(findObj, setObj);
+        return foundObj != null;
     }
 }

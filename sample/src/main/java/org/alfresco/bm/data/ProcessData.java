@@ -18,11 +18,6 @@
  */
 package org.alfresco.bm.data;
 
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
-
 /**
  * Sample POJO for demonstration.
  * 
@@ -31,108 +26,31 @@ import com.mongodb.MongoException;
  */
 public class ProcessData
 {
-    public static final String FIELD_ID = "id";
-    public static final String FIELD_PROCESS_NAME = "processName";
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_STATE = "state";
 
-    private String id;
-    private String processName;
-    private boolean done;
-
-    /**
-     * Ensure that the MongoDB collection has the required indexes associated with
-     * this user bean.
-     * 
-     * @param collection                the DB collection
-     */
-    public static void checkIndexes(DBCollection collection)
-    {
-        DBObject idx_PROCNAME = BasicDBObjectBuilder
-                .start(FIELD_PROCESS_NAME, 1)
-                .get();
-        DBObject opt_PROCNAME = BasicDBObjectBuilder
-                .start("name", "IDX_PROCNAME")
-                .add("unique", true)
-                .get();
-        collection.createIndex(idx_PROCNAME, opt_PROCNAME);
-    }
+    private String name;
+    private DataCreationState state;
     
-    /**
-     * Utility method to create a new process
-     * 
-     * @param collection            DB collection containing data
-     * @param processName           the name of the process to find
-     * @return                      <tt>true</tt> if the insert was successful
-     */
-    public static boolean insertProcess(DBCollection collection, String processName)
+    public ProcessData()
     {
-        DBObject insertObj = BasicDBObjectBuilder
-                .start()
-                .add(FIELD_PROCESS_NAME, processName)
-                .get();
-        try
-        {
-            collection.insert(insertObj);
-            return true;
-        }
-        catch (MongoException e)
-        {
-            // Log and rethrow
-            return false;
-        }
-    }
-    
-    /**
-     * Utility method to find a user by process name
-     * 
-     * @param collection            DB collection containing data
-     * @param processName           the name of the process to find
-     * @return                      Returns the data or <tt>null</tt> if not found
-     */
-    public static ProcessData findProcessByName(DBCollection collection, String processName)
-    {
-        DBObject queryObj = BasicDBObjectBuilder
-                .start()
-                .add(FIELD_PROCESS_NAME, processName)
-                .get();
-        DBObject resultObj = collection.findOne(queryObj);
-        if (resultObj == null)
-        {
-            return null;
-        }
-        else
-        {
-            ProcessData result = new ProcessData();
-            result.setProcessName((String) resultObj.get(FIELD_PROCESS_NAME));
-            return result;
-        }
-    }
-    
-    public String getId()
-    {
-        return id;
-    }
-    public void setId(String id)
-    {
-        this.id = id;
+        state = DataCreationState.Unknown;
     }
 
-    public String getProcessName()
+    public String getName()
     {
-        return processName;
+        return name;
     }
-
-    public void setProcessName(String processName)
+    public void setName(String processName)
     {
-        this.processName = processName;
+        this.name = processName;
     }
-
-    public boolean isDone()
+    public DataCreationState getState()
     {
-        return done;
+        return state;
     }
-
-    public void setDone(boolean done)
+    public void setState(DataCreationState state)
     {
-        this.done = done;
+        this.state = state;
     }
 }

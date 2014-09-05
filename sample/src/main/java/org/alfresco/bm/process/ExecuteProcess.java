@@ -18,13 +18,16 @@
  */
 package org.alfresco.bm.process;
 
+import java.io.File;
 import java.util.Collections;
 
+import org.alfresco.bm.data.DataCreationState;
 import org.alfresco.bm.data.ProcessData;
 import org.alfresco.bm.data.ProcessDataDAO;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.file.TestFileService;
 
 /**
  * Execute an unfinished process
@@ -57,15 +60,17 @@ public class ExecuteProcess extends AbstractEventProcessor
     public static final String EVENT_NAME_PROCESS_DONE = "processDone";
     
     private final ProcessDataDAO processDataDAO;
+    private final TestFileService testFileService;
     private String eventNameProcessDone;
 
     /**
      * @param processDataDAO        general DAO for accessing data
      */
-    public ExecuteProcess (ProcessDataDAO processDataDAO)
+    public ExecuteProcess (ProcessDataDAO processDataDAO, TestFileService testFileService)
     {
         super();
         this.processDataDAO = processDataDAO;
+        this.testFileService = testFileService;
         this.eventNameProcessDone = EVENT_NAME_PROCESS_DONE;
     }
 
@@ -80,6 +85,9 @@ public class ExecuteProcess extends AbstractEventProcessor
     @Override
     public EventResult processEvent(Event event) throws Exception
     {
+        // Usually, the entire method is timed but we can choose to control this
+        super.suspendTimer();
+        
         // Get the user email
         String processName = (String) event.getDataObject();
         
@@ -91,9 +99,30 @@ public class ExecuteProcess extends AbstractEventProcessor
         {
             result = new EventResult(
                     "Skipping processing for '" + processName + "'.  Process not found.",
+                    false);
+            return result;
+        }
+        else if (process.getState() != DataCreationState.Scheduled)
+        {
+            result = new EventResult(
+                    "Skipping processing for '" + processName + "'.  Process not scheduled.",
+                    false);
+            return result;
+        }
+        
+        // Get and check that we have access to the required test file
+        File file = testFileService.getFile();
+        if (file == null || !file.exists())
+        {
+            result = new EventResult(
+                    "Skipping processing for '" + processName + "'.  No test file available.",
                     Collections.<Event>emptyList(),
                     false);
+            return result;
         }
+        
+        // Restart the clock
+        resumeTimer();
         
         // Simulate some process delay
         synchronized (processName)
@@ -116,11 +145,14 @@ public class ExecuteProcess extends AbstractEventProcessor
         {
             // 10% exceptions
             case 0:
+                // This would normally be done in a try-catch
+                processDataDAO.updateProcessState(processName, DataCreationState.Failed);
                 // We let the framework handle this
                 throw new RuntimeException("A ficticious random exception during execution of '" + processName + "'.");
             // 20% some error condition
             case 1:
             case 2:
+                processDataDAO.updateProcessState(processName, DataCreationState.Failed);
                 result = new EventResult(
                         "A ficticious random error response for executing process '" + processName + "'.",
                         Collections.<Event>emptyList(),
@@ -129,8 +161,8 @@ public class ExecuteProcess extends AbstractEventProcessor
             // 70% success
             default:
                 // Record the name of the process to reflect that is was created on the mythical server
-                boolean created = processDataDAO.createProcess(processName);
-                if (created)
+                boolean updated = processDataDAO.updateProcessState(processName, DataCreationState.Created);
+                if (updated)
                 {
                     // Create 'done' event, which will not have any further associated event processors
                     Event doneEvent = new Event(eventNameProcessDone, 0L, processName);

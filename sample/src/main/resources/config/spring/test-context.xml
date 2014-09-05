@@ -52,6 +52,27 @@
     </bean>
 
     <!--                 -->
+    <!-- Test Files      -->
+    <!--                 -->
+    <!--
+        Contrived example in order to demostrate how test files can be obtained.
+        The LocalTestFileService can also be used but it limits how your tests can be distributed.
+    -->
+    <bean id="fileDataService" class="org.alfresco.bm.file.FileDataServiceImpl">
+        <constructor-arg name="db" ref="testMongoDB" />
+        <constructor-arg name="collection" value="${files.collection.name}" />
+    </bean>
+    <bean id="testFileService" class="org.alfresco.bm.file.FtpTestFileService">
+        <constructor-arg name="fileDataService" ref="fileDataService" />
+        <constructor-arg name="localDir" value="${files.cache.dir}" /> 
+        <constructor-arg name="ftpHost" value="${files.ftp.host}" /> 
+        <constructor-arg name="ftpPort" value="${files.ftp.port}" /> 
+        <constructor-arg name="ftpUsername" value="${files.ftp.username}" /> 
+        <constructor-arg name="ftpPassword" value="${files.ftp.password}" /> 
+        <constructor-arg name="ftpPath" value="${files.ftp.path}" /> 
+    </bean>
+
+    <!--                 -->
     <!-- EventProcessors -->
     <!--                 -->
     <!--
@@ -67,6 +88,7 @@
         <property name="chart" value="false" />
     </bean>
     <bean id="event.scheduleProcesses" class="org.alfresco.bm.process.ScheduleProcesses" parent="event.base" >
+        <constructor-arg name="processDataDAO" ref="processDataDAO" />
         <constructor-arg name="testRunFqn" value="${testRunFqn}" />
         <constructor-arg name="processCount" value="${proc.processCount}" />
         <constructor-arg name="timeBetweenProcesses" value="${proc.timeBetweenProcesses}" />
@@ -75,6 +97,7 @@
     </bean>
     <bean id="event.process" class="org.alfresco.bm.process.ExecuteProcess" parent="event.base" >
         <constructor-arg name="processDataDAO" ref="processDataDAO" />
+        <constructor-arg name="testFileService" ref="testFileService" />
         <property name="chart" value="true" />
     </bean>
     <bean id="event.processDone" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" >

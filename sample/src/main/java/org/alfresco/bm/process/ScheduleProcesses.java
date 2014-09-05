@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.alfresco.bm.data.DataCreationState;
 import org.alfresco.bm.data.ProcessData;
+import org.alfresco.bm.data.ProcessDataDAO;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
@@ -60,6 +62,7 @@ public class ScheduleProcesses extends AbstractEventProcessor
     
     private static Log logger = LogFactory.getLog(ScheduleProcesses.class);
     
+    private final ProcessDataDAO processDataDAO;
     private final String testRunFqn;
     private final int processCount;
     private final long timeBetweenProcesses;
@@ -67,13 +70,15 @@ public class ScheduleProcesses extends AbstractEventProcessor
     private int batchSize;
 
     /**
+     * @param processDataDAO        the DAO for storing process data
      * @param testRunFqn            the name of the test run
      * @param processCount          the number of processes to run
      * @param timeBetweenProcesses  how long between each process
      */
-    public ScheduleProcesses(String testRunFqn, int processCount, long timeBetweenProcesses)
+    public ScheduleProcesses(ProcessDataDAO processDataDAO, String testRunFqn, int processCount, long timeBetweenProcesses)
     {
         super();
+        this.processDataDAO = processDataDAO;
         this.testRunFqn = testRunFqn;
         this.processCount = processCount;
         this.timeBetweenProcesses = timeBetweenProcesses;
@@ -119,6 +124,12 @@ public class ScheduleProcesses extends AbstractEventProcessor
         {
             String processName = testRunFqn + "-" + UUID.randomUUID();
             scheduled += timeBetweenProcesses;
+            
+            // Store it
+            // We could also use an object and the DataCreationState.Scheduled
+            processDataDAO.createProcess(processName);
+            processDataDAO.updateProcessState(processName, DataCreationState.Scheduled);
+            
             // We will attach process name as the event data
             Event eventOut = new Event(eventNameProcess, scheduled, processName);
             events.add(eventOut);
