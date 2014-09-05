@@ -33,7 +33,6 @@ public class EventCountCompletionEstimator extends AbstractCompletionEstimator
 {
     private static Log logger = LogFactory.getLog(EventCountCompletionEstimator.class);
     
-    private final ResultService resultService;
     private final String eventName;
     private final long eventCount;
     
@@ -50,22 +49,9 @@ public class EventCountCompletionEstimator extends AbstractCompletionEstimator
             ResultService resultService,
             String eventName, long eventCount)
     {
-        super(eventService);
-        this.resultService = resultService;
+        super(eventService, resultService);
         this.eventName = eventName;
         this.eventCount = eventCount;
-    }
-
-    @Override
-    protected long getResultsSuccessImpl()
-    {
-        return resultService.countResultsBySuccess();
-    }
-
-    @Override
-    protected long getResultsFailImpl()
-    {
-        return resultService.countResultsByFailure();
     }
 
     /**

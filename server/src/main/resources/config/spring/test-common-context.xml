@@ -48,10 +48,30 @@
     <!-- Reporting       -->
     <!--                 -->
 
-    <!-- The CompletionEstimator must exist for the application -->
-    <bean id="completionEstimator" class="org.alfresco.bm.test.UnknownCompletionEstimator">
+    <!-- The CompletionEstimator looking at the test elapsed time -->
+    <bean id="completionEstimator.elapsedTime" class="org.alfresco.bm.test.ElapsedTimeCompletionEstimator">
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
+        <constructor-arg name="timeUnitStr" value="${test.durationUnit}" />
+        <constructor-arg name="duration" value="${test.duration}" />
+    </bean>
+
+    <!-- The CompletionEstimator looking at the presence of any events -->
+    <bean id="completionEstimator.unknown" class="org.alfresco.bm.test.UnknownCompletionEstimator">
+        <constructor-arg name="eventService" ref="eventService" />
+        <constructor-arg name="resultService" ref="resultService" />
+    </bean>
+
+    <!-- Every test must have a bean with this name -->
+    <bean id="completionEstimator" class="org.alfresco.bm.test.CompoundCompletionEstimator">
+        <constructor-arg name="eventService" ref="eventService" />
+        <constructor-arg name="resultService" ref="resultService" />
+        <constructor-arg name="estimators">
+            <list>
+                <ref bean="completionEstimator.elapsedTime" />
+                <ref bean="completionEstimator.unknown" />
+            </list>
+        </constructor-arg>
     </bean>
 
     <!--                 -->

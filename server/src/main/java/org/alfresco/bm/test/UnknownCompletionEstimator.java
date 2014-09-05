@@ -22,16 +22,17 @@ import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
 
 /**
- * Only able to know if the test has started or stopped.
+ * Only able to know if the test has started and assumes the test has finished
+ * when there are no more events available.
+ * <p/>
+ * This estimator is likely to disappear when the test kickstart becomes more dynamic,
+ * so look to use a more positive estimate in your tests.
  * 
  * @author Derek Hulley
  * @since 2.0
  */
 public class UnknownCompletionEstimator extends AbstractCompletionEstimator
 {
-    private final ResultService resultService;
-    private final EventService eventService;
-    
     /**
      * Constructor with required dependencies
      * 
@@ -40,21 +41,7 @@ public class UnknownCompletionEstimator extends AbstractCompletionEstimator
      */
     public UnknownCompletionEstimator(EventService eventService, ResultService resultService)
     {
-        super(eventService);
-        this.eventService = eventService;
-        this.resultService = resultService;
-    }
-
-    @Override
-    protected long getResultsSuccessImpl()
-    {
-        return resultService.countResultsBySuccess();
-    }
-
-    @Override
-    protected long getResultsFailImpl()
-    {
-        return resultService.countResultsByFailure();
+        super(eventService, resultService);
     }
 
     /**

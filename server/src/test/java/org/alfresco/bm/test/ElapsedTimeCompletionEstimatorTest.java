@@ -18,6 +18,7 @@
  */
 package org.alfresco.bm.test;
 
+import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
 import org.junit.Assert;
@@ -28,22 +29,23 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 /**
- * @see UnknownCompletionEstimator
+ * @see ElapsedTimeCompletionEstimator
  * 
  * @author Derek Hulley
  * @since 2.0
  */
 @RunWith(JUnit4.class)
-public class UnknownCompletionEstimatorTest
+public class ElapsedTimeCompletionEstimatorTest
 {
     private EventService eventService = Mockito.mock(EventService.class);
     private ResultService resultService = Mockito.mock(ResultService.class);
-    private UnknownCompletionEstimator estimator;
+    private EventRecord firstResult = Mockito.mock(EventRecord.class);
+    private ElapsedTimeCompletionEstimator estimator;
     
     @Before
     public void beforeTest()
     {
-        estimator = new UnknownCompletionEstimator(eventService, resultService);
+        estimator = new ElapsedTimeCompletionEstimator(eventService, resultService, "SECONDS", 60L);
         // Ensure that we only hit the underlying services once per test
         estimator.setCheckPeriod(120000L);
         // Reset Mockito
@@ -53,63 +55,58 @@ public class UnknownCompletionEstimatorTest
     @Test
     public void testNotStarted() throws Exception
     {
-        Mockito.when(resultService.countResults()).thenReturn(0L);
-        Mockito.when(resultService.countResultsBySuccess()).thenReturn(0L);
-        Mockito.when(resultService.countResultsByFailure()).thenReturn(0L);
-        Mockito.when(eventService.count()).thenReturn(0L);
+        Mockito.when(resultService.getFirstResult()).thenReturn(null);
         Assert.assertTrue(estimator.getCompletion() <= 0.0);
-        Mockito.verify(resultService, Mockito.times(1)).countResults();
+        Mockito.verify(resultService, Mockito.times(1)).getFirstResult();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
         Mockito.verify(eventService, Mockito.times(1)).count();
-
-        // Make sure that we cache correctly
+        
+        // Check caching
         estimator.getCompletion();
-        Mockito.verify(resultService, Mockito.times(1)).countResults();
+        Mockito.verify(resultService, Mockito.times(1)).getFirstResult();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
         Mockito.verify(eventService, Mockito.times(1)).count();
     }
     
     @Test
-    public void testInProgress01() throws Exception
+    public void testInProgress() throws Exception
     {
-        Mockito.when(resultService.countResults()).thenReturn(16L);
-        Mockito.when(resultService.countResultsBySuccess()).thenReturn(14L);
-        Mockito.when(resultService.countResultsByFailure()).thenReturn(2L);
-        Mockito.when(eventService.count()).thenReturn(4L);
-        Assert.assertTrue(estimator.getCompletion() <= 0.0);
-        Mockito.verify(resultService, Mockito.times(1)).countResults();
+        long testStart = System.currentTimeMillis() - (30 * 1000L);
+        Mockito.when(resultService.getFirstResult()).thenReturn(firstResult);
+        Mockito.when(firstResult.getStartTime()).thenReturn(testStart);
+        Assert.assertEquals(0.5, estimator.getCompletion(), 0.1);
+        Mockito.verify(resultService, Mockito.times(1)).getFirstResult();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(2)).count();
-
-        // Make sure that we cache correctly
+        Mockito.verify(eventService, Mockito.times(0)).count();
+        
+        // Check caching
         estimator.getCompletion();
-        Mockito.verify(resultService, Mockito.times(1)).countResults();
+        Mockito.verify(resultService, Mockito.times(1)).getFirstResult();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(2)).count();
+        Mockito.verify(eventService, Mockito.times(0)).count();
     }
     
     @Test
-    public void testDoneWithAllEvents() throws Exception
+    public void testDone() throws Exception
     {
-        Mockito.when(resultService.countResults()).thenReturn(20L);
-        Mockito.when(resultService.countResultsBySuccess()).thenReturn(18L);
-        Mockito.when(resultService.countResultsByFailure()).thenReturn(2L);
-        Mockito.when(eventService.count()).thenReturn(0L);
-        Assert.assertTrue(estimator.getCompletion() >= 1.0);
-        Mockito.verify(resultService, Mockito.times(1)).countResults();
+        long testStart = System.currentTimeMillis() - (61 * 1000L);
+        Mockito.when(resultService.getFirstResult()).thenReturn(firstResult);
+        Mockito.when(firstResult.getStartTime()).thenReturn(testStart);
+        Assert.assertEquals(1.0, estimator.getCompletion(), 0.05);
+        Mockito.verify(resultService, Mockito.times(1)).getFirstResult();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(1)).count();
-
-        // Make sure that we cache correctly
+        Mockito.verify(eventService, Mockito.times(0)).count();
+        
+        // Check caching
         estimator.getCompletion();
-        Mockito.verify(resultService, Mockito.times(1)).countResults();
+        Mockito.verify(resultService, Mockito.times(1)).getFirstResult();
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(0)).count();
     }
 }

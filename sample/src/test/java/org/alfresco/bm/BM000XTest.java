@@ -18,9 +18,12 @@
  */
 package org.alfresco.bm;
 
+import static org.junit.Assert.assertNotEquals;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 import javax.ws.rs.core.StreamingOutput;
 
@@ -28,6 +31,7 @@ import org.alfresco.bm.api.v1.ResultsRestAPI;
 import org.alfresco.bm.api.v1.TestRestAPI;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
+import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.process.ScheduleProcesses;
 import org.alfresco.bm.test.TestRunServicesCache;
@@ -58,7 +62,27 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
     private static Log logger = LogFactory.getLog(BM000XTest.class);
     
     @Test
-    public void runSample() throws Exception
+    public void runQuick() throws Exception
+    {
+        Properties props = new Properties();
+        props.put("test.duration", "1");                        // By the first check, it should say it's overdue a stop
+        BMTestRunner runner = new BMTestRunner(20000L);
+        runner.addListener(new BMTestRunnerListenerAdaptor()
+        {
+            @Override
+            public void testRunFinished(ApplicationContext testCtx, String test, String run)
+            {
+                TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
+                EventService eventService = services.getEventService(test, run);
+                // Check that there are still events in the event queue, which will show that we terminated by time
+                assertNotEquals("There should be events in the event queue. ", 0L, eventService.count());
+            }
+        });
+        runner.run(null, null, props);
+    }
+    
+    @Test
+    public void runComplete() throws Exception
     {
         BMTestRunner runner = new BMTestRunner(60000L);         // Should be done in 60s
         runner.addListener(this);

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import org.alfresco.bm.event.EventProcessor;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
@@ -233,7 +234,7 @@ public class TestRun implements TestConstants
                 if (testRunCtx != null)
                 {
                     // Update the progress
-                    CompletionEstimator ce = testRunCtx.getBean(CompletionEstimator.class);
+                    CompletionEstimator ce = (CompletionEstimator) testRunCtx.getBean("completionEstimator");
                     double progress = ce.getCompletion();
                     boolean completed = ce.isCompleted();
                     long resultsSuccess = ce.getResultsSuccess();
@@ -403,9 +404,12 @@ public class TestRun implements TestConstants
             this.testRunCtx = testRunCtx;
             testRunCtx.refresh();
             testRunCtx.start();
-            // Make sure that the required components are present
-            testRunCtx.getBean(CompletionEstimator.class);
-            testRunCtx.getBean("event.start");
+            // Make sure that the required components are present and of the correct type
+            // There may be multiple beans of the type, so we have to use the specific bean name.
+            @SuppressWarnings("unused")
+            CompletionEstimator estimator = (CompletionEstimator) testRunCtx.getBean("completionEstimator");
+            @SuppressWarnings("unused")
+            EventProcessor startEventProcessor = (EventProcessor) testRunCtx.getBean("event.start");
         }
         catch (Exception e)
         {

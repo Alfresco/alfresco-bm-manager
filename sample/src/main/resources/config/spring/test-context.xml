@@ -31,12 +31,24 @@
     <!-- Reporting       -->
     <!--                 -->
 
-    <!-- The CompletionEstimator looking at the process count results -->
-    <bean id="completionEstimator" class="org.alfresco.bm.test.EventCountCompletionEstimator">
+    <!-- The CompletionEstimator looking at the number of processes performed -->
+    <bean id="completionEstimator.processCount" class="org.alfresco.bm.test.EventCountCompletionEstimator">
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="eventName" value="process" />
         <constructor-arg name="eventCount" value="${proc.processCount}" />
+    </bean>
+
+    <!-- Override the default estimator to use the desired estimators -->
+    <bean id="completionEstimator" class="org.alfresco.bm.test.CompoundCompletionEstimator">
+        <constructor-arg name="eventService" ref="eventService" />
+        <constructor-arg name="resultService" ref="resultService" />
+        <constructor-arg name="estimators">
+            <list>
+                <ref bean="completionEstimator.elapsedTime" />
+                <ref bean="completionEstimator.processCount" />
+            </list>
+        </constructor-arg>
     </bean>
 
     <!--                 -->

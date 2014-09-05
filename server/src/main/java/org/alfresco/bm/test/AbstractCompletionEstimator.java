@@ -19,6 +19,7 @@
 package org.alfresco.bm.test;
 
 import org.alfresco.bm.event.EventService;
+import org.alfresco.bm.event.ResultService;
 
 /**
  * General support and controls for a {@link CompletionEstimator} implementation.
@@ -36,7 +37,8 @@ public abstract class AbstractCompletionEstimator implements CompletionEstimator
      */
     private static final long DEFAULT_CHECK_PERIOD = 5000L;
 
-    private final EventService eventService;
+    protected final EventService eventService;
+    protected final ResultService resultService;
     private long checkPeriod = DEFAULT_CHECK_PERIOD;
     private long lastCheck = 0L;                        // Never checked
     private double completion = 0.0;
@@ -45,10 +47,12 @@ public abstract class AbstractCompletionEstimator implements CompletionEstimator
     
     /**
      * @param eventService              used to do the final check when completion reachers 1.0
+     * @param resultService             generally-useful service for estimation
      */
-    protected AbstractCompletionEstimator(EventService eventService)
+    protected AbstractCompletionEstimator(EventService eventService, ResultService resultService)
     {
         this.eventService = eventService;
+        this.resultService = resultService;
     }
 
     /**
@@ -90,12 +94,7 @@ public abstract class AbstractCompletionEstimator implements CompletionEstimator
         // Double check when  the completion reaches 1.0
         if (completion >= 1.0)
         {
-            long eventCount = eventService.count();
-            if (eventCount > 0L)
-            {
-                // There is still stuff going on
-                completion = 0.99;              // No complete ... hopefully soon, though.
-            }
+            completion = 1.0;
         }
         else if (lastCompletion >= this.completion)
         {
@@ -150,17 +149,25 @@ public abstract class AbstractCompletionEstimator implements CompletionEstimator
      * 
      * @return              the number of successful event results
      */
-    protected abstract long getResultsSuccessImpl();
+    protected long getResultsSuccessImpl()
+    {
+        return resultService.countResultsBySuccess();
+    }
 
     /**
      * Implementation of a fetch to fetch the number of failed results
      * 
      * @return              the number of failed event results
      */
-    protected abstract long getResultsFailImpl();
+    protected long getResultsFailImpl()
+    {
+        return resultService.countResultsByFailure();
+    }
 
     /**
-     * Implementation of a fetch to get the completion state
+     * Implementation of a fetch to get the completion state.
+     * Once the estimate gets to or exceeds <tt>1.0</tt>, the test will be flagged as
+     * {@link TestRunState#COMPLETED complete}.
      * 
      * @return              the data-led completion done as accurately as possible
      */

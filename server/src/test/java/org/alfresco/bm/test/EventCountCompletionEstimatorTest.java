@@ -114,10 +114,10 @@ public class EventCountCompletionEstimatorTest
         Mockito.when(resultService.countResultsByFailure()).thenReturn(89L);                    //  89 failed results
         Mockito.when(resultService.countResultsByEventName(EVENT)).thenReturn(EVENT_TOTAL);     //  31 specific results
         double completion = estimator.getCompletion();
-        Assert.assertTrue("Completion was: " + completion, completion == 0.99);
+        Assert.assertEquals("Completion was: " + completion, 1.0, completion, 0.05);
         Assert.assertEquals(103L, estimator.getResultsSuccess());
         Assert.assertEquals(89L, estimator.getResultsFail());
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -126,7 +126,7 @@ public class EventCountCompletionEstimatorTest
         estimator.getCompletion();
         estimator.getResultsSuccess();
         estimator.getResultsFail();
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -143,7 +143,7 @@ public class EventCountCompletionEstimatorTest
         Assert.assertTrue("Completion was: " + completion, completion >= 1.0);
         Assert.assertEquals(109L, estimator.getResultsSuccess());
         Assert.assertEquals(91L, estimator.getResultsFail());
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
@@ -152,7 +152,7 @@ public class EventCountCompletionEstimatorTest
         estimator.getCompletion();
         estimator.getResultsSuccess();
         estimator.getResultsFail();
-        Mockito.verify(eventService, Mockito.times(1)).count();
+        Mockito.verify(eventService, Mockito.times(0)).count();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByEventName(EVENT);
         Mockito.verify(resultService, Mockito.times(1)).countResultsBySuccess();
         Mockito.verify(resultService, Mockito.times(1)).countResultsByFailure();
