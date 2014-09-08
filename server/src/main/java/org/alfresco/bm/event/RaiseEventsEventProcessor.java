@@ -18,9 +18,11 @@
  */
 package org.alfresco.bm.event;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 /**
  * Emits a given number of events at a given frequency for a given time.
@@ -48,6 +50,9 @@ public class RaiseEventsEventProcessor extends AbstractEventProcessor
 {
     private static final String ERR_INCORRECT_INBOUND_TYPE = "The event processor takes no initial input.";
     private static final String MSG_CREATED_EVENTS = "Scheduled %3d events named %s.";
+    
+    public static final String KEY_OUTPUT_EVENTS_RAISED = "outputEventsRaised";
+    public static final String KEY_LAST_EVENT_TIME = "lastEventTime";
     
     private static final int DEFAULT_BATCH_SIZE = 1000;
     private static final String DEFAULT_EVENT_NAME_RAISE_EVENTS = "raiseEvents";
@@ -96,10 +101,10 @@ public class RaiseEventsEventProcessor extends AbstractEventProcessor
     public EventResult processEvent(Event event) throws Exception
     {
         // Get the previous data associated with this processor
-        RaiseEventsData data;
+        DBObject data;
         try
         {
-            data = (RaiseEventsData) event.getDataObject();
+            data = (DBObject) event.getDataObject();
         }
         catch (ClassCastException e)
         {
@@ -108,11 +113,13 @@ public class RaiseEventsEventProcessor extends AbstractEventProcessor
         }
         if (data == null)
         {
-            data = new RaiseEventsData(0, System.currentTimeMillis());
+            data = new BasicDBObject()
+                    .append(KEY_LAST_EVENT_TIME, Long.valueOf(System.currentTimeMillis()))
+                    .append(KEY_OUTPUT_EVENTS_RAISED, Integer.valueOf(0));
         }
         int localTotal = 0;
-        int total = data.outputEventsRaised;
-        long time = data.lastOutputEventTime;
+        int total = (Integer) data.get(KEY_OUTPUT_EVENTS_RAISED);
+        long time = (Long) data.get(KEY_LAST_EVENT_TIME);
         List<Event> nextEvents = new ArrayList<Event>(outputEventCount);
         // Keep going as long as there is capacity and we are under the batch size
         while (total < outputEventCount && localTotal < batchSize)
@@ -129,7 +136,9 @@ public class RaiseEventsEventProcessor extends AbstractEventProcessor
         if (total < outputEventCount)
         {
             // Still more to do
-            data = new RaiseEventsData(total, time);
+            data = new BasicDBObject()
+                    .append(KEY_LAST_EVENT_TIME, time)
+                    .append(KEY_OUTPUT_EVENTS_RAISED, total);
             Event nextEvent = new Event(eventNameRaiseEvents, time, data);
             nextEvents.add(nextEvent);
         }
@@ -141,38 +150,18 @@ public class RaiseEventsEventProcessor extends AbstractEventProcessor
     }
     
     /**
-     * Get data to provide for each event raised.
+     * Get data to provide for each event raised.  Implementations can override to
+     * add any data that is required for the each of the events being raised.
      * <p/>
-     * This instance attaches no data but overriding classes can attach any other
-     * data as required.
+     * The default is to return <tt>null</tt> i.e. no data will be provided to each new event.
+     * <p/>
+     * Use a {@link DBObject} for complicated data transfer
      * 
      * @return              Return data to attach to the generated events
      */
     protected Object getNextEventData()
     {
+        // No data
         return null;
-    }
-    
-    /**
-     * Data that is carried between batches
-     * 
-     * @author Derek Hulley
-     * @since 1.4
-     */
-    private static class RaiseEventsData implements Serializable
-    {
-        private static final long serialVersionUID = 7147496577471223519L;
-        
-        private int outputEventsRaised;
-        private long lastOutputEventTime;
-        /** For persistence */
-        private RaiseEventsData()
-        {
-        }
-        private RaiseEventsData(int outputEventsRaised, long lastOutputEventTime)
-        {
-            this.outputEventsRaised = outputEventsRaised;
-            this.lastOutputEventTime = lastOutputEventTime;
-        }
     }
 }

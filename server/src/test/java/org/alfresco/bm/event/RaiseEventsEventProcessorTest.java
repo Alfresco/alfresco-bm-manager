@@ -21,13 +21,15 @@ package org.alfresco.bm.event;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
-
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 /**
  * @see RaiseEventsEventProcessor
@@ -68,7 +70,7 @@ public class RaiseEventsEventProcessorTest
         
         EventResult result = processor.processEvent(event);
         Assert.assertEquals(20, result.getNextEvents().size());
-        Assert.assertEquals("WOOF", result.getNextEvents().get(0).getDataObject());
+        Assert.assertEquals(new BasicDBObject("sound", "WOOF"), result.getNextEvents().get(0).getDataObject());
     }
     
     @Test
@@ -112,6 +114,8 @@ public class RaiseEventsEventProcessorTest
             {
                 // The next event delta must increase
                 Assert.assertEquals("Event delay not correct.", 100L, delta);
+                // Check the data
+                Assert.assertEquals(new BasicDBObject("sound", "WOOF"), nextEvent.getDataObject());
             }
             lastEventScheduledTime = allEventScheduledTime;
         }
@@ -133,9 +137,9 @@ public class RaiseEventsEventProcessorTest
         }
 
         @Override
-        protected Object getNextEventData()
+        protected DBObject getNextEventData()
         {
-            return "WOOF";
+            return new BasicDBObject("sound", "WOOF");
         }
     }
 }
