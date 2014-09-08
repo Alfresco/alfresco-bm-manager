@@ -97,7 +97,7 @@ public class GenerateUserSessionsEventProcessorTest
     @Test
     public void testProcess() throws Exception
     {
-        EventProcessor processor = new GenerateUserSessionsEventProcess(userDataService, "login", 100L, 10);
+        EventProcessor processor = new GenerateUserSessionsEventProcessor(userDataService, "login", 100L, 10);
         Event event = new Event("createUserSessions", null);
         
         EventResult result = processor.processEvent(event, new StopWatch());
