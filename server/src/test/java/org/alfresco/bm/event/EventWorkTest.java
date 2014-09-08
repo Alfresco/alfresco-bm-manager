@@ -18,15 +18,20 @@
  */
 package org.alfresco.bm.event;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.alfresco.bm.event.mongo.MongoEventService;
 import org.alfresco.bm.event.mongo.MongoResultService;
+import org.alfresco.bm.session.MongoSessionService;
 import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +56,7 @@ public class EventWorkTest
     private static MongoDBForTestsFactory mongoFactory;
     private MongoEventService eventService;
     private MongoResultService resultService;
+    private MongoSessionService sessionService;
     private DB db;
     private Event event;
     private List<Event> nextEvents;
@@ -67,6 +73,8 @@ public class EventWorkTest
         eventService.start();
         resultService = new MongoResultService(db, "rs");
         resultService.start();
+        sessionService = new MongoSessionService(db, "ss");
+        sessionService.start();
 
         event = new Event(EVENT_NAME, "SOME_DATA");
         event.setId(eventService.putEvent(event));
@@ -75,7 +83,7 @@ public class EventWorkTest
         work = new EventWork(
                 SERVER_ID, TEST_RUN_FQN, event,
                 new TestEventProcessor(),
-                eventService, resultService);
+                eventService, resultService, sessionService);
     }
     
     @After
@@ -109,7 +117,7 @@ public class EventWorkTest
     }
     
     @Test
-    public void BasicSingleEventSuccess() throws Exception
+    public void testBasicSingleEventSuccess() throws Exception
     {
         nextEvents.add(new Event(EVENT_NAME, "MORE_DATA"));
         EventResult result = new EventResult(nextEvents);
@@ -117,17 +125,17 @@ public class EventWorkTest
         
         work.run();
         
-        Assert.assertEquals(1, resultService.countResultsBySuccess());
-        Assert.assertEquals(1, eventService.count());
-        Assert.assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, true));
+        assertEquals(1, resultService.countResultsBySuccess());
+        assertEquals(1, eventService.count());
+        assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, true));
         
-        Assert.assertNotNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
+        assertNotNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
         // Must be locked against further retrieval
-        Assert.assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
+        assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
     }
     
     @Test
-    public void BasicMultipleEventSuccess() throws Exception
+    public void testBasicMultipleEventSuccess() throws Exception
     {
         nextEvents.add(new Event(EVENT_NAME, "MORE_DATA"));
         nextEvents.add(new Event(EVENT_NAME, "YET_MORE_DATA"));
@@ -136,14 +144,14 @@ public class EventWorkTest
         
         work.run();
         
-        Assert.assertEquals(1, resultService.countResultsBySuccess());
-        Assert.assertEquals(2, eventService.count());
-        Assert.assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, true));
-        Assert.assertNotNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
+        assertEquals(1, resultService.countResultsBySuccess());
+        assertEquals(2, eventService.count());
+        assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, true));
+        assertNotNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
     }
     
     @Test
-    public void BasicSerializableEventData() throws Exception
+    public void testBasicSerializableEventData() throws Exception
     {
         Object dataThatWillNotSerialize = new DataThatWillNotSerialize();
         nextEvents.add(new Event(EVENT_NAME, dataThatWillNotSerialize));
@@ -152,13 +160,87 @@ public class EventWorkTest
         
         work.run();
         
-        Assert.assertEquals(1, resultService.countResultsBySuccess());
-        Assert.assertEquals(1, eventService.count());
-        Assert.assertNull("The local data should not be available for other servers.", eventService.nextEvent("RANDOM_SERVER", Long.MAX_VALUE, false));
+        assertEquals(1, resultService.countResultsBySuccess());
+        assertEquals(1, eventService.count());
+        assertNull("The local data should not be available for other servers.", eventService.nextEvent("RANDOM_SERVER", Long.MAX_VALUE, false));
         Event nextEvent = eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false);
-        Assert.assertNotNull(nextEvent);
+        assertNotNull(nextEvent);
         
         // Check that we can get hold of the next event's data
-        Assert.assertTrue("Expect exactly the original event data.", dataThatWillNotSerialize == nextEvent.getDataObject());
+        assertTrue("Expect exactly the original event data.", dataThatWillNotSerialize == nextEvent.getDataObject());
+    }
+    
+    @Test
+    public void testSessionPropagation_PropagateWhenOneNextEvent() throws Exception
+    {
+        String sessionId = sessionService.startSession(null);
+        event.setSessionId(sessionId);
+        
+        nextEvents.add(new Event(EVENT_NAME, null));
+        EventResult result = new EventResult(nextEvents);
+        
+        Mockito.when(processor.processEvent(Mockito.any(Event.class), Mockito.any(StopWatch.class))).thenReturn(result);
+        Mockito.when(processor.isAutoPropagateSessionId()).thenReturn(true);
+        
+        work.run();
+        
+        assertEquals(1L, sessionService.getActiveSessionsCount());
+        assertEquals(-1L, sessionService.getSessionEndTime(sessionId));
+    }
+    
+    @Test
+    public void testSessionPropagation_CloseWhenNoNextEvent() throws Exception
+    {
+        String sessionId = sessionService.startSession(null);
+        event.setSessionId(sessionId);
+        
+        EventResult result = new EventResult(nextEvents);
+        
+        Mockito.when(processor.processEvent(Mockito.any(Event.class), Mockito.any(StopWatch.class))).thenReturn(result);
+        Mockito.when(processor.isAutoPropagateSessionId()).thenReturn(true);
+        
+        work.run();
+        
+        assertEquals(0L, sessionService.getActiveSessionsCount());
+        assertEquals(1L, sessionService.getAllSessionsCount());
+        assertTrue(sessionService.getSessionEndTime(sessionId) > 0L);
+    }
+    
+    @Test
+    public void testSessionPropagation_CloseWhenMultipleNextEvents() throws Exception
+    {
+        String sessionId = sessionService.startSession(null);
+        event.setSessionId(sessionId);
+        
+        nextEvents.add(new Event(EVENT_NAME, null));
+        nextEvents.add(new Event(EVENT_NAME, null));
+        EventResult result = new EventResult(nextEvents);
+        
+        Mockito.when(processor.processEvent(Mockito.any(Event.class), Mockito.any(StopWatch.class))).thenReturn(result);
+        Mockito.when(processor.isAutoPropagateSessionId()).thenReturn(true);
+        
+        work.run();
+        
+        assertEquals(0L, sessionService.getActiveSessionsCount());
+        assertEquals(1L, sessionService.getAllSessionsCount());
+        assertTrue(sessionService.getSessionEndTime(sessionId) > 0L);
+    }
+    
+    @Test
+    public void testSessionPropagation_CloseWhenException() throws Exception
+    {
+        String sessionId = sessionService.startSession(null);
+        event.setSessionId(sessionId);
+        
+        nextEvents.add(new Event(EVENT_NAME, null));
+        
+        Mockito.when(processor.processEvent(Mockito.any(Event.class), Mockito.any(StopWatch.class))).thenThrow(new RuntimeException());
+        Mockito.when(processor.isAutoPropagateSessionId()).thenReturn(true);
+        
+        work.run();
+        
+        assertEquals(0L, sessionService.getActiveSessionsCount());
+        assertEquals(1L, sessionService.getAllSessionsCount());
+        assertTrue(sessionService.getSessionEndTime(sessionId) > 0L);
     }
 }

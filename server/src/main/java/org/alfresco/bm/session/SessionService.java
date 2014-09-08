@@ -18,7 +18,7 @@
  */
 package org.alfresco.bm.session;
 
-
+import com.mongodb.DBObject;
 
 /**
  * Service providing access and management of {@link SessionData}.
@@ -32,12 +32,10 @@ public interface SessionService
      * Starts a new session, persisting the given data and giving back a unique session ID.
      * The session start time is marked with the current time.
      * 
-     * @throws IllegalStateException if the session has already been started
-     * 
-     * @param data              any persistable session data (<tt>null</tt> allowed)
+     * @param data              a map of session data to be stored (<tt>null</tt> allowed)
      * @return                  a new, unique session ID
      */
-    String startSession(String data);
+    String startSession(DBObject data);
     
     /**
      * Mark a session as complete.
@@ -57,14 +55,14 @@ public interface SessionService
      * 
      * @throws RuntimeException if the session ID is invalid
      */
-    void setSessionData(String sessionId, String data);    
+    void setSessionData(String sessionId, DBObject data);
     /**
      * @param sessionId         the unique session ID
      * @return                  any data associated with the session or <tt>null</tt> if there was none
      * 
      * @throws RuntimeException if the session ID is invalid
      */
-    String getSessionData(String sessionId);
+    DBObject getSessionData(String sessionId);
     
     /**
      * Get the session start time
@@ -99,5 +97,10 @@ public interface SessionService
     /**
      * Returns a number of active sessions, i.e. where endTime = -1
      */
-    long activeSessionsCount();
+    long getActiveSessionsCount();
+    
+    /**
+     * Returns a number of sessions, active or otherwise
+     */
+    long getAllSessionsCount();
 }

@@ -18,7 +18,7 @@
  */
 package org.alfresco.bm.session;
 
-import java.util.UUID;
+import com.mongodb.DBObject;
 
 /**
  * Abstract implemnetation for methods that don't persist or retrieve values directly.
@@ -33,7 +33,7 @@ public abstract class AbstractSessionService implements SessionService
      * <p/>
      * All session IDs must be unique.
      */
-    protected abstract void saveSessionData(SessionData sessionData);
+    protected abstract String newSession(SessionData sessionData);
     
     /**
      * Find session data for the given ID
@@ -42,23 +42,21 @@ public abstract class AbstractSessionService implements SessionService
     protected abstract SessionData findSessionData(String sessionId);
     
     /**
-     * Update session end time (including elapsed time).
+     * Update session end time.
      */
-    protected abstract void updateSessionEndTime(String sessionId, long endTime, long elapsedTime);
+    protected abstract void updateSessionEndTime(String sessionId, long endTime);
     
     /**
      * Update session's client-provided data matching the ID.
+     * @return              <tt>true</tt> if the session was updated
      */
-    protected abstract void updateSessionData(String sessionId, String data);
+    protected abstract boolean updateSessionData(String sessionId, DBObject data);
     
     @Override
-    public String startSession(String data)
+    public String startSession(DBObject data)
     {
-        String sessionId = UUID.randomUUID().toString();
         SessionData sessionData = new SessionData(data);    // Start time will be set
-        sessionData.setSessionId(sessionId);
-        saveSessionData(sessionData);
-        return sessionId;
+        return newSession(sessionData);
     }
     
     /**
@@ -77,21 +75,18 @@ public abstract class AbstractSessionService implements SessionService
     @Override
     public void endSession(String sessionId)
     {
-        SessionData sessionData =  getSessionDataNotNull(sessionId);
         long now = System.currentTimeMillis();
-        long elapsed = now - sessionData.getStartTime();
-        updateSessionEndTime(sessionId, now, elapsed);
+        updateSessionEndTime(sessionId, now);
     }
 
     @Override
-    public void setSessionData(String sessionId, String data)
+    public void setSessionData(String sessionId, DBObject data)
     {
-        getSessionDataNotNull(sessionId);           // Just a check
         updateSessionData(sessionId, data);
     }
 
     @Override
-    public String getSessionData(String sessionId)
+    public DBObject getSessionData(String sessionId)
     {
         SessionData sessionData =  getSessionDataNotNull(sessionId);
         return sessionData.getData();

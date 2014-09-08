@@ -21,6 +21,7 @@ package org.alfresco.bm.event;
 import java.util.Collections;
 import java.util.List;
 
+import org.alfresco.bm.session.SessionService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.logging.Log;
@@ -46,21 +47,24 @@ public class EventWork implements Runnable
     private final EventProcessor processor;
     private final EventService eventService;
     private final ResultService resultService;
+    private final SessionService sessionService;
     
     /**
      * Construct work to be executed by a thread
      * 
-     * @param serverId      the identifier of the server process handling the event
-     * @param testRunFqn    the fully qualified name of the test run initiating the work
-     * @param event         the event to be processed
-     * @param processor     the component that will do the actual processing
-     * @param eventService  the queue events that will be updated with new events
-     * @param resultService the service to store results of the execution
+     * @param serverId          the identifier of the server process handling the event
+     * @param testRunFqn        the fully qualified name of the test run initiating the work
+     * @param event             the event to be processed
+     * @param processor         the component that will do the actual processing
+     * @param eventService      the queue events that will be updated with new events
+     * @param resultService     the service to store results of the execution
+     * @param sessionService    the service manage sessions
      */
     public EventWork(
             String serverId, String testRunFqn,
             Event event,
-            EventProcessor processor, EventService eventService, ResultService resultService)
+            EventProcessor processor,
+            EventService eventService, ResultService resultService, SessionService sessionService)
     {
         this.serverId = serverId;
         this.testRunFqn = testRunFqn;
@@ -68,6 +72,7 @@ public class EventWork implements Runnable
         this.processor = processor;
         this.eventService = eventService;
         this.resultService = resultService;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -94,6 +99,12 @@ public class EventWork implements Runnable
             String stack = ExceptionUtils.getStackTrace(e);
             String error = "[" + eventTime + "] Event processing exception; no further events will be published. \r\n" + stack;
             result = new EventResult(error, Collections.<Event>emptyList(), false);
+            // Close any associated session
+            String sessionId = event.getSessionId();
+            if (sessionId != null && processor.isAutoCloseSessionId())
+            {
+                sessionService.endSession(sessionId);
+            }
         }
         // See how long it took
         long before = stopWatch.getStartTime();
@@ -137,6 +148,17 @@ public class EventWork implements Runnable
             logger.error("Failed recorded event: " + recordedEvent, e);
         }
         
+        // Only propagate session IDs automatically if there is a 1:1 relationship between the event processed
+        // and the next event i.e. we branching of the session is not intrinsically supported
+        String sessionId = event.getSessionId();
+        boolean propagateSessionId = (sessionId != null) && processor.isAutoPropagateSessionId();
+        if (sessionId != null && nextEvents.size() != 1 && processor.isAutoCloseSessionId())
+        {
+            // No further events and we have to auto-close
+            sessionService.endSession(sessionId);
+            propagateSessionId = false;
+        }
+        
         // Publish the next events
         for (Event nextEvent : nextEvents)
         {
@@ -158,7 +180,10 @@ public class EventWork implements Runnable
                 nextEvent.setDataOwner(serverId);
             }
             // Carry over the session ID, if required
-            processor.propagateSessionId(event, nextEvent);
+            if (propagateSessionId)
+            {
+                nextEvent.setSessionId(sessionId);
+            }
             
             // Persist the event
             try

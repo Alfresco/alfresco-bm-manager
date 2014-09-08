@@ -283,6 +283,21 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
     }
     
     /**
+     * Get the {@link SessionService} for the given test run
+     * 
+     * @return                  the service or <tt>null</tt> if it could not be created or accessed
+     */
+    public SessionService getSessionService(String test, String run)
+    {
+        ApplicationContext ctx = getContext(test, run);
+        if (ctx == null)
+        {
+            return null;
+        }
+        return ctx.getBean(SessionService.class);
+    }
+    
+    /**
      * Checks the access times for all contexts and shuts down and removes any that have not been accessed
      * since it last checked.
      * 

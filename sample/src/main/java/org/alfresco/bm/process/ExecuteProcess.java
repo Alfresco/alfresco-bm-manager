@@ -28,6 +28,9 @@ import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
 import org.alfresco.bm.file.TestFileService;
+import org.alfresco.bm.session.SessionService;
+
+import com.mongodb.DBObject;
 
 /**
  * Execute an unfinished process
@@ -59,6 +62,7 @@ public class ExecuteProcess extends AbstractEventProcessor
 {
     public static final String EVENT_NAME_PROCESS_DONE = "processDone";
     
+    private final SessionService sessionService;
     private final ProcessDataDAO processDataDAO;
     private final TestFileService testFileService;
     private String eventNameProcessDone;
@@ -66,9 +70,10 @@ public class ExecuteProcess extends AbstractEventProcessor
     /**
      * @param processDataDAO        general DAO for accessing data
      */
-    public ExecuteProcess (ProcessDataDAO processDataDAO, TestFileService testFileService)
+    public ExecuteProcess (SessionService sessionService, ProcessDataDAO processDataDAO, TestFileService testFileService)
     {
         super();
+        this.sessionService = sessionService;
         this.processDataDAO = processDataDAO;
         this.testFileService = testFileService;
         this.eventNameProcessDone = EVENT_NAME_PROCESS_DONE;
@@ -91,9 +96,12 @@ public class ExecuteProcess extends AbstractEventProcessor
         // Get the user email
         String processName = (String) event.getDataObject();
         
+        // We can also get the less transient session data
+        String sessionId = event.getSessionId();
+        
         // Locate the process
         ProcessData process = processDataDAO.findProcessByName(processName);
-        // A quick double-check
+        // A quick double-check of the inbound values
         EventResult result = null;
         if (process == null)
         {
@@ -109,6 +117,13 @@ public class ExecuteProcess extends AbstractEventProcessor
                     false);
             return result;
         }
+        else if (sessionId == null)
+        {
+            result = new EventResult(
+                    "Skipping processing for '" + processName + "'.  No session ID available.",
+                    false);
+            return result;
+        }
         
         // Get and check that we have access to the required test file
         File file = testFileService.getFile();
@@ -120,6 +135,13 @@ public class ExecuteProcess extends AbstractEventProcessor
                     false);
             return result;
         }
+        
+        // Play or use the session data
+        DBObject sessionObj = sessionService.getSessionData(sessionId);
+        @SuppressWarnings("unused")
+        String value1 = (String) sessionObj.get("key1");
+        @SuppressWarnings("unused")
+        String value2 = (String) sessionObj.get("key2");
         
         // Restart the clock
         resumeTimer();
@@ -148,6 +170,7 @@ public class ExecuteProcess extends AbstractEventProcessor
                 // This would normally be done in a try-catch
                 processDataDAO.updateProcessState(processName, DataCreationState.Failed);
                 // We let the framework handle this
+                // The active session will automatically be closed
                 throw new RuntimeException("A ficticious random exception during execution of '" + processName + "'.");
             // 20% some error condition
             case 1:
@@ -175,6 +198,12 @@ public class ExecuteProcess extends AbstractEventProcessor
                     throw new RuntimeException("Process " + processName + " was executed but not recorded.");
                 }
         }
+        
+        // Session IDs are, by default, carried from originating events to new events.
+        // Exceptions that escape to the framework will automatically trigger session closure.
+        // Stop the session so that it is possible to count the active sessions
+        sessionService.endSession(sessionId);
+        
         // Done
         return result;
     }

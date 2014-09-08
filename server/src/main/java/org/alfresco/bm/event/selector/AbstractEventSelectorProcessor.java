@@ -24,10 +24,10 @@ import java.util.List;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
-import org.alfresco.bm.session.PersistedSessionData;
 import org.alfresco.bm.session.SessionService;
 
 import com.google.gson.Gson;
+import com.mongodb.DBObject;
 
 /**
  * Event processor that uses an eventSelector to choose the next event.
@@ -97,77 +97,69 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
         return ret;
     }
     
-    protected PersistedSessionData createSessionData(String sessionId)
-    {
-        long startTime = sessionService.getSessionStartTime(sessionId);
-        long maxEndTime = startTime + maxSessionTime;
-        PersistedSessionData sessionData = new PersistedSessionData(maxEndTime);
-        return sessionData;
-    }
-
     /**
-     * Get session data associated with the given sessionId, creating it with the expected minimum session end time if it doesn't exist.
-     * Override this method to control what is persisted.
+     * @return                  the data associated with the session or <tt>null</tt> if there was none
      */
-    protected PersistedSessionData getSessionData(String sessionId)
+    protected DBObject getSessionData(String sessionId)
     {
-        PersistedSessionData sessionData = null;
-
-        String sessionDataJSON = sessionService.getSessionData(sessionId);
-        if (sessionDataJSON == null)
-        {
-            sessionData = createSessionData(sessionId);
-            sessionDataJSON = sessionData.toJSON();
-            sessionService.setSessionData(sessionId, sessionDataJSON);
-        }
-        else
-        {
-            sessionData = PersistedSessionData.fromJSON(sessionDataJSON);
-        }
-
-        return sessionData;
+        return sessionService.getSessionData(sessionId);
     }
 
     @Override
     public EventResult processEvent(Event event) throws Exception
     {
+        super.suspendTimer();
+        
         Object input = event.getDataObject();
-        List<Event> nextEvents = new ArrayList<Event>();
         String sessionId = event.getSessionId();
+        // Start a session, if necessary
+        long sessionStartTime = -1L;
+        long sessionEndTime = -1L;
+        if (sessionId == null)
+        {
+            sessionId = sessionService.startSession(null);
+            sessionStartTime = sessionService.getSessionStartTime(sessionId);
+            sessionEndTime = -1L;
+        }
+        else
+        {
+            sessionStartTime = sessionService.getSessionStartTime(sessionId);
+            sessionEndTime = sessionService.getSessionEndTime(sessionId);
+        }
+        
+        List<Event> nextEvents = new ArrayList<Event>();
 
+        super.resumeTimer();
         EventProcessorResponse response = processEventImpl(event);
-
-        // stop the bm timer for this task, the main event processing that we want to time is complete
         super.stopTimer();
 
         if (response == null)
         {
             logger.warn("Response is null for event " + event);
         }
-        else
+        else if (sessionEndTime > 0L)
         {
-            PersistedSessionData sessionData = getSessionData(sessionId);
-            long maxEndTime = sessionData.getMaxEndTime();
-            long current = System.currentTimeMillis();
+            // The session has finished
+        }
+        else if (sessionStartTime + maxSessionTime > System.currentTimeMillis())
+        {
+            // The session has expired
+        }
+        else if (response.getResult() == EventProcessorResult.SUCCESS && eventSelector != null)
+        {
             // if we haven't passed the expected session end time and the previous event was successful
-            if (current < maxEndTime && response.getResult() == EventProcessorResult.SUCCESS && eventSelector != null)
+            Object responseData = response.getResponseData();
+            Event evt = eventSelector.nextEvent(input, responseData);
+            if(evt != null)
             {
-                Object responseData = response.getResponseData();
-                Event evt = eventSelector.nextEvent(input, responseData);
-                if(evt != null)
-                {
-                    nextEvents.add(evt);
-                }
+                nextEvents.add(evt);
             }
         }
 
+        // No more events, end the session
         if (nextEvents.size() < 1)
         {
-            // belt and braces: no more events, close the session if there is one>>>>>>> .r54943
-            if(sessionId != null)
-            {
-                sessionService.endSession(sessionId);
-            }
+            sessionService.endSession(sessionId);
         }
         
         Object data = null;

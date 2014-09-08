@@ -88,6 +88,7 @@
         <property name="chart" value="false" />
     </bean>
     <bean id="event.scheduleProcesses" class="org.alfresco.bm.process.ScheduleProcesses" parent="event.base" >
+        <constructor-arg name="sessionService" ref="sessionService" />
         <constructor-arg name="processDataDAO" ref="processDataDAO" />
         <constructor-arg name="testRunFqn" value="${testRunFqn}" />
         <constructor-arg name="processCount" value="${proc.processCount}" />
@@ -96,6 +97,7 @@
         <property name="chart" value="true" />
     </bean>
     <bean id="event.process" class="org.alfresco.bm.process.ExecuteProcess" parent="event.base" >
+        <constructor-arg name="sessionService" ref="sessionService" />
         <constructor-arg name="processDataDAO" ref="processDataDAO" />
         <constructor-arg name="testFileService" ref="testFileService" />
         <property name="chart" value="true" />

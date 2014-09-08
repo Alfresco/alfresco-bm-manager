@@ -18,7 +18,10 @@
  */
 package org.alfresco.bm;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,6 +37,7 @@ import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.process.ScheduleProcesses;
+import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
@@ -104,11 +108,12 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         MongoTestDAO testDAO = services.getTestDAO();
         TestService testService = services.getTestService();
         ResultService resultService = services.getResultService(test, run);
-        Assert.assertNotNull(resultService);
+        SessionService sessionService = services.getSessionService(test, run);
+        assertNotNull(resultService);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
         
         // One successful START event
-        Assert.assertEquals("Incorrect number of start events.", 1, resultService.countResultsByEventName(Event.EVENT_NAME_START));
+        assertEquals("Incorrect number of start events.", 1, resultService.countResultsByEventName(Event.EVENT_NAME_START));
         List<EventRecord> results = resultService.getResults(0L, Long.MAX_VALUE, false, 0, 1);
         if (results.size() != 1 || !results.get(0).getEvent().getName().equals(Event.EVENT_NAME_START))
         {
@@ -119,17 +124,18 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
          * Start = 1 result
          * Scheduling = 2 results
          * Processing = 200 results
-         * Successful processing generates a No-op for each 
+         * Successful processing generates a No-op for each
+         * Sessions = 200
          */
         List<String> eventNames = resultService.getEventNames();
-        Assert.assertEquals("Incorrect number of event names: " + eventNames, 4, eventNames.size());
-        Assert.assertEquals(
+        assertEquals("Incorrect number of event names: " + eventNames, 4, eventNames.size());
+        assertEquals(
                 "Incorrect number of events: " + ScheduleProcesses.EVENT_NAME_PROCESS,
                 200, resultService.countResultsByEventName(ScheduleProcesses.EVENT_NAME_PROCESS));
         long failures = resultService.countResultsByFailure();
         
         // 202 events in total
-        Assert.assertEquals("Incorrect number of results.", (403-failures), resultService.countResults());
+        assertEquals("Incorrect number of results.", (403-failures), resultService.countResults());
         
         // Test the charting API
         TestRestAPI testAPI = new TestRestAPI(testDAO, testService, services);
@@ -156,8 +162,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         {
             logger.debug("BM000X summary report: \n" + summary);
         }
-        Assert.assertTrue(summary.contains(",,process,   200,"));
-        Assert.assertTrue(summary.contains(",,scheduleProcesses,     2,"));
+        assertTrue(summary.contains(",,process,   200,"));
+        assertTrue(summary.contains(",,scheduleProcesses,     2,"));
         
         // Get the chart results and check
         String chartData = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 10, true);
@@ -166,6 +172,10 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
             logger.debug("BM000X chart data: \n" + chartData);
         }
         // Check that we have 10.0 processes per second; across 10s, we should get 100 events
-        Assert.assertTrue("Expected 10 processes per second.", chartData.contains("\"num\" : 100 , \"numPerSec\" : 10.0"));
+        assertTrue("Expected 10 processes per second.", chartData.contains("\"num\" : 100 , \"numPerSec\" : 10.0"));
+        
+        // Check the session data
+        assertEquals("All sessions should be closed: ", 0L, sessionService.getActiveSessionsCount());
+        assertEquals("All sessions should be used: ", 200L, sessionService.getAllSessionsCount());
     }
 }

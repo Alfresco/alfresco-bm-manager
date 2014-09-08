@@ -19,6 +19,7 @@
 package org.alfresco.bm.session;
 
 import org.alfresco.bm.test.LifecycleListener;
+import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
@@ -26,6 +27,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
+import com.mongodb.WriteResult;
 
 /**
  * Mongo implementation of service providing access and management of {@link SessionData}.
@@ -35,11 +37,10 @@ import com.mongodb.WriteConcern;
  */
 public class MongoSessionService extends AbstractSessionService implements LifecycleListener
 {
-    public static final String FIELD_SESSION_ID = "sessionId";
+    public static final String FIELD_ID = "_id";
     public static final String FIELD_DATA = "data";
     public static final String FIELD_START_TIME = "startTime";
     public static final String FIELD_END_TIME = "endTime";
-    public static final String FIELD_ELAPSED_TIME = "elapsedTime";
     
     private DBCollection collection;
     
@@ -70,73 +71,54 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
         collection.setWriteConcern(WriteConcern.SAFE);
         
         // Ensure unique session ID
-        DBObject uidxSessionId = BasicDBObjectBuilder
-                .start(FIELD_SESSION_ID, 1)
-                .get();
-        DBObject optSessionId = BasicDBObjectBuilder
-                .start("name", "uidx_sessionId")
-                .add("unique", Boolean.TRUE)
-                .get();
-        collection.createIndex(uidxSessionId, optSessionId);
+        // This is guaranteed by MongoDB
 
         // Ensure ordering by start time
         DBObject idxSessionIdStartTime = BasicDBObjectBuilder
-                .start(FIELD_SESSION_ID, 1)
-                .add(FIELD_START_TIME, 2)
+                .start(FIELD_START_TIME, 1)
                 .get();
         DBObject optSessionIdStartTime = BasicDBObjectBuilder
-                .start("name", "idx_sessionId_startTime")
+                .start("name", "idxSessionIdStartTime")
                 .add("unique", Boolean.FALSE)
                 .get();
         collection.createIndex(idxSessionIdStartTime, optSessionIdStartTime);
 
         // Find unfinished sessions
-        DBObject idxEndTime = BasicDBObjectBuilder
+        DBObject idxEndTimeStartTime = BasicDBObjectBuilder
                 .start(FIELD_END_TIME, 1)
                 .add(FIELD_START_TIME, 1)
                 .get();
-        DBObject optEndTime = BasicDBObjectBuilder
-                .start("name", "idx_endTime")
+        DBObject optEndTimeStartTime = BasicDBObjectBuilder
+                .start("name", "idxEndTimeStartTime")
                 .add("unique", Boolean.FALSE)
                 .get();
-        collection.createIndex(idxEndTime, optEndTime);
-
-        // Perhaps find long-running sessions
-        DBObject idxElapsedTime = BasicDBObjectBuilder
-                .start(FIELD_ELAPSED_TIME, 1)
-                .add(FIELD_START_TIME, 1)
-                .get();
-        DBObject optElapsedTime = BasicDBObjectBuilder
-                .start("name", "idx_elapsedTime")
-                .add("unique", Boolean.FALSE)
-                .get();
-        collection.createIndex(idxElapsedTime, optElapsedTime);
+        collection.createIndex(idxEndTimeStartTime, optEndTimeStartTime);
     }
     
     private SessionData fromDBObject(DBObject sessionDataObj)
     {
         SessionData sessionData = new SessionData();
-        sessionData.setSessionId((String) sessionDataObj.get(FIELD_SESSION_ID));
-        sessionData.setData((String) sessionDataObj.get(FIELD_DATA));
+        sessionData.setId(sessionDataObj.get(FIELD_ID).toString());
         sessionData.setStartTime((Long) sessionDataObj.get(FIELD_START_TIME));
         sessionData.setEndTime((Long) sessionDataObj.get(FIELD_END_TIME));
-        sessionData.setElapsedTime((Long) sessionDataObj.get(FIELD_ELAPSED_TIME));
+        sessionData.setData((DBObject) sessionDataObj.get(FIELD_DATA));
         return sessionData;
     }
 
     @Override
-    protected void saveSessionData(SessionData sessionData)
+    protected String newSession(SessionData sessionData)
     {
+        ObjectId id = new ObjectId();
         DBObject insertObj = BasicDBObjectBuilder.start()
-                .add(FIELD_SESSION_ID, sessionData.getSessionId())
-                .add(FIELD_DATA, sessionData.getData())
+                .add(FIELD_ID, id)
                 .add(FIELD_START_TIME, sessionData.getStartTime())
                 .add(FIELD_END_TIME, sessionData.getEndTime())
-                .add(FIELD_ELAPSED_TIME, sessionData.getElapsedTime())
+                .add(FIELD_DATA, sessionData.getData())
                 .get();
         try
         {
             collection.insert(insertObj);
+            return id.toString();
         }
         catch (MongoException e)
         {
@@ -151,7 +133,7 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
     protected SessionData findSessionData(String sessionId)
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_SESSION_ID, sessionId)
+                .add(FIELD_ID, new ObjectId(sessionId))
                 .get();
         DBObject result = collection.findOne(queryObj);
         if (result == null)
@@ -165,15 +147,14 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
     }
 
     @Override
-    protected void updateSessionEndTime(String sessionId, long endTime, long elapsedTime)
+    protected void updateSessionEndTime(String sessionId, long endTime)
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_SESSION_ID, sessionId)
+                .add(FIELD_ID, new ObjectId(sessionId))
                 .get();
         DBObject updateObj = BasicDBObjectBuilder.start()
                 .push("$set")
                     .add(FIELD_END_TIME, endTime)
-                    .add(FIELD_ELAPSED_TIME, elapsedTime)
                 .pop()
                 .get();
         try
@@ -185,17 +166,16 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
             throw new RuntimeException(
                     "Failed to update session end time: \n" +
                     "   Session:      " + sessionId + "\n" +
-                    "   End Time:     " + endTime + "\n" +
-                    "   Elapsed Time: " + elapsedTime,
+                    "   End Time:     " + endTime,
                     e);
         }
     }
 
     @Override
-    protected void updateSessionData(String sessionId, String data)
+    protected boolean updateSessionData(String sessionId, DBObject data)
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_SESSION_ID, sessionId)
+                .add(FIELD_ID, new ObjectId(sessionId))
                 .get();
         DBObject updateObj = BasicDBObjectBuilder.start()
                 .push("$set")
@@ -204,7 +184,8 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
                 .get();
         try
         {
-            collection.update(queryObj, updateObj);
+            WriteResult wr = collection.update(queryObj, updateObj);
+            return wr.getN() > 0;
         }
         catch (MongoException e)
         {
@@ -217,11 +198,17 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
     }
     
     @Override
-    public long activeSessionsCount()
+    public long getActiveSessionsCount()
     {
         DBObject queryObj = BasicDBObjectBuilder.start()
                 .add(FIELD_END_TIME, -1L)
                 .get();
         return collection.count(queryObj);
+    }
+    
+    @Override
+    public long getAllSessionsCount()
+    {
+        return collection.count();
     }
 }

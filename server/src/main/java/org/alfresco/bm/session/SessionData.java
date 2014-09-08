@@ -20,12 +20,10 @@ package org.alfresco.bm.session;
 
 import org.alfresco.bm.event.Event;
 
+import com.mongodb.DBObject;
+
 /**
  * Data used to manage and track user scenarios
- * <p/>
- * TODO: https://jira.springsource.org/browse/DATAMONGO-392
- *       Make data data serializable once Spring can deserialize what it writes.
- *       Visit the {@link SessionService} once fixed.
  *
  * @author Derek Hulley
  * @since 1.0
@@ -33,12 +31,10 @@ import org.alfresco.bm.event.Event;
 public class SessionData
 {
     /** A link to the {@link Event#getSessionId() session} associated with an event chain. */
-    private String sessionId;
-    /** Any persistable data associated with the session */
-    private String data;
+    private String id;
+    private DBObject data;
     private long startTime;
     private long endTime;
-    private long elapsedTime;
 
     /**
      * Required default constructor for persistence
@@ -47,13 +43,13 @@ public class SessionData
     {
         this.startTime = System.currentTimeMillis();
         this.endTime = -1L;
-        this.elapsedTime = -1L;
+        this.data = null;
     }
 
     /**
      * Convenience constructor for service
      */
-    public SessionData(String data)
+    public SessionData(DBObject data)
     {
         this();
         this.data = data;
@@ -63,34 +59,32 @@ public class SessionData
     public String toString()
     {
         StringBuilder builder = new StringBuilder();
-        builder.append("SessionData [sessionId=");
-        builder.append(sessionId);
+        builder.append("SessionData [id=");
+        builder.append(id);
         builder.append(", data=");
         builder.append(data);
         builder.append(", startTime=");
         builder.append(startTime);
         builder.append(", endTime=");
         builder.append(endTime);
-        builder.append(", elapsedTime=");
-        builder.append(elapsedTime);
         builder.append("]");
         return builder.toString();
     }
 
-    public String getSessionId()
+    public String getId()
     {
-        return sessionId;
+        return id;
     }
-    public void setSessionId(String sessionId)
+    public void setId(String id)
     {
-        this.sessionId = sessionId;
+        this.id = id;
     }
 
-    public String getData()
+    public DBObject getData()
     {
         return data;
     }
-    public void setData(String data)
+    public void setData(DBObject data)
     {
         this.data = data;
     }
@@ -111,14 +105,5 @@ public class SessionData
     public void setEndTime(long endTime)
     {
         this.endTime = endTime;
-    }
-
-    public long getElapsedTime()
-    {
-        return elapsedTime;
-    }
-    public void setElapsedTime(long elapsedTime)
-    {
-        this.elapsedTime = elapsedTime;
     }
 }

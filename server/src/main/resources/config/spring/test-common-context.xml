@@ -40,6 +40,7 @@
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="eventProcessors" ref="eventProcessors" />
         <constructor-arg name="resultService" ref="resultService" />
+        <constructor-arg name="sessionService" ref="sessionService" />
         <constructor-arg name="threadCount" value="${events.threads.count}" />
         <property name="eventsPerSecondPerThread" value="${events.threads.eventsPerSecondPerThread}" />
     </bean>

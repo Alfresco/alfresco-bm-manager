@@ -28,8 +28,12 @@ import org.alfresco.bm.data.ProcessDataDAO;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.session.SessionService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 /**
  * Schedule processing events.
@@ -62,6 +66,7 @@ public class ScheduleProcesses extends AbstractEventProcessor
     
     private static Log logger = LogFactory.getLog(ScheduleProcesses.class);
     
+    private final SessionService sessionService;
     private final ProcessDataDAO processDataDAO;
     private final String testRunFqn;
     private final int processCount;
@@ -70,14 +75,19 @@ public class ScheduleProcesses extends AbstractEventProcessor
     private int batchSize;
 
     /**
+     * @param sessionService        service to create and manage persisted session data
      * @param processDataDAO        the DAO for storing process data
      * @param testRunFqn            the name of the test run
      * @param processCount          the number of processes to run
      * @param timeBetweenProcesses  how long between each process
      */
-    public ScheduleProcesses(ProcessDataDAO processDataDAO, String testRunFqn, int processCount, long timeBetweenProcesses)
+    public ScheduleProcesses(
+            SessionService sessionService,
+            ProcessDataDAO processDataDAO,
+            String testRunFqn, int processCount, long timeBetweenProcesses)
     {
         super();
+        this.sessionService = sessionService;
         this.processDataDAO = processDataDAO;
         this.testRunFqn = testRunFqn;
         this.processCount = processCount;
@@ -132,6 +142,15 @@ public class ScheduleProcesses extends AbstractEventProcessor
             
             // We will attach process name as the event data
             Event eventOut = new Event(eventNameProcess, scheduled, processName);
+            
+            // We want to carry some arbitrary data around in a 'session'
+            DBObject sessionObj = new BasicDBObject()
+                    .append("key1", "value1")
+                    .append("key2", "value2");
+            String sessionId = sessionService.startSession(sessionObj);
+            eventOut.setSessionId(sessionId);
+            
+            // Add the event to the list of events scheduled
             events.add(eventOut);
             localCount++;
             totalCount++;

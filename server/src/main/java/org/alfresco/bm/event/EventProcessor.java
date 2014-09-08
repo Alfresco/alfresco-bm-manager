@@ -89,16 +89,20 @@ public interface EventProcessor
     EventResult processEvent(Event event, StopWatch stopWatch) throws Exception;
     
     /**
-     * Carry session IDs from the executed event to all the new event.
-     * This is called after event processing and for all new events prior to publishing them
-     * to the event queue.
-     * <p/>
-     * Implementations can make use of the {@link SessionService} to initiate a new session
-     * and put that into the next event.  Otherwise they can choose to terminate sessions
-     * and remove session IDs from the next event(s).
+     * Must the framework automatically carry event sessions from event to event.
+     * This is only supported where an event produces exactly one 'next' event i.e.
+     * sessions should be associated with a linear sequence of events.
      * 
-     * @param event             the original event
-     * @param nextEvent         a new event (possibly one of many)
+     * @return                  <tt>true</tt> to allow the framework to carry session IDs
      */
-    void propagateSessionId(Event event, Event nextEvent);
+    boolean isAutoPropagateSessionId();
+    
+    /**
+     * Must the framework auto-close any event sessions that cannot be propagated?  This
+     * will be called if there are no further events to publish, either through an exception
+     * coming out of the processing or because an event has no further events in the chain.
+     * 
+     * @return                  <tt>true</tt> to allow the framework to automatically manage session closure
+     */
+    boolean isAutoCloseSessionId();
 }

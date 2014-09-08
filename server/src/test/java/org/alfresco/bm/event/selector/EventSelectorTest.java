@@ -110,9 +110,15 @@ public class EventSelectorTest
         }
 
         @Override
-        public void propagateSessionId(Event event, Event nextEvent)
+        public boolean isAutoPropagateSessionId()
         {
-            throw new UnsupportedOperationException();
+            return true;
+        }
+
+        @Override
+        public boolean isAutoCloseSessionId()
+        {
+            return true;
         }
     }
 }

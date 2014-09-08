@@ -18,17 +18,24 @@
  */
 package org.alfresco.bm.session;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Properties;
 
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 /**
  * @see SessionService
@@ -41,11 +48,11 @@ public class SessionServiceTest
 {
     private final static String COLLECTION_BM_USER_DATA_SERVICE = "BenchmarkSessionServiceTest";
     
-    private static AbstractApplicationContext ctx;
-    private static SessionService sessionService;
+    private AbstractApplicationContext ctx;
+    private SessionService sessionService;
 
-    @BeforeClass
-    public static void setUp()
+    @Before
+    public void setUp()
     {
         Properties props = new Properties();
         props.put("mongoCollection", COLLECTION_BM_USER_DATA_SERVICE);
@@ -57,31 +64,45 @@ public class SessionServiceTest
         sessionService = ctx.getBean(SessionService.class);
     }
     
-    @AfterClass
-    public static void tearDown()
+    @After
+    public void tearDown()
     {
         ctx.close();
     }
     
     @Test
+    public void nullData()
+    {
+        String sessionId = sessionService.startSession(null);
+        assertNull("Null data should be OK for a session. ", sessionService.getSessionData(sessionId));
+    }
+    
+    @Test
     public void simpleLifecycle()
     {
-        String data = "abc";
+        long sessionAllCountStart = sessionService.getAllSessionsCount();
+        assertEquals("Should be no active sessions. ", 0L, sessionService.getActiveSessionsCount());
+        
+        DBObject data = new BasicDBObject("key", "abc");
         String sessionId = sessionService.startSession(data);
-        Assert.assertTrue("Start time not set.", sessionService.getSessionStartTime(sessionId) > 0L);
-        Assert.assertEquals("End time set.", -1L, sessionService.getSessionEndTime(sessionId));
-        Assert.assertEquals("Elapsed time set.", -1L, sessionService.getSessionElapsedTime(sessionId));
-        Assert.assertEquals("Data not set.", data, sessionService.getSessionData(sessionId));
+        assertTrue("Start time not set.", sessionService.getSessionStartTime(sessionId) > 0L);
+        assertEquals("End time set.", -1L, sessionService.getSessionEndTime(sessionId));
+        assertEquals("Elapsed time set.", -1L, sessionService.getSessionElapsedTime(sessionId));
+        assertEquals("Data not set.", data, sessionService.getSessionData(sessionId));
+        assertEquals("Should be one active session. ", 1L, sessionService.getActiveSessionsCount());
         
         // Update the data
-        data = "def";
+        data = new BasicDBObject("key", "def");
         sessionService.setSessionData(sessionId, data);
-        Assert.assertEquals("Data not set.", data, sessionService.getSessionData(sessionId));
+        assertEquals("Data not set.", "def", sessionService.getSessionData(sessionId).get("key"));
         
         // End the session
         sessionService.endSession(sessionId);
-        Assert.assertTrue("End time updated.", sessionService.getSessionEndTime(sessionId) > 0L);
-        Assert.assertTrue("Elapsed time updated.", sessionService.getSessionElapsedTime(sessionId) > 0L);
+        assertTrue("End time updated.", sessionService.getSessionEndTime(sessionId) > 0L);
+        assertTrue("Elapsed time updated.", sessionService.getSessionElapsedTime(sessionId) > 0L);
+        assertEquals("Should be no active sessions. ", 0L, sessionService.getActiveSessionsCount());
+        
+        assertEquals("Session count did not increase by 1. ", sessionAllCountStart + 1L, sessionService.getAllSessionsCount());
     }
     
     /**
@@ -94,6 +115,7 @@ public class SessionServiceTest
         {
             simpleLifecycle();
         }
+        assertEquals(200, sessionService.getAllSessionsCount());
     }
     
     @Test
@@ -139,7 +161,7 @@ public class SessionServiceTest
         }
         try
         {
-            sessionService.setSessionData(sessionId, "abc");
+            sessionService.setSessionData(sessionId, null);
             Assert.fail("Invalid SessionId should throw RuntimeException.");
         }
         catch (RuntimeException e)

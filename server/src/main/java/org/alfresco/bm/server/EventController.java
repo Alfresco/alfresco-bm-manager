@@ -34,6 +34,7 @@ import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.EventWork;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -71,6 +72,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
     private final Thread thread;
     private final ExecutorService executor;
     private final ResultService resultService;
+    private final SessionService sessionService;
     private final int threadCount;
 
     private int eventsPerSecondPerThread = DEFAULT_EVENTS_PER_SECOND_PER_THREAD;
@@ -87,6 +89,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
      * @param eventService      the source of events that will be pushed for execution
      * @param eventProcessors   the registry of processors for events
      * @param resultService     the service used to store and retrieve event results
+     * @param sessionService    the service to carry session IDs between events
      * @param threadCount       the number of threads available to the processor
      */
     public EventController(
@@ -95,6 +98,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
             EventService eventService,
             EventProcessorRegistry eventProcessors,
             ResultService resultService,
+            SessionService sessionService,
             int threadCount)
     {
         thread = new Thread(new ThreadGroup(testRunFqn), this, testRunFqn + "-Controller");
@@ -105,6 +109,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
         this.eventService = eventService;
         this.eventProcessors = eventProcessors;
         this.resultService = resultService;
+        this.sessionService = sessionService;
         this.threadCount = threadCount;
         // Configure threads
         CustomizableThreadFactory threadFactory = new CustomizableThreadFactory(testRunFqn + "-");
@@ -321,7 +326,8 @@ runStateChanged:
             EventWork work = new EventWork(
                     serverId, testRunFqn,
                     event,
-                    processor, eventService, resultService);
+                    processor,
+                    eventService, resultService, sessionService);
             try
             {
                 // Grabbing an event automatically applies a short-lived lock to prevent

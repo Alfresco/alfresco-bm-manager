@@ -21,7 +21,6 @@ package org.alfresco.bm.event;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.alfresco.bm.session.SessionService;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,7 +38,8 @@ public abstract class AbstractEventProcessor implements EventProcessor, BeanName
 {
     protected static final long DEFAULT_WARN_DELAY = Long.MAX_VALUE;
     protected static final boolean DEFAULT_CHART = Boolean.TRUE;
-    protected static final boolean DEFAULT_PROPAGATE_SESSION_ID = Boolean.TRUE;
+    protected static final boolean DEFAULT_AUTO_PROPAGATE_SESSION_ID = Boolean.TRUE;
+    protected static final boolean DEFAULT_AUTO_CLOSE_SESSION_ID = Boolean.TRUE;
 
     /** Resource for derived classes to use for logging */
     protected Log logger = LogFactory.getLog(this.getClass());
@@ -47,7 +47,8 @@ public abstract class AbstractEventProcessor implements EventProcessor, BeanName
     private List<String> eventNames;
     private long warnDelay;
     private boolean chart;
-    private boolean propagateSessionId;
+    private boolean autoPropagateSessionId;
+    private boolean autoCloseSessionId;
     
     /**
      * Default constructor
@@ -57,7 +58,8 @@ public abstract class AbstractEventProcessor implements EventProcessor, BeanName
         eventNames = new ArrayList<String>(1);
         warnDelay = DEFAULT_WARN_DELAY;
         chart = DEFAULT_CHART;
-        propagateSessionId = DEFAULT_PROPAGATE_SESSION_ID;
+        autoPropagateSessionId = DEFAULT_AUTO_PROPAGATE_SESSION_ID;
+        autoCloseSessionId = DEFAULT_AUTO_CLOSE_SESSION_ID;
     }
 
     @Override
@@ -139,39 +141,38 @@ public abstract class AbstractEventProcessor implements EventProcessor, BeanName
     }
 
     /**
-     * Change the {@link #DEFAULT_PROPAGATE_SESSION_ID default} session ID propagation
+     * Change the {@link #DEFAULT_AUTO_PROPAGATE_SESSION_ID default} session ID propagation
      * behaviour
      * 
-     * @param propagateSessionId    <tt>true</tt> to propagate session IDs to all new events
-     *                              otherwise <tt>false</tt> 
+     * @param autoPropagateSessionId    <tt>true</tt> to propagate session IDs to the next event
+     *                                  otherwise <tt>false</tt>  (default: <tt>true</tt>)
      */
-    public void setPropagateSessionId(boolean propagateSessionId)
+    public void setAutoPropagateSessionId(boolean autoPropagateSessionId)
     {
-        this.propagateSessionId = propagateSessionId;
+        this.autoPropagateSessionId = autoPropagateSessionId;
     }
 
     /**
-     * Called by the framework after {@link #processEvent(Event) event processing}
-     * and just prior to publishing an event to the event queue.
-     * <p/>
-     * The default behaviour is determined by the
-     * {@link #setPropagateSessionId(boolean) session propagation flag} but implementations
-     * can override the behaviour on a case-by-case basis. 
-     * <p/>
-     * Implementations can make use of the {@link SessionService} for creating new sessions,
-     * the details of which can then be attached to the next event(s).
+     * Change the {@link #DEFAULT_AUTO_CLOSE_SESSION_ID default} session ID auto-close
+     * behaviour
+     * 
+     * @param autoCloseSessionId    <tt>true</tt> to allow the framework to aut-close sessions (default: <tt>true</tt>)
      */
-    @Override
-    public void propagateSessionId(Event event, Event nextEvent)
+    public void setAutoCloseSessionId(boolean autoCloseSessionId)
     {
-        String sessionId = event.getSessionId();
-        if (!propagateSessionId || sessionId == null)
-        {
-            // Nothing to do
-            return;
-        }
-        // Carry data to new event
-        nextEvent.setSessionId(sessionId);
+        this.autoCloseSessionId = autoCloseSessionId;
+    }
+
+    @Override
+    public boolean isAutoPropagateSessionId()
+    {
+        return autoPropagateSessionId;
+    }
+
+    @Override
+    public boolean isAutoCloseSessionId()
+    {
+        return autoCloseSessionId;
     }
 
     /**
