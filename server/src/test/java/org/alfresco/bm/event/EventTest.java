@@ -38,6 +38,7 @@ import com.mongodb.DBObject;
  * @since 2.0
  */
 @RunWith(JUnit4.class)
+@SuppressWarnings("deprecation")
 public class EventTest
 {
     @Test

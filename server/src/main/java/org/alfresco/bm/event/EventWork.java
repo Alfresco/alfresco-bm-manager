@@ -75,6 +75,7 @@ public class EventWork implements Runnable
         this.sessionService = sessionService;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void run()
     {

@@ -291,8 +291,11 @@ public class Event
     }
 
     /**
+     * Method used by persistence framework ONLY.  DO NOT USE.
+     * 
      * @return                      the data key in the event that data is stored in the VM only
      */
+    @Deprecated
     public String getDataKey()
     {
         return dataKey;

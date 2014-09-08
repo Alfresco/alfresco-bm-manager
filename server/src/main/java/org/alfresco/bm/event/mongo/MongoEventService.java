@@ -95,6 +95,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
     /**
      * Helper method to convert an {@link Event} into a {@link DBObject persistable object}
      */
+    @SuppressWarnings("deprecation")
     public static DBObject convertEvent(Event event)
     {
         BasicDBObjectBuilder insertObjBuilder = BasicDBObjectBuilder
