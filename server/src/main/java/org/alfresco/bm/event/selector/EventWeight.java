@@ -21,64 +21,75 @@ package org.alfresco.bm.event.selector;
 import java.util.StringTokenizer;
 
 /**
- *  
+ * Data representing relative weight for given event names.
+ * 
  * @author Steve Glover
+ * @author Derek Hulley
  * @since 1.3
  */
-public class EventSuccessorInfo
+public class EventWeight
 {
     private final String eventName;
-    private final int weighting;
+    private final double weight;
     private final long delay;
     
-    public EventSuccessorInfo(String eventName, int weightingOverride)
+    /**
+     * @see EventWeight#EventWeighting(String, double, String, long)
+     */
+    public EventWeight(String eventName, double weight)
     {
-        this(eventName, "", weightingOverride, 0L);
+        this(eventName, weight, "", 0L);
     }
 
-    public EventSuccessorInfo(String eventName, String weightingsStr)
+    /**
+     * @see EventWeight#EventWeighting(String, double, String, long)
+     */
+    public EventWeight(String eventName, String weights)
     {
-        this(eventName, weightingsStr, -1, 0L);
+        this(eventName, -1.0, weights, 0L);
     }
 
-    public EventSuccessorInfo(String eventName, String weightings, int weightingOverride)
+    /**
+     * @see EventWeight#EventWeighting(String, double, String, long)
+     */
+    public EventWeight(String eventName, double weight, String weights)
     {
-        this(eventName, weightings, weightingOverride, 0L);
+        this(eventName, weight, weights, 0L);
     }
 
     /**
      * @param eventName                     the name of the event being lent some weight
-     * @param weightings                    a comma-separated list of weighting values that will be multiplied together e.g. "1, 5" will give a weighting of 5.
-     * @param weightingOverride             a value to override the weightings (ignored if less than zero)
+     * @param weight                        an explicit event weight (ignored if less than zero)
+     * @param weights                       a comma-separated list of weight values that will be multiplied together e.g. "1.0, 0.5" will give a weighting of "0.5".
      * @param delay                         the delay before the next event
      */
-    public EventSuccessorInfo(String eventName, String weightings, int weightingOverride, long delay)
+    public EventWeight(String eventName, double weight, String weights, long delay)
     {
         this.eventName = eventName.trim();
-        if (weightingOverride >= 0)
+        if (weight >= 0)
         {
-            this.weighting = weightingOverride;
+            this.weight = weight;
         }
-        else if (weightings != null)
+        else if (weights != null)
         {
-            this.weighting = parseWeightings(weightings);
+            this.weight = parseWeights(weights);
         }
         else
         {
-            this.weighting = 1;
+            this.weight = 1;
         }
         this.delay = delay;
     }
     
-    private int parseWeightings(String weightings)
+    private double parseWeights(String weightings)
     {
-        int weighting = 1;
+        double weighting = 1.0;
 
         StringTokenizer st = new StringTokenizer(weightings, ",");
         while (st.hasMoreTokens())
         {
             String weighingStr = st.nextToken().trim();
-            weighting *= Integer.parseInt(weighingStr);
+            weighting *= Double.parseDouble(weighingStr);
         }
 
         return weighting;
@@ -89,9 +100,9 @@ public class EventSuccessorInfo
         return eventName;
     }
     
-    public int getWeighting()
+    public double getWeight()
     {
-        return weighting;
+        return weight;
     }
     
     public long getDelay()
@@ -102,7 +113,7 @@ public class EventSuccessorInfo
     @Override
     public String toString()
     {
-        return "EventSuccessorInfo [eventName=" + eventName + ", weighting="
-                + weighting + ", delay=" + delay + "]";
+        return "EventSuccessorInfo [eventName=" + eventName + ", weight="
+                + weight + ", delay=" + delay + "]";
     }
 }

@@ -77,7 +77,11 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
     {
         Object ret = null;
 
-        if(response != null && response.isPersistAsString())
+        if (response != null && response.getResponseData() instanceof DBObject)
+        {
+            ret = response.getResponseData();
+        }
+        else if (response != null && response.isPersistAsString())
         {
             StringBuilder sb = new StringBuilder();
             String message = response.getMessage();

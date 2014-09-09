@@ -22,18 +22,19 @@ package org.alfresco.bm.event.selector;
  * Information on an event successor, including the event name, relative weighting and delay.
  *  
  * @author Steve Glover
+ * @author Derek Hulley
  * @since 1.3
  */
 public class EventSuccessor
 {
     private final String eventName;
-    private final int weighting;
+    private final double weight;
     private final long delay;
     
-    public EventSuccessor(String eventName, int weighting, long delay)
+    public EventSuccessor(String eventName, double weight, long delay)
     {
         this.eventName = eventName;
-        this.weighting = weighting;
+        this.weight = weight;
         this.delay = delay;
     }
 
@@ -42,9 +43,9 @@ public class EventSuccessor
         return eventName;
     }
 
-    public int getWeighting()
+    public double getWeight()
     {
-        return weighting;
+        return weight;
     }
 
     public long getDelay()
@@ -58,8 +59,8 @@ public class EventSuccessor
         StringBuilder builder = new StringBuilder();
         builder.append("EventSuccessor [eventName=");
         builder.append(eventName);
-        builder.append(", weighting=");
-        builder.append(weighting);
+        builder.append(", weight=");
+        builder.append(weight);
         builder.append(", delay=");
         builder.append(delay);
         builder.append("]");

@@ -38,10 +38,10 @@ public class EventSelectorTest
         registry.register("B", bProcessor);
         registry.register("C", cProcessor);
         
-        List<EventSuccessorInfo> list1 = new ArrayList<EventSuccessorInfo>();
-        list1.add(new EventSuccessorInfo("A", "2,5"));
-        list1.add(new EventSuccessorInfo("B", "2,5"));
-        list1.add(new EventSuccessorInfo("  C  ", "2,5", 80, 1000L));
+        List<EventWeight> list1 = new ArrayList<EventWeight>();
+        list1.add(new EventWeight("A", "2,5.0"));
+        list1.add(new EventWeight("B", "2.0,5"));
+        list1.add(new EventWeight("  C  ", 19.5, "2.0,5.0", 1000L));
         
         random1 = new RandomWeightedEventSelector(registry, list1);
     }
@@ -78,9 +78,9 @@ public class EventSelectorTest
         
         // Check that the distribution is approximately correct
         
-        Assert.assertTrue("A was chosen too much.", aProcessor.count < 200);    // Looking up to 20% of 1000
-        Assert.assertTrue("B was chosen too much.", bProcessor.count < 200);    // Looking up to 20% of 1000
-        Assert.assertTrue("C was chosen too little.", cProcessor.count > 600);  // Looking down to 60% of 1000
+        Assert.assertTrue("A was chosen too much: " + aProcessor.count, aProcessor.count < 300);    // ~ 25% of 1000
+        Assert.assertTrue("B was chosen too much: " + bProcessor.count, bProcessor.count < 300);    // ~ 25% of 1000
+        Assert.assertTrue("C was chosen too little: " + cProcessor.count, cProcessor.count > 400);  // ~ 50% of 1000
     }
 
     /**
