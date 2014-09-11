@@ -28,23 +28,6 @@
         </constructor-arg>
     </bean>
     
-    <!--        -->
-    <!-- Events -->
-    <!--        -->
-
-    <bean id="eventProcessors" class="org.alfresco.bm.event.EventProcessorRegistry" />
-
-    <bean id="eventController" class="org.alfresco.bm.server.EventController" >
-        <constructor-arg name="serverId" value="${driverId}" />
-        <constructor-arg name="testRunFqn" value="${testRunFqn}" />
-        <constructor-arg name="eventService" ref="eventService" />
-        <constructor-arg name="eventProcessors" ref="eventProcessors" />
-        <constructor-arg name="resultService" ref="resultService" />
-        <constructor-arg name="sessionService" ref="sessionService" />
-        <constructor-arg name="threadCount" value="${events.threads.count}" />
-        <property name="eventsPerSecondPerThread" value="${events.threads.eventsPerSecondPerThread}" />
-    </bean>
-    
     <!--                 -->
     <!-- Reporting       -->
     <!--                 -->
@@ -76,12 +59,39 @@
     </bean>
 
     <!--                 -->
+    <!-- EventProducers  -->
+    <!--                 -->
+    
+    <bean id="eventProducers" class="org.alfresco.bm.event.producer.EventProducerRegistry" />
+    <bean id="producer.base" abstract="true" class="org.alfresco.bm.event.producer.AbstractEventProducer" init-method="register">
+        <property name="registry" ref="eventProducers" />
+    </bean>
+    <bean id="producer.terminate" class="org.alfresco.bm.event.producer.TerminateEventProducer" parent="producer.base" />
+
+    <!--                 -->
     <!-- EventProcessors -->
     <!--                 -->
     
+    <bean id="eventProcessors" class="org.alfresco.bm.event.EventProcessorRegistry" />
     <bean id="event.base" abstract="true" class="org.alfresco.bm.event.AbstractEventProcessor" init-method="register">
         <property name="registry" ref="eventProcessors" />
     </bean>
     <bean id="event.start" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" />
+    
+    <!--                  -->
+    <!-- Event Controller -->
+    <!--                  -->
+
+    <bean id="eventController" class="org.alfresco.bm.server.EventController" >
+        <constructor-arg name="serverId" value="${driverId}" />
+        <constructor-arg name="testRunFqn" value="${testRunFqn}" />
+        <constructor-arg name="eventService" ref="eventService" />
+        <constructor-arg name="eventProcessors" ref="eventProcessors" />
+        <constructor-arg name="eventProducers" ref="eventProducers" />
+        <constructor-arg name="resultService" ref="resultService" />
+        <constructor-arg name="sessionService" ref="sessionService" />
+        <constructor-arg name="threadCount" value="${events.threads.count}" />
+        <property name="eventsPerSecondPerThread" value="${events.threads.eventsPerSecondPerThread}" />
+    </bean>
     
 </beans>

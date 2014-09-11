@@ -16,34 +16,36 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.alfresco.bm.event.selector;
+package org.alfresco.bm.event.producer;
 
+import java.util.Collections;
 import java.util.List;
 
-import org.alfresco.bm.event.EventProcessorRegistry;
+import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventWeight;
 import org.alfresco.bm.event.RandomWeightedSelector;
 
 /**
- * Select a successor event from a set of relatively-weighted event successors.
+ * Redirect events randomly based on relative weights.
  * <p/>
  * A <a href="http://stackoverflow.com/a/6409791">weighted selection algorithm</a> is used.
  * 
  * @see EventWeight
+ * @see RandomWeightedSelector
+ * 
  * @author Steve Glover
- * @since 1.3
+ * @author Derek Hulley
+ * @since 2.0
  */
-public class RandomWeightedEventSelector extends AbstractEventSelector
+public class RandomRedirectEventProducer extends AbstractEventProducer
 {
-    private final RandomWeightedSelector<EventSuccessor> selector = new RandomWeightedSelector<EventSuccessor>();
+    private final RandomWeightedSelector<RedirectEventProducer> selector = new RandomWeightedSelector<RedirectEventProducer>();
 
     /**
-     * @param registry              registry that contains references to next events
      * @param eventWeights          list of events weights to select from
      */
-    public RandomWeightedEventSelector(String name, EventProcessorRegistry registry, List<EventWeight> eventWeights)
+    public RandomRedirectEventProducer(List<EventWeight> eventWeights)
     {
-        super(name, registry);
         for (EventWeight eventWeight : eventWeights)
         {
             String eventName = eventWeight.getEventName();
@@ -51,37 +53,25 @@ public class RandomWeightedEventSelector extends AbstractEventSelector
             {
                 throw new RuntimeException("No event name provided.");
             }
-
             double weight = eventWeight.getWeight();
-            EventSuccessor eventSuccessor = new EventSuccessor(eventName, weight);
-            selector.add(weight, eventSuccessor);
+            // Construct a redirector for this
+            RedirectEventProducer redirect = new RedirectEventProducer(eventName);
+            selector.add(weight, redirect);
         }
     }
-    
-    /**
-     * @param registry              registry that contains references to next events
-     * @param eventWeights          list of events weights to select from
-     */
-    public RandomWeightedEventSelector(EventProcessorRegistry registry, List<EventWeight> eventWeights)
-    {
-        this(null, registry, eventWeights);
-    }
-
-    /**
-     * Chooses randomly from the list of successor events based on the weightings provided.
-     * 
-     * @param input         ignored
-     * @param response      ignored
-     */
-    @Override
-    protected EventSuccessor next(Object input, Object response)
-    {
-        return selector.next();
-    }
 
     @Override
-    public int size()
+    public List<Event> getNextEvents(Event event)
     {
-        return selector.size();
+        // Randomly choose a redirect
+        RedirectEventProducer redirect = selector.next();
+        if (redirect == null)
+        {
+            return Collections.emptyList();
+        }
+        else
+        {
+            return redirect.getNextEvents(event);
+        }
     }
 }

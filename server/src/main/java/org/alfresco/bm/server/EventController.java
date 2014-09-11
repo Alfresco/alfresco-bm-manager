@@ -34,6 +34,7 @@ import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.EventWork;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.event.producer.EventProducerRegistry;
 import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
@@ -68,6 +69,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
     private final String serverId;
     private final String testRunFqn;
     private final EventService eventService;
+    private final EventProducerRegistry eventProducers;
     private final EventProcessorRegistry eventProcessors;
     private final Thread thread;
     private final ExecutorService executor;
@@ -87,6 +89,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
      * @param serverId          the server controlling the events
      * @param testRunFqn        the fully qualified name of the test run
      * @param eventService      the source of events that will be pushed for execution
+     * @param eventProducers    the registry of producers of events
      * @param eventProcessors   the registry of processors for events
      * @param resultService     the service used to store and retrieve event results
      * @param sessionService    the service to carry session IDs between events
@@ -96,6 +99,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
             String serverId,
             String testRunFqn,
             EventService eventService,
+            EventProducerRegistry eventProducers,
             EventProcessorRegistry eventProcessors,
             ResultService resultService,
             SessionService sessionService,
@@ -107,6 +111,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
         this.serverId = serverId;
         this.testRunFqn = testRunFqn;
         this.eventService = eventService;
+        this.eventProducers = eventProducers;
         this.eventProcessors = eventProcessors;
         this.resultService = resultService;
         this.sessionService = sessionService;
@@ -326,7 +331,7 @@ runStateChanged:
             EventWork work = new EventWork(
                     serverId, testRunFqn,
                     event,
-                    processor,
+                    processor, eventProducers,
                     eventService, resultService, sessionService);
             try
             {
@@ -352,7 +357,7 @@ runStateChanged:
     
     /**
      * Get a processor for the event.  If an event is not mapped, and error is logged
-     * and the event is effecitvely absorbed.
+     * and the event is effectively absorbed.
      */
     private EventProcessor getProcessor(Event event)
     {

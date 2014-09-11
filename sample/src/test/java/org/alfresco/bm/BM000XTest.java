@@ -36,7 +36,6 @@ import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
-import org.alfresco.bm.process.ScheduleProcesses;
 import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
@@ -88,7 +87,7 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
     @Test
     public void runComplete() throws Exception
     {
-        BMTestRunner runner = new BMTestRunner(60000L);         // Should be done in 60s
+        BMTestRunner runner = new BMTestRunner(300000L);         // Should be done in 60s
         runner.addListener(this);
         runner.run(null, null, null);
     }
@@ -121,21 +120,24 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         }
         
         /*
-         * Start = 1 result
-         * Scheduling = 2 results
-         * Processing = 200 results
-         * Successful processing generates a No-op for each
+         * 'start' = 1 result
+         * 'scheduleProcesses' = 2 results
+         * 'executeProcess' = 200 results
          * Sessions = 200
          */
         List<String> eventNames = resultService.getEventNames();
-        assertEquals("Incorrect number of event names: " + eventNames, 4, eventNames.size());
+        assertEquals("Incorrect number of event names: " + eventNames, 3, eventNames.size());
         assertEquals(
-                "Incorrect number of events: " + ScheduleProcesses.EVENT_NAME_PROCESS,
-                200, resultService.countResultsByEventName(ScheduleProcesses.EVENT_NAME_PROCESS));
+                "Incorrect number of events: " + "scheduleProcesses",
+                2, resultService.countResultsByEventName("scheduleProcesses"));
+        assertEquals(
+                "Incorrect number of events: " + "executeProcess",
+                200, resultService.countResultsByEventName("executeProcess"));
+        // 203 events in total
+        assertEquals("Incorrect number of results.", 203, resultService.countResults());
+        // Check that we got the failure rate correct ~30%
         long failures = resultService.countResultsByFailure();
-        
-        // 202 events in total
-        assertEquals("Incorrect number of results.", (403-failures), resultService.countResults());
+        assertEquals("Failure rate out of bounds. ", 60.0, (double) failures, 15.0);
         
         // Test the charting API
         TestRestAPI testAPI = new TestRestAPI(testDAO, testService, services);
@@ -162,8 +164,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         {
             logger.debug("BM000X summary report: \n" + summary);
         }
-        assertTrue(summary.contains(",,process,   200,"));
         assertTrue(summary.contains(",,scheduleProcesses,     2,"));
+        assertTrue(summary.contains(",,executeProcess,   200,"));
         
         // Get the chart results and check
         String chartData = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 10, true);

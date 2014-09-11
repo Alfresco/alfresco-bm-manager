@@ -71,7 +71,6 @@ public abstract class AbstractEventSelector implements EventSelector
             EventSuccessor eventSuccessor = next(input, response);
             
             String nextEventName = eventSuccessor.getEventName();
-            long nextEventDelay = eventSuccessor.getDelay();
             EventDataObject nextEventInput = null;
     
             if (nextEventName != null && !nextEventName.equals("") && !nextEventName.equalsIgnoreCase("noop"))
@@ -101,7 +100,7 @@ public abstract class AbstractEventSelector implements EventSelector
                 // Construct the event with the new data and an appropriate delay
                 nextEvent = new Event(
                         nextEventName,
-                        System.currentTimeMillis() + nextEventDelay,
+                        System.currentTimeMillis(),
                         nextEventInput.getData(), true);
             }
         }

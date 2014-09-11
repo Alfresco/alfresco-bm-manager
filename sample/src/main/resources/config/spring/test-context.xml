@@ -81,11 +81,16 @@
             bean "event.start" will handle events named "start"
             bean "event.invite" will handle events named "invite"
         This behaviour can be overridden.  See the javadocs of AbstractEventProcessor.
+        
+        The 'producer.process' bean shows how an event can be redirected with an optional delay: in this case, to 'event.doProcess'.
+        The 'producer.users.ready' renames the 'users.ready' event to 'scheduleProcesses' without any other mondification.
+        The 'producer.processDone' effectively absorbs the 'processDone' events.
     -->
-    
+
+    <!-- Good practice to start with an event rename as the 'start' event is reserved -->    
     <bean id="event.start" class="org.alfresco.bm.event.RenameEventProcessor" parent="event.base" >
         <constructor-arg name="outputEventName" value="scheduleProcesses" />
-        <property name="chart" value="false" />
+        <property name="chart" value="false"/>
     </bean>
     <bean id="event.scheduleProcesses" class="org.alfresco.bm.process.ScheduleProcesses" parent="event.base" >
         <constructor-arg name="sessionService" ref="sessionService" />
@@ -96,14 +101,16 @@
         <property name="batchSize" value="${proc.scheduleBatchSize}" />
         <property name="chart" value="true" />
     </bean>
-    <bean id="event.process" class="org.alfresco.bm.process.ExecuteProcess" parent="event.base" >
+    <bean id="producer.process" class="org.alfresco.bm.event.producer.RedirectEventProducer" parent="producer.base" >
+        <constructor-arg name="newEventName" value="executeProcess" />
+        <constructor-arg name="delay" value="50" />
+    </bean>
+    <bean id="event.executeProcess" class="org.alfresco.bm.process.ExecuteProcess" parent="event.base" >
         <constructor-arg name="sessionService" ref="sessionService" />
         <constructor-arg name="processDataDAO" ref="processDataDAO" />
         <constructor-arg name="testFileService" ref="testFileService" />
         <property name="chart" value="true" />
     </bean>
-    <bean id="event.processDone" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" >
-        <property name="chart" value="false" />
-    </bean>
+    <bean id="producer.processDone" class="org.alfresco.bm.event.producer.TerminateEventProducer" parent="producer.base" />
     
 </beans>

@@ -18,6 +18,10 @@
  */
 package org.alfresco.bm.event;
 
+import org.alfresco.bm.event.producer.RedirectEventProducer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Simply emits a single event using the inbound data.
  * 
@@ -35,9 +39,13 @@ package org.alfresco.bm.event;
  * 
  * @author Derek Hulley
  * @since 1.4
+ * @deprecated From 2.0, use the {@link RedirectEventProducer}.
  */
+@Deprecated
 public class RenameEventProcessor extends AbstractEventProcessor
 {
+    private static Log logger = LogFactory.getLog(RenameEventProcessor.class);
+    
     private final String outputEventName;
     
     /**
@@ -49,6 +57,9 @@ public class RenameEventProcessor extends AbstractEventProcessor
     {
         super();
         this.outputEventName = outputEventName;
+        
+        // Deprecated
+        logger.warn("The RenameEventProcessor is deprecated.");
     }
 
     @Override

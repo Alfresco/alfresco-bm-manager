@@ -18,9 +18,14 @@
  */
 package org.alfresco.bm.event;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.alfresco.bm.event.producer.EventProducer;
+import org.alfresco.bm.event.producer.EventProducerRegistry;
 import org.alfresco.bm.session.SessionService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -45,6 +50,7 @@ public class EventWork implements Runnable
     private final String testRunFqn;
     private final Event event;
     private final EventProcessor processor;
+    private final EventProducerRegistry eventProducers;
     private final EventService eventService;
     private final ResultService resultService;
     private final SessionService sessionService;
@@ -56,6 +62,7 @@ public class EventWork implements Runnable
      * @param testRunFqn        the fully qualified name of the test run initiating the work
      * @param event             the event to be processed
      * @param processor         the component that will do the actual processing
+     * @param eventProducers    the registry to convert events before persistence
      * @param eventService      the queue events that will be updated with new events
      * @param resultService     the service to store results of the execution
      * @param sessionService    the service manage sessions
@@ -63,13 +70,14 @@ public class EventWork implements Runnable
     public EventWork(
             String serverId, String testRunFqn,
             Event event,
-            EventProcessor processor,
+            EventProcessor processor, EventProducerRegistry eventProducers,
             EventService eventService, ResultService resultService, SessionService sessionService)
     {
         this.serverId = serverId;
         this.testRunFqn = testRunFqn;
         this.event = event;
         this.processor = processor;
+        this.eventProducers = eventProducers;
         this.eventService = eventService;
         this.resultService = resultService;
         this.sessionService = sessionService;
@@ -149,6 +157,10 @@ public class EventWork implements Runnable
             logger.error("Failed recorded event: " + recordedEvent, e);
         }
         
+        // Pass the event(s) through the producers
+        Set<String> eventNamesSeen = new HashSet<>(nextEvents.size() + 17);
+        nextEvents = getNextEvents(nextEvents, eventNamesSeen);
+        
         // Only propagate session IDs automatically if there is a 1:1 relationship between the event processed
         // and the next event i.e. we branching of the session is not intrinsically supported
         String sessionId = event.getSessionId();
@@ -193,7 +205,13 @@ public class EventWork implements Runnable
             }
             catch (Throwable e)
             {
-                logger.error("Failed to insert event into queue: " + nextEvent, e);
+                logger.error(
+                        "Failed to insert event into queue: \n" +
+                        "  Event to insert:     " + nextEvent + "\n" +
+                        "  Inbound event:       " + event + "\n" +
+                        "  Process used:        " + processor + "\n" +
+                        "  Events produced:     " + eventNamesSeen,
+                        e);
             }
         }
         
@@ -213,5 +231,47 @@ public class EventWork implements Runnable
         {
             logger.error("Failed to remove event from the queue: " + event, e);
         }
+    }
+
+    /**
+     * Go to the event producers and, recursively, keep producing events until:
+     * <ul>
+     * <li>there are no more producers for the events in hand</li>
+     * </ul>
+     * 
+     * @throws IllegalStateException        if a cyclical producer relationship is detected
+     */
+    private List<Event> getNextEvents(List<Event> events, Set<String> eventNamesSeen)
+    {
+        List<Event> nextEvents = new ArrayList<Event>(events.size() * 2);
+        for (Event event : events)
+        {
+            String eventName = event.getName();
+            // Get a producer associated with the event
+            EventProducer producer = eventProducers.getProducer(eventName);
+            if (producer == null)
+            {
+                // There is no producer, so take the event at face value
+                nextEvents.add(event);
+                continue;
+            }
+            // See what new events need producing
+            List<Event> producedEvents = producer.getNextEvents(event);
+            if (!eventNamesSeen.add(eventName))
+            {
+                // The event was already present, which means we would enter a loop
+                throw new RuntimeException("Event is part of a cyclical production configuration: " + event);
+            }
+            // Recurse into each one of these
+            producedEvents = getNextEvents(producedEvents, eventNamesSeen);
+            // Add this to the list
+            nextEvents.addAll(producedEvents);
+            
+            // CRITICAL!
+            // The event names already seen must only apply to a single branch, so remove the event name
+            eventNamesSeen.remove(eventName);
+        }
+        // Done
+        return nextEvents;
     }
 }

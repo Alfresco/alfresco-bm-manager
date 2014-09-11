@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.alfresco.bm.event.mongo.MongoEventService;
 import org.alfresco.bm.event.mongo.MongoResultService;
+import org.alfresco.bm.event.producer.EventProducerRegistry;
 import org.alfresco.bm.session.MongoSessionService;
 import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.apache.commons.lang3.time.StopWatch;
@@ -61,6 +62,7 @@ public class EventWorkTest
     private Event event;
     private List<Event> nextEvents;
     private EventProcessor processor;
+    private EventProducerRegistry eventProducers;
     private EventWork work;
 
     
@@ -80,9 +82,11 @@ public class EventWorkTest
         event.setId(eventService.putEvent(event));
         nextEvents = new ArrayList<Event>(2);
         processor = Mockito.mock(EventProcessor.class);
+        eventProducers = new EventProducerRegistry();
         work = new EventWork(
                 SERVER_ID, TEST_RUN_FQN, event,
                 new TestEventProcessor(),
+                eventProducers,
                 eventService, resultService, sessionService);
     }
     

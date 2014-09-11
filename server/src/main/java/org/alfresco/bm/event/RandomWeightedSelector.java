@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.alfresco.bm.event.selector;
+package org.alfresco.bm.event;
 
 import java.util.Map;
 import java.util.NavigableMap;
@@ -24,7 +24,6 @@ import java.util.Random;
 import java.util.TreeMap;
 
 /**
- *  
  * @author Steve Glover
  * @since 1.3
  */
@@ -56,8 +55,7 @@ public class RandomWeightedSelector<T>
     /**
      * Chooses randomly from the list of objects based on the weightings provided.
      * 
-     * @param input         ignored
-     * @param response      ignored
+     * @return              a randomly chosen instance of <tt>null</tt> if none are available
      */
     public T next()
     {

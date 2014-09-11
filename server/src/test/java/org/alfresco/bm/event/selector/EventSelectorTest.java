@@ -3,13 +3,13 @@ package org.alfresco.bm.event.selector;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
-
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventProcessor;
 import org.alfresco.bm.event.EventProcessorRegistry;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.event.EventWeight;
 import org.apache.commons.lang3.time.StopWatch;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +41,7 @@ public class EventSelectorTest
         List<EventWeight> list1 = new ArrayList<EventWeight>();
         list1.add(new EventWeight("A", "2,5.0"));
         list1.add(new EventWeight("B", "2.0,5"));
-        list1.add(new EventWeight("  C  ", 19.5, "2.0,5.0", 1000L));
+        list1.add(new EventWeight("  C  ", 19.5, "2.0,5.0"));
         
         random1 = new RandomWeightedEventSelector(registry, list1);
     }
@@ -70,10 +70,7 @@ public class EventSelectorTest
             CounterTestEventProcessor chosenProcessor = (CounterTestEventProcessor) registry.getProcessor(chosenEventName);
             chosenProcessor.count++;
             // Check that the time is approximately correct
-            if (chosenEventName.equals("C"))
-            {
-                Assert.assertTrue("Time delay not added", chosenEvent.getScheduledTime() > (now + 500L));
-            }
+            Assert.assertEquals("Time not set to 'now'", (double) chosenEvent.getScheduledTime(), (double) now, 100L);
         }
         
         // Check that the distribution is approximately correct

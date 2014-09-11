@@ -29,13 +29,11 @@ public class EventSuccessor
 {
     private final String eventName;
     private final double weight;
-    private final long delay;
     
-    public EventSuccessor(String eventName, double weight, long delay)
+    public EventSuccessor(String eventName, double weight)
     {
         this.eventName = eventName;
         this.weight = weight;
-        this.delay = delay;
     }
 
     public String getEventName()
@@ -48,11 +46,6 @@ public class EventSuccessor
         return weight;
     }
 
-    public long getDelay()
-    {
-        return delay;
-    }
-
     @Override
     public String toString()
     {
@@ -61,8 +54,6 @@ public class EventSuccessor
         builder.append(eventName);
         builder.append(", weight=");
         builder.append(weight);
-        builder.append(", delay=");
-        builder.append(delay);
         builder.append("]");
         return builder.toString();
     }
