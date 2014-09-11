@@ -103,7 +103,7 @@
     </bean>
     <bean id="producer.process" class="org.alfresco.bm.event.producer.RedirectEventProducer" parent="producer.base" >
         <constructor-arg name="newEventName" value="executeProcess" />
-        <constructor-arg name="delay" value="50" />
+        <constructor-arg name="delay" value="1" />
     </bean>
     <bean id="event.executeProcess" class="org.alfresco.bm.process.ExecuteProcess" parent="event.base" >
         <constructor-arg name="sessionService" ref="sessionService" />

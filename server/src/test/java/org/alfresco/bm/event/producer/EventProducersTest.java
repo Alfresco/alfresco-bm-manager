@@ -139,7 +139,7 @@ public class EventProducersTest
                 fail("Unknown redirect: " + event);
             }
         }
-        assertEquals(50.0, (double) b, 10.0);
-        assertEquals(50.0, (double) c, 10.0);
+        assertEquals(50.0, (double) b, 15.0);
+        assertEquals(50.0, (double) c, 15.0);
     }
 }
