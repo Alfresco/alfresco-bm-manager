@@ -100,6 +100,11 @@ public interface SessionService
     long getActiveSessionsCount();
     
     /**
+     * Returns a number of completed sessions, i.e. where endTime > 0
+     */
+    long getCompletedSessionsCount();
+    
+    /**
      * Returns a number of sessions, active or otherwise
      */
     long getAllSessionsCount();

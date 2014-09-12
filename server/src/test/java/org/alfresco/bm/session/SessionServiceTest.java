@@ -100,7 +100,6 @@ public class SessionServiceTest
         sessionService.endSession(sessionId);
         assertTrue("End time updated.", sessionService.getSessionEndTime(sessionId) > 0L);
         assertTrue("Elapsed time updated.", sessionService.getSessionElapsedTime(sessionId) > 0L);
-        assertEquals("Should be no active sessions. ", 0L, sessionService.getActiveSessionsCount());
         
         assertEquals("Session count did not increase by 1. ", sessionAllCountStart + 1L, sessionService.getAllSessionsCount());
     }
@@ -111,9 +110,13 @@ public class SessionServiceTest
     @Test
     public void doMany()
     {
-        for (int i = 0; i < 200; i++)
+        for (int i = 1; i <= 200; i++)                              // Note: we start at one to match the counts
         {
             simpleLifecycle();
+            long active = sessionService.getActiveSessionsCount();
+            assertEquals(0L, active);           // Each session is closed
+            long completed = sessionService.getCompletedSessionsCount();
+            assertEquals("Incorrect count of completed sessions. ", i, completed);
         }
         assertEquals(200, sessionService.getAllSessionsCount());
     }

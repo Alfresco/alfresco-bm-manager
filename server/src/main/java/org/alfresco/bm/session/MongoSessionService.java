@@ -207,6 +207,17 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
     }
     
     @Override
+    public long getCompletedSessionsCount()
+    {
+        DBObject queryObj = BasicDBObjectBuilder.start()
+                .push(FIELD_END_TIME)
+                    .append("$gt", 0)
+                .pop()
+                .get();
+        return collection.count(queryObj);
+    }
+
+    @Override
     public long getAllSessionsCount()
     {
         return collection.count();

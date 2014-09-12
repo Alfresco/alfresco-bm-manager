@@ -189,6 +189,7 @@ public class EventWorkTest
         work.run();
         
         assertEquals(1L, sessionService.getActiveSessionsCount());
+        assertEquals(0L, sessionService.getCompletedSessionsCount());
         assertEquals(-1L, sessionService.getSessionEndTime(sessionId));
     }
     
@@ -206,6 +207,7 @@ public class EventWorkTest
         work.run();
         
         assertEquals(0L, sessionService.getActiveSessionsCount());
+        assertEquals(1L, sessionService.getCompletedSessionsCount());
         assertEquals(1L, sessionService.getAllSessionsCount());
         assertTrue(sessionService.getSessionEndTime(sessionId) > 0L);
     }
@@ -226,6 +228,7 @@ public class EventWorkTest
         work.run();
         
         assertEquals(0L, sessionService.getActiveSessionsCount());
+        assertEquals(1L, sessionService.getCompletedSessionsCount());
         assertEquals(1L, sessionService.getAllSessionsCount());
         assertTrue(sessionService.getSessionEndTime(sessionId) > 0L);
     }
