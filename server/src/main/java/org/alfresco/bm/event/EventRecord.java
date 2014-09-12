@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.event;
 
+import java.util.Date;
+
 import com.mongodb.DBObject;
 
 /**
@@ -38,6 +40,7 @@ public class EventRecord
     public static final String FIELD_VALUE = "value";
     public static final String FIELD_WARNING = "warning";
     public static final String FIELD_CHART = "chart";
+    public static final String FIELD_PROCESSED_BY = "processedBy";
     
     public static final String FIELD_EVENT = "event";
     public static final String FIELD_EVENT_DATA = "event." + Event.FIELD_DATA;
@@ -59,6 +62,7 @@ public class EventRecord
     private final Object data;
     private String warning;
     private boolean chart = true;
+    private String processedBy = "unknown";
 
     /**
      * @param serverId          the server identifier
@@ -110,10 +114,13 @@ public class EventRecord
         StringBuilder builder = new StringBuilder();
         builder.append("EventRecord ");
         builder.append("[ serverId=").append(serverId);
+        builder.append(", processedBy=").append(processedBy);
         builder.append(", success=").append(success);
-        builder.append(", startTime=").append(startTime);
-        builder.append(", time=").append(time);
+        builder.append(", startTime=").append(new Date(startTime));
+        builder.append(", startDelay=").append(String.format("%.1fs", startDelay/1000.0));
+        builder.append(", time=").append(time).append("ms");
         builder.append(", data=").append(data);
+        builder.append(", event=").append(event);
         builder.append("]");
         return builder.toString();
     }
@@ -182,5 +189,14 @@ public class EventRecord
     public void setChart(boolean chart)
     {
         this.chart = chart;
+    }
+
+    public String getProcessedBy()
+    {
+        return processedBy;
+    }
+    public void setProcessedBy(String processedBy)
+    {
+        this.processedBy = processedBy;
     }
 }
