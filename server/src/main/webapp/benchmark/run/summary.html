@@ -1,7 +1,7 @@
 <div class="row" ng-show="summary.started > 0">
     <div class="form-group col-sm-12 col-xs-12">
         <span class="pull-right">
-            <a download="{{testname}}-{{summary.name}}.csv" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/csv" id="downloadCSVBtn"class="btn btn-default btn-lg">
+            <a download="{{testname}}.{{summary.name}}.csv" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/csv" id="downloadCSVBtn"class="btn btn-default btn-lg">
                     <i class="fa fa-download fa-3x" alt="Download CSV result"></i>
             </a>
             <a class="btn btn-default btn-lg" download="{{testname}}-{{summary.name}}.xlsx" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/results/xlsx" id="downloadXlsxBtn">
