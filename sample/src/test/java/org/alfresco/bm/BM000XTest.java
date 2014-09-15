@@ -19,6 +19,7 @@
 package org.alfresco.bm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -27,6 +28,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.ws.rs.core.StreamingOutput;
 
@@ -111,6 +114,18 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         assertNotNull(resultService);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
         
+        // Dump one of each type of event for information
+        Set<String> eventNames = new TreeSet<String>(resultService.getEventNames());
+        logger.info("Showing 1 of each type of event:");
+        for (String eventName : eventNames)
+        {
+            List<EventRecord> eventRecord = resultService.getResults(eventName, 0, 1);
+            logger.info("   " + eventRecord);
+            assertFalse(
+                    "An event was created that has no available processor or producer.  Use the TerminateEventProducer to absorb events.",
+                    eventRecord.contains("processedBy=unknown"));
+        }
+
         // One successful START event
         assertEquals("Incorrect number of start events.", 1, resultService.countResultsByEventName(Event.EVENT_NAME_START));
         List<EventRecord> results = resultService.getResults(0L, Long.MAX_VALUE, false, 0, 1);
@@ -125,7 +140,6 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
          * 'executeProcess' = 200 results
          * Sessions = 200
          */
-        List<String> eventNames = resultService.getEventNames();
         assertEquals("Incorrect number of event names: " + eventNames, 3, eventNames.size());
         assertEquals(
                 "Incorrect number of events: " + "scheduleProcesses",
