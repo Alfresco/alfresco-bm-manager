@@ -218,7 +218,7 @@ public class BMTestRunnerTest implements TestConstants
                 TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
                 ResultService rsCheck = services.getResultService(test, run);
                 Assert.assertTrue("Expected a cached instance of the ResultService.", rsCheck == rs);
-                Assert.assertEquals("Incorrect number of results.", 1, rs.countResults());
+                Assert.assertEquals("Incorrect number of results.", 21, rs.countResults());
                 
                 // Access the summary results
                 CSVReporter summaryReporter = new CSVReporter(services, test, run);

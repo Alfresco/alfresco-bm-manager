@@ -20,11 +20,24 @@ package org.alfresco.bm.report;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
+import java.util.TreeMap;
 
+import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.NotFoundException;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.poi.POIXMLProperties.CoreProperties;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.mongodb.DBObject;
@@ -37,15 +50,22 @@ import com.mongodb.DBObject;
  */
 public class XLSXReporter extends AbstractEventReporter
 {
+    private final String title;
+    
     public XLSXReporter(TestRunServicesCache services, String test, String run)
     {
         super(services, test, run);
+        title = test + "." + run;
     }
     
     @Override
     public void export(OutputStream os)
     {
         XSSFWorkbook workbook = new XSSFWorkbook();
+        // Set defaults
+        workbook.setMissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
+        
+        // Write to the workbook
         try
         {
             writeToWorkbook(workbook);
@@ -64,6 +84,7 @@ public class XLSXReporter extends AbstractEventReporter
     private void writeToWorkbook(XSSFWorkbook workbook) throws IOException, NotFoundException
     {
         writeMetadata(workbook);
+        createSummarySheet(workbook);
     }
     
     private void writeMetadata(XSSFWorkbook workbook) throws IOException, NotFoundException
@@ -73,7 +94,6 @@ public class XLSXReporter extends AbstractEventReporter
         CoreProperties workbookCoreProperties = workbook.getProperties().getCoreProperties();
         
         // Title
-        String title = test + "." + run;
         workbookCoreProperties.setTitle(title);
         
         // Description
@@ -91,5 +111,157 @@ public class XLSXReporter extends AbstractEventReporter
             description.append(testRunDescription);
         }
         workbookCoreProperties.setDescription(description.toString().trim());
+    }
+    
+    private void writeHeaderAndFooter(XSSFSheet sheet) throws IOException, NotFoundException
+    {
+        // Title
+        sheet.getFooter().setCenter(title);
+    }
+    
+    private void createSummarySheet(XSSFWorkbook workbook) throws IOException, NotFoundException
+    {
+        TestService testService = getTestService();
+        ResultService resultService = getResultService();
+        DBObject testRunObj = getTestService().getTestRunMetadata(test, run);
+
+        // Create the sheet
+        XSSFSheet sheet = workbook.createSheet("Summary");
+        writeHeaderAndFooter(sheet);
+        
+        // Create the fonts we need
+        Font fontBold = workbook.createFont();
+        fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        
+        // Create the styles we need
+        XSSFCellStyle summaryDataStyle = sheet.getWorkbook().createCellStyle();
+        summaryDataStyle.setAlignment(HorizontalAlignment.RIGHT);
+        XSSFCellStyle headerStyle = sheet.getWorkbook().createCellStyle();
+        headerStyle.setAlignment(HorizontalAlignment.RIGHT);
+        headerStyle.setFont(fontBold);
+        
+        XSSFRow row = null;
+        int rowCount = 0;
+        row = sheet.createRow(rowCount++);
+        {
+            row.getCell(0).setCellValue("Name:");
+            row.getCell(0).setCellStyle(headerStyle);
+            row.getCell(1).setCellValue(title);
+            row.getCell(1).setCellStyle(summaryDataStyle);
+        }
+        row = sheet.createRow(rowCount++);
+        {
+            String description = (String) testRunObj.get(FIELD_DESCRIPTION);
+            description = description == null ? "" : description;
+            row.getCell(0).setCellValue("Description:");
+            row.getCell(0).setCellStyle(headerStyle);
+            row.getCell(1).setCellValue(description);
+            row.getCell(1).setCellStyle(summaryDataStyle);
+        }
+        row = sheet.createRow(rowCount++);
+        {
+            row.getCell(0).setCellValue("Progress (%):");
+            row.getCell(0).setCellStyle(headerStyle);
+            Double progress = (Double) testRunObj.get(FIELD_PROGRESS);
+            progress = progress == null ? 0.0 : progress;
+            row.getCell(1).setCellValue(progress * 100);
+            row.getCell(1).setCellType(XSSFCell.CELL_TYPE_NUMERIC);
+            row.getCell(1).setCellStyle(summaryDataStyle);
+        }
+        row = sheet.createRow(rowCount++);
+        {
+            row.getCell(0).setCellValue("State:");
+            row.getCell(0).setCellStyle(headerStyle);
+            String state = (String) testRunObj.get(FIELD_STATE);
+            if (state != null)
+            {
+                row.getCell(1).setCellValue(state);
+                row.getCell(1).setCellStyle(summaryDataStyle);
+            }
+        }
+        row = sheet.createRow(rowCount++);
+        {
+            row.getCell(0).setCellValue("Started:");
+            row.getCell(0).setCellStyle(headerStyle);
+            Long time = (Long) testRunObj.get(FIELD_STARTED);
+            if (time > 0)
+            {
+                row.getCell(1).setCellValue(FastDateFormat.getDateTimeInstance(FastDateFormat.MEDIUM, FastDateFormat.MEDIUM).format(time));
+                row.getCell(1).setCellStyle(summaryDataStyle);
+            }
+        }
+        row = sheet.createRow(rowCount++);
+        {
+            row.getCell(0).setCellValue("Finished:");
+            row.getCell(0).setCellStyle(headerStyle);
+            Long time = (Long) testRunObj.get(FIELD_COMPLETED);
+            if (time > 0)
+            {
+                row.getCell(1).setCellValue(FastDateFormat.getDateTimeInstance(FastDateFormat.MEDIUM, FastDateFormat.MEDIUM).format(time));
+                row.getCell(1).setCellStyle(summaryDataStyle);
+            }
+        }
+        row = sheet.createRow(rowCount++);
+        {
+            row.getCell(0).setCellValue("Duration:");
+            row.getCell(0).setCellStyle(headerStyle);
+            Long time = (Long) testRunObj.get(FIELD_DURATION);
+            if (time > 0)
+            {
+                row.getCell(1).setCellValue(DurationFormatUtils.formatDurationHMS(time));
+                row.getCell(1).setCellStyle(summaryDataStyle);
+            }
+        }
+        
+        rowCount++;
+        rowCount++;
+        // Create a header row
+        row = sheet.createRow(rowCount++);          // Header row
+        String[] headers = new String[]
+                {
+                    "Event Name", "Total Count", "Success Count", "Failure Count", "Success Rate (%)", "Min (ms)", "Max (ms)", "Arithmetic Mean (ms)", "Standard Deviation (ms)"
+                };
+        int columnCount = 0;
+        for (String header : headers)
+        {
+            XSSFCell cell = row.getCell(columnCount++);
+            cell.setCellStyle(headerStyle);
+            cell.setCellValue(header);
+        }
+        // Grab results and output them
+        columnCount = 0;
+        TreeMap<String, ResultSummary> summaries = collateResults(true);
+        for (Map.Entry<String, ResultSummary> entry : summaries.entrySet())
+        {
+            row = sheet.createRow(rowCount++);
+            String eventName = entry.getKey();
+            ResultSummary summary = entry.getValue();
+            SummaryStatistics statsSuccess = summary.getStats(true);
+            SummaryStatistics statsFail = summary.getStats(false);
+            // Event Name
+            row.getCell(columnCount++).setCellValue(eventName);
+            // Total Count
+            row.getCell(columnCount++).setCellValue(summary.getTotalResults());
+            // Success Count
+            row.getCell(columnCount++).setCellValue(statsSuccess.getN());
+            // Failure Count
+            row.getCell(columnCount++).setCellValue(statsFail.getN());
+            // Success Rate (%)
+            row.getCell(columnCount++).setCellValue(summary.getSuccessPercentage());
+            // Min (ms)
+            row.getCell(columnCount++).setCellValue((long)statsSuccess.getMin());
+            // Max (ms)
+            row.getCell(columnCount++).setCellValue((long)statsSuccess.getMax());
+            // Arithmetic Mean (ms)
+            row.getCell(columnCount++).setCellValue((long)statsSuccess.getMean());
+            // Standard Deviation (ms)
+            row.getCell(columnCount++).setCellValue((long)statsSuccess.getStandardDeviation());
+        }
+        
+        // Auto-size the columns
+        for (int i = 0; i < 10; i++)
+        {
+            sheet.autoSizeColumn(i);
+        }
     }
 }

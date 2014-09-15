@@ -29,8 +29,22 @@
         This behaviour can be overridden.  See the javadocs of AbstractEventProcessor.
     -->
     
-    <bean id="event.start" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" >
+    <bean id="event.start" class="org.alfresco.bm.event.RaiseEventsEventProcessor" parent="event.base" >
+        <constructor-arg name="outputEventName" value="doNothing" />
+        <constructor-arg name="timeBetweenEvents" value="5" />
+        <constructor-arg name="outputEventCount" value="20" />
+        <property name="eventNames">
+            <list>
+                <value>start</value>
+                <value>raiseMore</value>
+            </list>
+        </property>
+        <property name="eventNameRaiseEvents" value="raiseMore" />
         <property name="chart" value="false" />
+    </bean>
+    
+    <bean id="event.doNothing" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" >
+        <property name="chart" value="true" />
     </bean>
     
     <!-- NB: We replace the MongoDB factory with in-memory versions here -->

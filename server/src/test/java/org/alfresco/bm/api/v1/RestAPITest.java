@@ -54,6 +54,8 @@ import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.alfresco.mongo.MongoClientFactory;
 import org.alfresco.mongo.MongoDBFactory;
 import org.alfresco.mongo.MongoDBForTestsFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.poi.POIXMLProperties;
 import org.apache.poi.POIXMLProperties.CoreProperties;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -85,6 +87,8 @@ public class RestAPITest implements TestConstants
 {
     public static final String RELEASE = "RestAPITest";
     public static final int SCHEMA = 0;
+    
+    private static Log logger = LogFactory.getLog(RestAPITest.class);
     
     private Gson gson = new Gson();
     private MongoDBForTestsFactory mockDBFactory;
@@ -295,9 +299,9 @@ public class RestAPITest implements TestConstants
             checkTimeValue(checkJson, FIELD_COMPLETED, now);
             checkTimeValue(checkJson, FIELD_DURATION, 30001L);      // The range is +- 30s, so we check it's in range 1ms-60001ms
             checkDoubleValue(checkJson, FIELD_PROGRESS, 1.0);
-            checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 1L);
+            checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 21L);
             checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
-            checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 1L);
+            checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 21L);
             checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
             break;
         case STOPPED:
@@ -975,6 +979,7 @@ public class RestAPITest implements TestConstants
         FileOutputStream xlsxFos = new FileOutputStream(xlsxFile);
         xlsxWorkbook.write(xlsxFos);
         xlsxFos.close();
+        logger.info("XLSX report found here: " + xlsxFile);
         
         // Check
         POIXMLProperties xlsxProperties = xlsxWorkbook.getProperties();
