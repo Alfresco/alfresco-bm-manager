@@ -120,8 +120,8 @@
      * Test Controllers
      */
      //Controller to list tests, delete test and edit test.
-    .controller('ListTestsCtrl', ['$scope', 'TestService', 'ModalService',
-        function($scope, TestService, ModalService) {
+    .controller('ListTestsCtrl', ['$scope', '$location', '$timeout','TestService', 'ModalService',
+        function($scope, $location, $timeout, TestService, ModalService) {
             // Instantiate an object to store your scope data in (Best Practices)
             $scope.data = {};
 
