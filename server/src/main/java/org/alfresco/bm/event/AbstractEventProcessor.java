@@ -44,6 +44,7 @@ public abstract class AbstractEventProcessor implements EventProcessor, BeanName
     /** Resource for derived classes to use for logging */
     protected Log logger = LogFactory.getLog(this.getClass());
     private EventProcessorRegistry registry;
+    private String name = "unknown";
     private List<String> eventNames;
     private long warnDelay;
     private boolean chart;
@@ -77,6 +78,16 @@ public abstract class AbstractEventProcessor implements EventProcessor, BeanName
     {
         String eventName = beanName.replaceFirst(Event.EVENT_BEAN_PREFIX, "");
         setEventName(eventName);
+        this.name = beanName;
+    }
+
+    /**
+     * @return                  the name of the bean as configured in Spring
+     */
+    @Override
+    public String getName()
+    {
+        return name;
     }
 
     /**

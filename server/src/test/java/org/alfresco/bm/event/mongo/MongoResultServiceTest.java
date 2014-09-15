@@ -169,6 +169,8 @@ public class MongoResultServiceTest
         {
             eventRecord.setWarning("Execution time was greater than 900ms");
         }
+        // Record a random processor
+        eventRecord.setProcessedBy("someTestProcessor");
         // Done
         return eventRecord;
     }
@@ -278,6 +280,8 @@ public class MongoResultServiceTest
                 for (EventRecord record : records)
                 {
                     assertEquals("Incorrect event name", name, record.getEvent().getName());
+                    // Check that we record and retrieve the 'processedBy' field
+                    assertEquals("someTestProcessor", record.getProcessedBy());
                 }
                 total += records.size();
                 // Do we keep paging?

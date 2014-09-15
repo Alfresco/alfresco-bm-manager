@@ -116,6 +116,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
             return null;
         }
         
+        String processedBy = (String) eventRecordObj.get(EventRecord.FIELD_PROCESSED_BY);
         String serverId = (String) eventRecordObj.get(EventRecord.FIELD_SERVER_ID);
         boolean success = eventRecordObj.containsField(EventRecord.FIELD_SUCCESS) ?
                 (Boolean) eventRecordObj.get(EventRecord.FIELD_SUCCESS) :
@@ -145,6 +146,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         Event event = convertToEvent(eventObj);
                 
         EventRecord eventRecord = new EventRecord(serverId, success, startTime, time, data, event);
+        eventRecord.setProcessedBy(processedBy);
         eventRecord.setId(id);
         eventRecord.setWarning(warning);
         eventRecord.setChart(chart);
@@ -207,6 +209,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         DBObject eventObj = MongoEventService.convertEvent(event);
         DBObject insertObj = BasicDBObjectBuilder
                 .start()
+                .add(EventRecord.FIELD_PROCESSED_BY, result.getProcessedBy())
                 .add(EventRecord.FIELD_CHART, result.isChart())
                 .add(EventRecord.FIELD_DATA, result.getData())
                 .add(EventRecord.FIELD_SERVER_ID, result.getServerId())

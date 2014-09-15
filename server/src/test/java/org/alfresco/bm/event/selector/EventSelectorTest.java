@@ -88,6 +88,13 @@ public class EventSelectorTest
     private static class CounterTestEventProcessor implements EventProcessor
     {
         public int count = 0;
+
+        @Override
+        public String getName()
+        {
+            return "test";
+        }
+
         @Override
         public long getWarnDelay()
         {

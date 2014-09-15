@@ -55,6 +55,11 @@ import org.apache.commons.lang3.time.StopWatch;
 public interface EventProcessor
 {
     /**
+     * @return                  the common name (usually a bean name) to reference instances by
+     */
+    String getName();
+    
+    /**
      * Provide a hint for the processing framework on how much time should elapse before
      * the <b>warnings</b> need to be issued over the delay
      * 

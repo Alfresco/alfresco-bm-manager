@@ -128,6 +128,7 @@ public class EventWork implements Runnable
         // Construct the recorded event
         EventRecord recordedEvent = new EventRecord(serverId, wasSuccess, before, time, data, event);
         recordedEvent.setChart(chart);
+        recordedEvent.setProcessedBy(processor.getName());
         
         // Check the time taken against the time allowed
         if (time > warnDelay)
