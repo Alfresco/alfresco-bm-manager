@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.tools;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.ws.rs.core.StreamingOutput;
+
 import org.alfresco.bm.api.v1.PropSetBean;
+import org.alfresco.bm.api.v1.ResultsRestAPI;
 import org.alfresco.bm.api.v1.TestDetails;
 import org.alfresco.bm.api.v1.TestRestAPI;
 import org.alfresco.bm.api.v1.TestRunDetails;
@@ -377,5 +382,34 @@ public class BMTestRunner implements TestConstants
                 }
             }
         }
+    }
+    
+    /**
+     * Helper method to extract the csv results to a string that can be output in the logs
+     */
+    public static String getResultsCSV(ResultsRestAPI resultsAPI)
+    {
+        // Get the summary CSV results for the time period and check some of the values
+        StreamingOutput out = resultsAPI.getReportCSV();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(2048);
+        String summary = "";
+        try
+        {
+            out.write(bos);
+            summary = bos.toString("UTF-8");
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+        finally
+        {
+            try { bos.close(); } catch (Exception e) {}
+        }
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("BM000X summary report: \n" + summary);
+        }
+        return summary;
     }
 }

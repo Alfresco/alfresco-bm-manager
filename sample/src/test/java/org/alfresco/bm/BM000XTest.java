@@ -24,14 +24,10 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
-
-import javax.ws.rs.core.StreamingOutput;
 
 import org.alfresco.bm.api.v1.ResultsRestAPI;
 import org.alfresco.bm.api.v1.TestRestAPI;
@@ -112,6 +108,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         ResultService resultService = services.getResultService(test, run);
         SessionService sessionService = services.getSessionService(test, run);
         assertNotNull(resultService);
+        TestRestAPI testAPI = new TestRestAPI(testDAO, testService, services);
+        ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
         
         // Dump one of each type of event for information
@@ -153,31 +151,9 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         long failures = resultService.countResultsByFailure();
         assertEquals("Failure rate out of bounds. ", 60.0, (double) failures, 15.0);
         
-        // Test the charting API
-        TestRestAPI testAPI = new TestRestAPI(testDAO, testService, services);
-        ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
-        
         // Get the summary CSV results for the time period and check some of the values
-        StreamingOutput out = resultsAPI.getReportCSV();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(2048);
-        String summary = "";
-        try
-        {
-            out.write(bos);
-            summary = bos.toString("UTF-8");
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-        finally
-        {
-            try { bos.close(); } catch (Exception e) {}
-        }
-        if (logger.isDebugEnabled())
-        {
-            logger.debug("BM000X summary report: \n" + summary);
-        }
+        String summary = BMTestRunner.getResultsCSV(resultsAPI);
+        logger.info(summary);
         assertTrue(summary.contains(",,scheduleProcesses,     2,"));
         assertTrue(summary.contains(",,executeProcess,   200,"));
         
