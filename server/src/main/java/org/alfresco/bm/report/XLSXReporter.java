@@ -20,19 +20,30 @@ package org.alfresco.bm.report;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.alfresco.bm.api.AbstractRestResource;
+import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.event.ResultService.ResultHandler;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.NotFoundException;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.poi.POIXMLProperties.CoreProperties;
+import org.apache.poi.openxml4j.util.Nullable;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -40,6 +51,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 
 /**
@@ -85,6 +97,8 @@ public class XLSXReporter extends AbstractEventReporter
     {
         writeMetadata(workbook);
         createSummarySheet(workbook);
+        createPropertiesSheet(workbook);
+        createEventSheets(workbook);
     }
     
     private void writeMetadata(XSSFWorkbook workbook) throws IOException, NotFoundException
@@ -111,23 +125,24 @@ public class XLSXReporter extends AbstractEventReporter
             description.append(testRunDescription);
         }
         workbookCoreProperties.setDescription(description.toString().trim());
+        
+        // Created
+        Long time = (Long) testRunObj.get(FIELD_STARTED);
+        if (time > 0)
+        {
+            workbookCoreProperties.setCreated(new Nullable<Date>(new Date(time)));
+        }
     }
     
-    private void writeHeaderAndFooter(XSSFSheet sheet) throws IOException, NotFoundException
-    {
-        // Title
-        sheet.getFooter().setCenter(title);
-    }
-    
+    /**
+     * Create a 'Summary' sheet containing the table of averages
+     */
     private void createSummarySheet(XSSFWorkbook workbook) throws IOException, NotFoundException
     {
-        TestService testService = getTestService();
-        ResultService resultService = getResultService();
         DBObject testRunObj = getTestService().getTestRunMetadata(test, run);
 
         // Create the sheet
         XSSFSheet sheet = workbook.createSheet("Summary");
-        writeHeaderAndFooter(sheet);
         
         // Create the fonts we need
         Font fontBold = workbook.createFont();
@@ -233,6 +248,9 @@ public class XLSXReporter extends AbstractEventReporter
         TreeMap<String, ResultSummary> summaries = collateResults(true);
         for (Map.Entry<String, ResultSummary> entry : summaries.entrySet())
         {
+            // Reset column count
+            columnCount = 0;
+
             row = sheet.createRow(rowCount++);
             String eventName = entry.getKey();
             ResultSummary summary = entry.getValue();
@@ -263,5 +281,260 @@ public class XLSXReporter extends AbstractEventReporter
         {
             sheet.autoSizeColumn(i);
         }
+        sheet.setColumnWidth(1, 5120);
+        
+        // Printing
+        PrintSetup ps = sheet.getPrintSetup();
+        sheet.setAutobreaks(true);
+        ps.setFitWidth((short)1);
+        ps.setLandscape(true);
+
+        // Header and footer
+        sheet.getHeader().setCenter(title);
+    }
+    
+    private void createPropertiesSheet(XSSFWorkbook workbook) throws IOException, NotFoundException
+    {
+        DBObject testRunObj = services.getTestDAO().getTestRun(test, run, true);
+        if (testRunObj == null)
+        {
+            return;
+        }
+        BasicDBList propertiesList = (BasicDBList) testRunObj.get(FIELD_PROPERTIES);
+        if (propertiesList == null)
+        {
+            return;
+        }
+        // Ensure we don't leak passwords
+        AbstractRestResource.maskValues(testRunObj);
+        // Order the properties, nicely
+        TreeMap<String, DBObject> properties = new TreeMap<String, DBObject>();
+        for (Object propertyObj : propertiesList)
+        {
+            DBObject property = (DBObject) propertyObj;
+            String key = (String) property.get(FIELD_NAME);
+            properties.put(key, property);
+        }
+        
+        XSSFSheet sheet = workbook.createSheet("Properties");
+        
+        // Create the fonts we need
+        Font fontBold = workbook.createFont();
+        fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        
+        // Create the styles we need
+        XSSFCellStyle propertyStyle = sheet.getWorkbook().createCellStyle();
+        propertyStyle.setAlignment(HorizontalAlignment.RIGHT);
+        propertyStyle.setWrapText(true);
+        XSSFCellStyle headerStyle = sheet.getWorkbook().createCellStyle();
+        headerStyle.setAlignment(HorizontalAlignment.RIGHT);
+        headerStyle.setFont(fontBold);
+
+        XSSFRow row = null;
+        int rowCount = 0;
+        XSSFCell cell = null;
+        int cellCount = 0;
+        row = sheet.createRow(rowCount++);
+        cell = row.createCell(cellCount++);
+        {
+            cell.setCellValue("Property");
+            cell.setCellStyle(headerStyle);
+        }
+        cell = row.createCell(cellCount++);
+        {
+            cell.setCellValue("Value");
+            cell.setCellStyle(headerStyle);
+        }
+        cell = row.createCell(cellCount++);
+        {
+            cell.setCellValue("Origin");
+            cell.setCellStyle(headerStyle);
+        }
+        cellCount = 0;
+        
+        // Iterate all the properties for the test run
+        for (Map.Entry<String, DBObject> entry : properties.entrySet())
+        {
+            DBObject property = entry.getValue();
+            String key = (String) property.get(FIELD_NAME);
+            String value = (String) property.get(FIELD_VALUE);
+            String origin = (String) property.get(FIELD_ORIGIN);
+            
+            row = sheet.createRow(rowCount++);
+            cell = row.createCell(cellCount++);
+            {
+                cell.setCellValue(key);
+                cell.setCellStyle(propertyStyle);
+            }
+            cell = row.createCell(cellCount++);
+            {
+                cell.setCellValue(value);
+                cell.setCellStyle(propertyStyle);
+            }
+            cell = row.createCell(cellCount++);
+            {
+                cell.setCellValue(origin);
+                cell.setCellStyle(propertyStyle);
+            }
+            // Back to first column
+            cellCount = 0;
+        }
+        
+        // Size the columns
+        sheet.autoSizeColumn(0);
+        sheet.setColumnWidth(1, 15360);
+        sheet.autoSizeColumn(2);
+
+        // Printing
+        PrintSetup ps = sheet.getPrintSetup();
+        sheet.setAutobreaks(true);
+        ps.setFitWidth((short)1);
+        ps.setLandscape(true);
+
+        // Header and footer
+        sheet.getHeader().setCenter(title);
+    }
+    
+    private void createEventSheets(final XSSFWorkbook workbook)
+    {
+        // Create the fonts we need
+        Font fontBold = workbook.createFont();
+        fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        
+        // Create the styles we need
+        CreationHelper helper = workbook.getCreationHelper();
+        final XSSFCellStyle dataStyle = workbook.createCellStyle();
+        dataStyle.setAlignment(HorizontalAlignment.RIGHT);
+        final XSSFCellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setAlignment(HorizontalAlignment.RIGHT);
+        headerStyle.setFont(fontBold);
+        final XSSFCellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.setDataFormat(helper.createDataFormat().getFormat("HH:mm:ss"));
+        
+        // Calculate a good window size
+        ResultService resultService = getResultService();
+        EventRecord firstResult = resultService.getFirstResult();
+        EventRecord lastResult = resultService.getLastResult();
+        if (firstResult == null || lastResult == null)
+        {
+            return;
+        }
+        long start = firstResult.getStartTime();
+        long end = lastResult.getStartTime();
+        long windowSize = AbstractEventReporter.getWindowSize(start, end, 100);         // Well-known window sizes
+        
+        // Keep track of sheets by event name
+        final Map<String, XSSFSheet> sheets = new HashMap<String, XSSFSheet>(31);
+        final Map<String, AtomicInteger> rowNums = new HashMap<String, AtomicInteger>(31);
+        
+        ResultHandler handler = new ResultHandler()
+        {
+            @Override
+            public boolean processResult(
+                    long fromTime, long toTime,
+                    Map<String, DescriptiveStatistics> statsByEventName,
+                    Map<String, Integer> failuresByEventName) throws Throwable
+            {
+                // Get or create a sheet for each event
+                for (String eventName : statsByEventName.keySet())
+                {
+                    XSSFSheet sheet = sheets.get(eventName);
+                    if (sheet == null)
+                    {
+                        // Create
+                        sheet = workbook.createSheet(eventName);
+                        sheet.getHeader().setCenter(title + " - " + eventName);
+                        sheet.getPrintSetup().setFitWidth((short)1);
+                        sheet.getPrintSetup().setLandscape(true);
+                        // Intro
+                        XSSFCell cell = sheet.createRow(0).createCell(0);
+                        cell.setCellValue(title + " - " + eventName + ":");
+                        cell.setCellStyle(headerStyle);
+                        // Headings
+                        XSSFRow row = sheet.createRow(1);
+                        cell = row.createCell(0);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("time");
+                        cell = row.createCell(1);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("mean");
+                        cell = row.createCell(2);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("min");
+                        cell = row.createCell(3);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("max");
+                        cell = row.createCell(4);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("stdDev");
+                        cell = row.createCell(5);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("num");
+                        cell = row.createCell(6);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("numPerSec");
+                        cell = row.createCell(7);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("fail");
+                        cell = row.createCell(8);
+                        cell.setCellStyle(headerStyle);
+                        cell.setCellValue("failPerSec");
+                        // Size the columns
+                        sheet.autoSizeColumn(0);
+                        sheet.autoSizeColumn(1);
+                        sheet.autoSizeColumn(2);
+                        sheet.autoSizeColumn(3);
+                        sheet.autoSizeColumn(4);
+                        sheet.autoSizeColumn(5);
+                        sheet.autoSizeColumn(6);
+                        sheet.autoSizeColumn(7);
+                        sheet.autoSizeColumn(8);
+                        // Store
+                        sheets.put(eventName, sheet);
+                    }
+                    AtomicInteger rowNum = rowNums.get(eventName);
+                    if (rowNum == null)
+                    {
+                        rowNum = new AtomicInteger(2);
+                        rowNums.put(eventName, rowNum);
+                    }
+                    
+                    DescriptiveStatistics stats = statsByEventName.get(eventName);
+                    Integer failures = failuresByEventName.get(eventName);
+                    
+                    double numPerSec = (double) stats.getN() / ( (double) (toTime-fromTime) / 1000.0);
+                    double failuresPerSec = (double) failures / ( (double) (toTime-fromTime) / 1000.0);
+                    
+                    XSSFRow row = sheet.createRow(rowNum.getAndIncrement());
+                    XSSFCell cell;
+                    cell = row.createCell(0, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellStyle(dateStyle);
+                    cell.setCellValue(new Date(toTime));
+                    cell = row.createCell(5, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(stats.getN());
+                    cell = row.createCell(6, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(numPerSec);
+                    cell = row.createCell(7, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(failures);
+                    cell = row.createCell(8, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(failuresPerSec);
+                    // Leave out values if there is no mean
+                    if (Double.isNaN(stats.getMean()))
+                    {
+                        continue;
+                    }
+                    cell = row.createCell(1, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(stats.getMean());
+                    cell = row.createCell(2, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(stats.getMin());
+                    cell = row.createCell(3, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(stats.getMax());
+                    cell = row.createCell(4, Cell.CELL_TYPE_NUMERIC);
+                    cell.setCellValue(stats.getStandardDeviation());
+                }
+                return true;
+            }
+        };
+        resultService.getResults(handler, start, windowSize, windowSize, false);
     }
 }

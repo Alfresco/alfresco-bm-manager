@@ -143,4 +143,42 @@ public abstract class AbstractEventReporter implements ReportGenerator, TestCons
         // Done
         return results;
     }
+    
+    /**
+     * Stardard window sizes
+     */
+    public static final long[] WINDOW_SIZES = new long[]
+                                                     {
+        1L, 5L, 10L, 100L,                                          // < 1 second
+        1000L, 5000L, 10000L, 30000L,                               // < 1 minute
+        60000L, 120000L, 300000L, 600000L, 1800000L,                // < 1 hour
+        360000L,                                                    // < 1 day
+        24*360000L
+                                                     };
+    /**
+     * Helper method to calculate a window size (ms) such that the approximate number
+     * of results is retrieved across the given time range.
+     * 
+     * @param startTime             beginning of results
+     * @param endTime               end of results
+     * @param windowCount           number of windows to fit in
+     * @return                      the size of a window in milliseconds
+     */
+    public static long getWindowSize(long startTime, long endTime, int windowCount)
+    {
+        long delta = endTime - startTime;
+        // Try all the windows out
+        for (int i = 0; i < WINDOW_SIZES.length; i++)
+        {
+            long windowSize = WINDOW_SIZES[i];
+            double actualWindowCount = (double) delta / (double) windowSize;
+            if (actualWindowCount < windowCount)
+            {
+                // We have too few results
+                return windowSize;
+            }
+        }
+        // Didn't find one big enough.  Go with the biggest.
+        return WINDOW_SIZES[WINDOW_SIZES.length - 1];
+    }
 }

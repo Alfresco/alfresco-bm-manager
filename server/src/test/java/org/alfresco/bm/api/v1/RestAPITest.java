@@ -963,7 +963,7 @@ public class RestAPITest implements TestConstants
         String chartJson = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 5, false);
         assertTrue(chartJson.startsWith("[ { \"time\" : "));
         assertTrue(chartJson.contains("[ { \"time\" : "));
-        assertTrue(chartJson.contains("000 , \"name\" : \"start\" , \"median\" : "));
+        assertTrue(chartJson.contains("000 , \"name\" : \"start\" , \"mean\" : "));
         assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]"));
         
         // Get the XLSX report

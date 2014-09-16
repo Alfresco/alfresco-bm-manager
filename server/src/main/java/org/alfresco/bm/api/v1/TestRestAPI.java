@@ -245,7 +245,7 @@ public class TestRestAPI extends AbstractRestResource
                 throwAndLogException(Status.NOT_FOUND, "The newly create test '" + name + "' could not be found.");
                 return null;
             }
-            dbObject = maskValues(dbObject);
+            dbObject = AbstractRestResource.maskValues(dbObject);
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
             {
@@ -283,7 +283,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 throwAndLogException(Status.NOT_FOUND, "The test '" + test + "' does not exist.");
             }
-            dbObject = maskValues(dbObject);
+            dbObject = AbstractRestResource.maskValues(dbObject);
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
             {
@@ -477,7 +477,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 throwAndLogException(Status.NOT_FOUND, "The property '" + test + "." + property + "' does not exist.");
             }
-            dbObject = maskValues(dbObject);
+            dbObject = AbstractRestResource.maskValues(dbObject);
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
             {
@@ -780,7 +780,7 @@ public class TestRestAPI extends AbstractRestResource
                 throwAndLogException(Status.NOT_FOUND, "The newly create run '" + name + "' could not be found.");
                 return null;
             }
-            dbObject = maskValues(dbObject);
+            dbObject = AbstractRestResource.maskValues(dbObject);
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
             {
@@ -821,7 +821,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 throwAndLogException(Status.NOT_FOUND, "The test run '" + test + "." + run + "' does not exist.");
             }
-            dbObject = maskValues(dbObject);
+            dbObject = AbstractRestResource.maskValues(dbObject);
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
             {
@@ -1063,7 +1063,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 throwAndLogException(Status.NOT_FOUND, "The property '" + test + "." + run + "." + property + "' does not exist.");
             }
-            dbObject = maskValues(dbObject);
+            dbObject = AbstractRestResource.maskValues(dbObject);
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
             {

@@ -275,7 +275,7 @@ public class ResultsRestAPI extends AbstractRestResource
                             .start()
                             .add("time", toTime)
                             .add("name", eventName)
-                            .add("median", stats.getMean())
+                            .add("mean", stats.getMean())
                             .add("min", stats.getMin())
                             .add("max", stats.getMax())
                             .add("stdDev", stats.getStandardDeviation())

@@ -115,7 +115,7 @@ public abstract class AbstractRestResource implements TestConstants
     /**
      * Does a deep copy of an object to allow for subsequent modification
      */
-    protected DBObject copyDBObject(DBObject dbObject)
+    public static DBObject copyDBObject(DBObject dbObject)
     {
         DBObject orig = dbObject;
         BasicDBObjectBuilder dbObjectBuilder = BasicDBObjectBuilder.start();
@@ -134,7 +134,7 @@ public abstract class AbstractRestResource implements TestConstants
      * 
      * @param obj           the object to modify
      */
-    protected DBObject maskValues(DBObject dbObject)
+    public static DBObject maskValues(DBObject dbObject)
     {
         if (dbObject instanceof BasicDBList)
         {
