@@ -25,13 +25,11 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 
 import org.alfresco.bm.test.TestConstants;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 
 import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
 
@@ -55,13 +53,12 @@ public class WebApp implements WebApplicationInitializer, TestConstants
         String appName = container.getContextPath().replace(SEPARATOR, "");
         
         // Create an application context (don't start, yet)
-        @SuppressWarnings("resource")
-        final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
+        XmlWebApplicationContext ctx = new XmlWebApplicationContext();
+        ctx.setConfigLocations(
                 new String[]
                         {
                         "classpath:config/spring/app-context.xml"
-                        },
-                false);
+                        });
 
         // Pass our properties to the new context
         Properties ctxProperties = new Properties();
@@ -82,13 +79,8 @@ public class WebApp implements WebApplicationInitializer, TestConstants
                         System.getProperties()));
         // Bind to shutdown
         ctx.registerShutdownHook();
-        // Start the context now
-        ctx.refresh();
         
-        DefaultListableBeanFactory dlbf = (DefaultListableBeanFactory) ctx.getBeanFactory();
-        
-        GenericWebApplicationContext webCtx = new GenericWebApplicationContext(dlbf);
-        ContextLoaderListener ctxLoaderListener = new ContextLoaderListener(webCtx);
+        ContextLoaderListener ctxLoaderListener = new ContextLoaderListener(ctx);
         container.addListener(ctxLoaderListener);
         
         ServletRegistration.Dynamic jerseyServlet = container.addServlet("jersey-serlvet", SpringServlet.class);
