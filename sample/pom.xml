@@ -4,6 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-benchmark-sample</artifactId>
     <packaging>war</packaging>
+    <properties>
+        <bm.tomcat.port>9081</bm.tomcat.port>
+        <bm.tomcat.ip>localhost</bm.tomcat.ip>
+        <bm.tomcat.url>http://${bm.tomcat.ip}:${bm.tomcat.port}/manager/text</bm.tomcat.url>
+        <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
+    </properties>
 
     <parent>
         <groupId>org.alfresco</groupId>
@@ -59,8 +65,11 @@
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <configuration>
-                    <port>9081</port>
-                    <path>/alfresco-benchmark-sample</path>
+                    <url>${bm.tomcat.url}</url>
+                    <!-- Add the following server to your security settings -->
+                    <server>${bm.tomcat.server}</server>
+                    <port>${bm.tomcat.port}</port>
+                    <path>/${project.artifactId}</path>
                 </configuration>
             </plugin>
             <plugin>

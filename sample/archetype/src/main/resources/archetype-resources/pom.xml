@@ -11,6 +11,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <server.version>${server-version}</server.version>
         <junit.version>${junit-version}</junit.version>
+
+        <bm.tomcat.port>9090</bm.tomcat.port>
+        <bm.tomcat.ip>localhost</bm.tomcat.ip>
+        <bm.tomcat.url>http://${bm.tomcat.ip}:${bm.tomcat.port}/manager/text</bm.tomcat.url>
+        <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
     </properties>
 
     <dependencies>
@@ -61,7 +66,10 @@
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <configuration>
-                    <port>9090</port>
+                    <url>${bm.tomcat.url}</url>
+                    <!-- Add the following server to your security settings -->
+                    <server>${bm.tomcat.server}</server>
+                    <port>${bm.tomcat.port}</port>
                     <path>/${project.artifactId}</path>
                 </configuration>
             </plugin>
