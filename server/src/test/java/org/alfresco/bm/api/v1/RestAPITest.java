@@ -43,7 +43,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.junit.Assert;
 import org.alfresco.bm.log.LogWatcher;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRun;
@@ -61,6 +60,7 @@ import org.apache.poi.POIXMLProperties.CoreProperties;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.types.ObjectId;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1042,5 +1042,15 @@ public class RestAPITest implements TestConstants
         api.deleteTest("T09", true);
         testRunCollections = testMongoDB.getCollectionNames();
         Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 1, testRunCollections.size());
+    }
+    
+    @Test
+    public synchronized void testScenario10() throws Exception
+    {
+        // Create the test
+        executeTestRun("T10", "A test for scenario 10.", "01", "Scenario 10 - Run 01");
+        // Now get the registered drivers
+        String json = api.getTestDrivers("T10", true);
+        assertTrue("Driver not found for test: " + json, json.contains("contextPath\" : \"/\""));
     }
 }

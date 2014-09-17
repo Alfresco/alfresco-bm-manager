@@ -133,6 +133,9 @@ To copy a test:
 To delete a test, just the name is required:
    DELETE: <bm-server>/api/v1/tests/COPIED_SAMPLE1
 
+To get the drivers capable of running a test:
+   GET: <bm-server>/api/v1/tests/SAMPLE1/drivers
+
 To override a test property value:
    PUT: <bm-server>/api/v1/tests/SAMPLE1/props/proc.user
    Content-Type:application/json

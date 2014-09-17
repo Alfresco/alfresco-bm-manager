@@ -446,6 +446,60 @@ public class TestRestAPI extends AbstractRestResource
     }
     
     @GET
+    @Path("/{test}/drivers")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getTestDrivers(
+            @PathParam("test") String test,
+            @DefaultValue("true") @QueryParam("activeOnly") boolean activeOnly)
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "Inbound: " +
+                    "[test:" + test +
+                    ", activeOnly:" + activeOnly +
+                    "]");
+        }
+        String exampleUrl = "/tests/MYTEST/drivers";
+        if (test == null || test.length() < 1)
+        {
+            throwAndLogException(Status.BAD_REQUEST, "No test name provided: " + exampleUrl);
+        }
+        
+        try
+        {
+            DBObject dbObject = testDAO.getTest(test, false);
+            if (dbObject == null)
+            {
+                throwAndLogException(Status.NOT_FOUND, "The test '" + test + "' does not exist.");
+            }
+            String release = (String) dbObject.get(FIELD_RELEASE);
+            Integer schema = (Integer) dbObject.get(FIELD_SCHEMA);
+
+            String json = "[]";
+            DBCursor cursor = testDAO.getDrivers(release, schema, activeOnly);
+            if (cursor.count() > 0)
+            {
+                json = JSON.serialize(cursor);
+            }
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Outbound: " + json);
+            }
+            return json;
+        }
+        catch (WebApplicationException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+            return null;
+        }
+    }
+    
+    @GET
     @Path("/{test}/props/{property}")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTestProperty(
