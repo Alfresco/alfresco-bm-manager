@@ -21,6 +21,7 @@ package org.alfresco.bm.test.mongo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -266,8 +267,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                         .get())
                 .add(FIELD_PING,
                         BasicDBObjectBuilder.start()
-                        .add(FIELD_TIME, Long.valueOf(System.currentTimeMillis()))
-                        .add(FIELD_EXPIRES, Long.valueOf(0L))
+                        .add(FIELD_TIME, new Date())
+                        .add(FIELD_EXPIRES, new Date(0L))
                         .get())
                 .get();
         testDrivers.insert(insertObj);
@@ -302,7 +303,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .push("$set")
-                        .add(FIELD_PING + "." + FIELD_EXPIRES, Long.valueOf(expiryTime))
+                        .add(FIELD_PING + "." + FIELD_EXPIRES, new Date(expiryTime))
                 .pop()
                 .get();
         testDrivers.findAndModify(queryObj, null, null, false, updateObj, false, false);
@@ -347,8 +348,6 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
      */
     public DBCursor getDrivers(String release, Integer schema, boolean active)
     {
-        Long expiryTime = Long.valueOf(System.currentTimeMillis());
-        
         QueryBuilder queryBuilder = QueryBuilder.start();
         if (release != null)
         {
@@ -360,7 +359,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         if (active)
         {
-            queryBuilder.and(FIELD_PING + "." + FIELD_EXPIRES).greaterThan(expiryTime);
+            queryBuilder.and(FIELD_PING + "." + FIELD_EXPIRES).greaterThan(new Date());
         }
         DBObject queryObj = queryBuilder.get();
         
@@ -504,7 +503,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             DBObject queryObj = QueryBuilder
                     .start()
-                    .put(FIELD_PING + "." + FIELD_EXPIRES).greaterThanEquals(Long.valueOf(System.currentTimeMillis()))
+                    .put(FIELD_PING + "." + FIELD_EXPIRES).greaterThanEquals(new Date())
                     .get();
             cursor = testDrivers.find(queryObj, fieldsObj).skip(skip).limit(count);
         }
