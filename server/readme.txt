@@ -21,11 +21,18 @@ Generate all artifacts
 Running with Tomcat7:
 --------------------
 
-Deploy to existing Tomcat7:
-mvn tomcat7:deploy
+Start Tomcat7 standalone:
+mvn tomcat7:run -Dmongo.config.host=<mongo-server>
 
-Start Tomcat7:
-mvn tomcat7:run -Dmongo.config.host=localhost:27017
+Run an instance of Tomcat7 with "-Dmongo.config.host=<mongo-server>" added to the JAVA_OPTS in setenv.sh.
+Add a remote server definition to ".m2/settings.xml":
+   <server>
+    <id>remote-bmserver</id>
+    <username>***</username>
+    <password>***</password>
+  </server>
+Deploy:
+mvn tomcat7:redeploy -DskipTests  -Dbm.tomcat.ip=<server-ip> -Dbm.tomcat.port=<server-port> -Dbm.tomcat.server=<server-name>
 
 API Walkthrough:
 ---------------
