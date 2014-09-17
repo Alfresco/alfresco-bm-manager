@@ -1051,6 +1051,6 @@ public class RestAPITest implements TestConstants
         executeTestRun("T10", "A test for scenario 10.", "01", "Scenario 10 - Run 01");
         // Now get the registered drivers
         String json = api.getTestDrivers("T10", true);
-        assertTrue("Driver not found for test: " + json, json.contains("contextPath\" : \"/\""));
+        assertTrue("Driver not found for test: " + json, json.contains("\"expires\" : { \"$date\" : \"20"));
     }
 }
