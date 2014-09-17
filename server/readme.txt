@@ -27,12 +27,12 @@ mvn tomcat7:run -Dmongo.config.host=<mongo-server>
 Run an instance of Tomcat7 with "-Dmongo.config.host=<mongo-server>" added to the JAVA_OPTS in setenv.sh.
 Add a remote server definition to ".m2/settings.xml":
    <server>
-    <id>remote-bmserver</id>
+    <id>bm-remote</id>
     <username>***</username>
     <password>***</password>
   </server>
 Deploy:
-mvn tomcat7:redeploy -DskipTests  -Dbm.tomcat.ip=<server-ip> -Dbm.tomcat.port=<server-port> -Dbm.tomcat.server=<server-name>
+mvn tomcat7:redeploy -DskipTests  -Dbm.tomcat.ip=<server-ip> -Dbm.tomcat.port=<server-port> -Dbm.tomcat.server=<server-id>
 
 API Walkthrough:
 ---------------
