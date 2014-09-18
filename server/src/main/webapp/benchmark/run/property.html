@@ -81,38 +81,40 @@
         <ul class="test list-group" id="property-{{prop.uid}}" ng-hide="prop.collapsed">
             <li class="list-group-item" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse ">
                 <div class="row">                                               
-                    <div class="col-lg-6">
+                    <div class="col-xs-6 col-md-6">
                         <h4 class="panel-title">{{item.title}} </h4> 
                         <p> 
                             {{item.description}}
                         </p>
                     </div>
-                    <span ng-show="readOnly">{{item.value}}</span>                                             
-                    <span ng-show="!readOnly"> 
-                        <div ng-hide="propertyEditorEnabled">
-                            <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="!item.value">
-                                <b ng-show="item.default != item.value">{{item.value}}</b>
-                                <span ng-show="item.value == item.default"> {{item.value}} </span>
-                            </a>
-                            <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
-                        </div>
-                    </span> 
-                    <div class="col-lg-6" ng-show="propertyEditorEnabled"> 
-                        <div>
-                            <div class="input-group">
-                                <span class="input-group-btn" ng-hide="!item.value">
-                                    <button class="btn btn-sm btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset to {{item.default}} </button>
-                                </span>
-                                <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
-                                <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
-                                <span class="input-group-btn">
-                                    <button class="btn btn-sm btn-dark" ng-click="reset();propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
-                                        <span class="glyphicon glyphicon-remove" />
-                                    </button>
-                                    <button class="btn btn-sm btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item)">                                                                          
-                                        <span class="glyphicon glyphicon-ok" />
-                                    </button>
-                                </span>
+                    <div class="col-xs-6 col-md-6">
+                        <span ng-show="readOnly">{{item.value}}</span>                                             
+                        <span ng-show="!readOnly"> 
+                            <div ng-hide="propertyEditorEnabled">
+                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="!item.value">
+                                    <b ng-show="item.default != item.value">{{item.value}}</b>
+                                    <span ng-show="item.value == item.default"> {{item.value}} </span>
+                                </a>
+                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
+                            </div>
+                        </span> 
+                        <div class="col-lg-6" ng-show="propertyEditorEnabled"> 
+                            <div>
+                                <div class="input-group">
+                                    <span class="input-group-btn" ng-hide="!item.value">
+                                        <button class="btn btn-sm btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset to {{item.default}} </button>
+                                    </span>
+                                    <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
+                                    <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-sm btn-dark" ng-click="reset();propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
+                                            <span class="glyphicon glyphicon-remove" />
+                                        </button>
+                                        <button class="btn btn-sm btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item)">                                                                          
+                                            <span class="glyphicon glyphicon-ok" />
+                                        </button>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
