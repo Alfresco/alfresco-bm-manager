@@ -5,7 +5,7 @@
                 <div class="input-group">
                     <input class="form-control input-sm ng-valid ng-pristine" ng-model="data.test.name">
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-dark" ng-click="reset();testNameEditorEnabled=!testNameEditorEnabled" type="button" tabindex="-1">
+                        <button class="btn btn-sm btn-dark" ng-click="cancelRename();testNameEditorEnabled=!testNameEditorEnabled" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-remove" />
                         </button>
                         <button class="btn btn-sm btn-default" ng-click="renameTest(data.test.name)" type="button" tabindex="-1">
@@ -35,7 +35,7 @@
                 <div class="input-group">
                     <input class="form-control input-sm ng-valid" ng-model="data.test.description">
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-dark" ng-click="reset();testDescEditorEnabled=!testDescEditorEnabled" type="button" tabindex="-1">
+                        <button class="btn btn-sm btn-dark" ng-click="cancelDesc();testDescEditorEnabled=!testDescEditorEnabled" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-remove" />
                         </button>
                         <button class="btn btn-sm btn-default" ng-click="updateTestDesc(data.test.description)" type="button" tabindex="-1">
@@ -45,33 +45,7 @@
                 </div>
             </div>
         </div>
-
-        <span ng-hide="testVersionEditorEnabled">
-            Release: {{data.test.release}} Schema:{{data.test.schema}}
-            <a ng-click="testVersionEditorEnabled=!testVersionEditorEnabled">
-                <span class="glyphicon glyphicon-edit"></span>
-            </a>
-        </span>
-
-        <div class="row" ng-show="testVersionEditorEnabled">
-            <div class="col-lg-6">
-                <div class="input-group">
-                    <span class="input-group-btn">
-                        <div class="col-lg-10" ng-controller="TestDefListCtrl">
-                            <select class="form-control" ng-controller="TestDefListCtrl">
-                                <option ng-repeat="item in data.tests" ng-model="data.test.def" value="{{item.release}}-schema:{{item.schema}}">{{item.release}}-schema:{{item.schema}}</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-sm btn-dark" ng-click="reset();testVersionEditorEnabled=!testVersionEditorEnabled" type="button" tabindex="-1">
-                            <span class="glyphicon glyphicon-remove" />
-                        </button>
-                        <button class="btn btn-sm btn-default" ng-click="updateTestSchema(data.test.release, data.test.schema)" type="button" tabindex="-1">
-                            <span class="glyphicon glyphicon-ok" />
-                        </button>
-                    </span>
-                </div>
-            </div>
-        </div>
+        Release: {{data.test.release}} Schema:{{data.test.schema}}            
     </div>
 </div>
 <!-- Properties -->

@@ -182,7 +182,12 @@
                 $location.path("/tests/");
             };
 
-
+            $scope.cancelRename = function(){
+                $scope.data.test.name = $scope.master.name;
+            }
+            $scope.cancelDesc = function(){
+                $scope.data.test.description = $scope.master.description;
+            }
             //callback for ng-click 'renameTest'
             $scope.renameTest = function(name) {
                 var postData = {
@@ -230,15 +235,9 @@
             //Updates the test and redirects to new page
             $scope.updateTest = function(postData) {
                 TestService.updateTest({}, postData, function(res) {
-                    for (var i in $scope.data.properties) {
-                        if (propertyName === $scope.data.properties[i].name) {
-                            $scope.data.properties.splice(i, 1, res);
-                            break;
-                        }
-                    }
                 });
 
-                // $location.path("/tests/" + postData.name + "/properties");
+                $location.path("/tests/" + postData.name + "/properties");
             }
 
             //-------------- Test properties crud ----------
