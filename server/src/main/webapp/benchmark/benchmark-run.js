@@ -371,6 +371,11 @@
                 }
                 $scope.updateTestRun(json);
             }
+
+            $scope.cancelEdit = function(item) {
+                item.newvalue = item.value;
+            }
+
             //call back for updating run description
             $scope.updateRunDesc = function(description) {
                 var json = {
@@ -393,6 +398,7 @@
             };
             // call back for update test property field
             $scope.updateProperty = function(item) {
+                item.value = item.newvalue;
                 var propData = {
                     "version": item.version,
                     "value": item.value
@@ -401,6 +407,7 @@
             }
 
             $scope.resetProperty = function(item) {
+                item.newvalue = "";
                 var restData = {
                     "version": item.version
                 };

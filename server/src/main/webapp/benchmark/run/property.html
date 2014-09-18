@@ -98,23 +98,24 @@
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
                             </div>
                         </span> 
-                        <div class="col-lg-6" ng-show="propertyEditorEnabled"> 
+                        <div ng-show="propertyEditorEnabled"> 
                             <div>
                                 <div class="input-group">
                                     <span class="input-group-btn" ng-hide="!item.value">
-                                        <button class="btn btn-sm btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset to {{item.default}} </button>
+                                        <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset </button>
                                     </span>
-                                    <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
-                                    <input class="form-control input-sm ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
+                                    <input class="form-control ng-valid" ng-model="item.newvalue" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.newvalue" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
                                     <span class="input-group-btn">
-                                        <button class="btn btn-sm btn-dark" ng-click="reset();propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
+                                        <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
                                             <span class="glyphicon glyphicon-remove" />
                                         </button>
-                                        <button class="btn btn-sm btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item)">                                                                          
+                                        <button class="btn btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item)">                                                                          
                                             <span class="glyphicon glyphicon-ok" />
                                         </button>
                                     </span>
                                 </div>
+                                {{item.default}}
                             </div>
                         </div>
                     </div>

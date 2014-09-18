@@ -181,10 +181,7 @@
                 });
                 $location.path("/tests/");
             };
-            $scope.reset = function() {
-                console.log($scope.master)
-                $scope.data.test = angular.copy($scope.master);
-            }
+
 
             //callback for ng-click 'renameTest'
             $scope.renameTest = function(name) {
@@ -247,7 +244,7 @@
             //-------------- Test properties crud ----------
             // call back for update test property field
             $scope.updateProperty = function(item) {
-
+                item.value = item.newvalue;
                 var propData = {
                     "version": item.version,
                     "value": item.value
@@ -257,8 +254,13 @@
                 $compile(content.contents(scope));
             }
 
+            $scope.cancelEdit = function(item) {
+                item.newvalue = item.value;
+            }
+
             $scope.resetProperty = function(item) {
-                item.version
+                item.version;
+                item.newvalue = "";
                 var restData = {
                     "version": item.version,
                     "value": item.default
