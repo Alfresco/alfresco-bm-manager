@@ -82,10 +82,11 @@
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
                             </div>
                         </span> 
+                        
                         <div ng-show="propertyEditorEnabled"> 
                             <div>
                                 <div class="input-group">
-                                    <span class="input-group-btn" ng-hide="!item.value">
+                                    <span class="input-group-btn" ng-show="item.default != item.value">
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset</button>
                                     </span>
                                     <input class="form-control ng-valid" ng-model="item.newvalue" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
