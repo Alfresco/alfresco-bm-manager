@@ -125,16 +125,17 @@ public class MongoTestDAOTest implements TestConstants
     @Test
     public void testDrivers()
     {
-        String releaseA = UUID.randomUUID().toString();
-        String releaseB = UUID.randomUUID().toString();
+        String releaseA = "A." + UUID.randomUUID().toString();
+        String releaseB = "B." + UUID.randomUUID().toString();
         Integer schema1 = 1;
         Integer schema2 = 2;
         long expires1 = System.currentTimeMillis() - 10000L;         // 10s ago
         long expires2 = System.currentTimeMillis() + 10000L;         // 10s yet
-        
+
+        // Note the insertion order
+        String id3 = dao.registerDriver(releaseB, schema1, "192.168.0.1", "localhost", "/app", capabilities);
         String id1 = dao.registerDriver(releaseA, schema1, "192.168.0.1", "localhost", "/app", capabilities);
         String id2 = dao.registerDriver(releaseA, schema2, "192.168.0.1", "localhost", "/app", capabilities);
-        String id3 = dao.registerDriver(releaseB, schema1, "192.168.0.1", "localhost", "/app", capabilities);
 
         DBCursor cursor = null;
         
@@ -148,6 +149,12 @@ public class MongoTestDAOTest implements TestConstants
 
         cursor = dao.getDrivers(null, null, false);
         assertEquals(3, cursor.size());
+        assertEquals("Order is wrong. ", releaseA, cursor.next().get(FIELD_RELEASE));
+        assertEquals("Order is wrong. ", schema1, cursor.curr().get(FIELD_SCHEMA));
+        assertEquals("Order is wrong. ", releaseA, cursor.next().get(FIELD_RELEASE));
+        assertEquals("Order is wrong. ", schema2, cursor.curr().get(FIELD_SCHEMA));
+        assertEquals("Order is wrong. ", releaseB, cursor.next().get(FIELD_RELEASE));
+        assertEquals("Order is wrong. ", schema1, cursor.curr().get(FIELD_SCHEMA));
 
         cursor = dao.getDrivers(null, null, true);
         assertEquals(3, cursor.size());
@@ -228,26 +235,29 @@ public class MongoTestDAOTest implements TestConstants
     @Test
     public void testDefs()
     {
-        String releaseA = UUID.randomUUID().toString();
-        String releaseB = UUID.randomUUID().toString();
+        String releaseA = "A." + UUID.randomUUID().toString();
+        String releaseB = "B." + UUID.randomUUID().toString();
         Integer schema1 = 1;
         String description = "For Definitions Testing";
         
         List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(INHERITANCE, properties);
-        boolean written = dao.writeTestDef(releaseA, schema1, description, testProperties);
+        // Write B before A
+        boolean written = dao.writeTestDef(releaseB, schema1, description, testProperties);
+        assertTrue(written);
+        written = dao.writeTestDef(releaseA, schema1, description, testProperties);
         assertTrue(written);
         boolean writtenAgain = dao.writeTestDef(releaseA, schema1, "Another", testProperties);
         assertFalse(writtenAgain);
-        written = dao.writeTestDef(releaseB, schema1, description, testProperties);
-        assertTrue(written);
         
         // Get all test defs
         DBCursor cursor = dao.getTestDefs(false, 0, 5);
         assertEquals("Incorrect number of test definitions", 2, cursor.size());
         cursor = dao.getTestDefs(false, 0, 1);
         assertEquals("Test definition paging broken", 1, cursor.size());
+        assertEquals("Order is wrong. ", releaseA, cursor.next().get(FIELD_RELEASE));
         cursor = dao.getTestDefs(false, 1, 5);
         assertEquals("Test definition paging broken", 1, cursor.size());
+        assertEquals("Order is wrong. ", releaseB, cursor.next().get(FIELD_RELEASE));
         
         // Now get active test defs
         cursor = dao.getTestDefs(true, 0, 5);

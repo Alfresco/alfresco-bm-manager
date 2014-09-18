@@ -117,7 +117,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 "TEST_RUNS_TEST_NAME_SCHEDULED",
                 "TEST_PROPS_TEST_NAME",
                 "TEST_DEFS_UNIQUE_RELEASE",
-                "TEST_DEFS_RELEASE_SCHEMA"};
+                "TEST_DEFS_RELEASE_SCHEMA",
+                "TEST_DRIVERS_IDX_NAME_EXPIRES"};
         for (String indexToDrop : indexesToDrop)
         {
             try { testDrivers.dropIndex(indexToDrop); } catch (MongoException e) {}
@@ -141,15 +142,18 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         testDrivers.createIndex(idx_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS, opts_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS);
         
         // @since 2.0
-        DBObject idx_TEST_DRIVERS_IDX_NAME_EXPIRES = BasicDBObjectBuilder
-                .start(FIELD_PING + "." + FIELD_EXPIRES, -1)
-                .get();
-        DBObject opts_TEST_DRIVERS_IDX_NAME_EXPIRES = BasicDBObjectBuilder
+        DBObject idx_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE = BasicDBObjectBuilder
                 .start()
-                .add("name", "TEST_DRIVERS_IDX_NAME_EXPIRES")
+                .add(FIELD_PING + "." + FIELD_EXPIRES, -1)
+                .add(FIELD_SCHEMA, 1)
+                .add(FIELD_RELEASE, 1)
+                .get();
+        DBObject opts_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE = BasicDBObjectBuilder
+                .start()
+                .add("name", "TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE")
                 .add("unique", Boolean.FALSE)
                 .get();
-        testDrivers.createIndex(idx_TEST_DRIVERS_IDX_NAME_EXPIRES, opts_TEST_DRIVERS_IDX_NAME_EXPIRES);
+        testDrivers.createIndex(idx_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE, opts_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE);
         
         // @since 2.0
         DBObject idx_TEST_DEFS_UNIQUE_RELEASE_SCHEMA = BasicDBObjectBuilder
@@ -362,8 +366,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             queryBuilder.and(FIELD_PING + "." + FIELD_EXPIRES).greaterThan(new Date());
         }
         DBObject queryObj = queryBuilder.get();
+        DBObject sortObj = BasicDBObjectBuilder
+                .start()
+                .add(FIELD_RELEASE, 1)
+                .add(FIELD_SCHEMA, 1)
+                .get();
         
-        DBCursor cursor = testDrivers.find(queryObj);
+        DBCursor cursor = testDrivers.find(queryObj).sort(sortObj);
 
         // Done
         if (logger.isDebugEnabled())
@@ -497,6 +506,11 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RELEASE, true)
                 .add(FIELD_SCHEMA, true)
                 .get();
+        DBObject sortObj = BasicDBObjectBuilder
+                .start()
+                .add(FIELD_RELEASE, 1)
+                .add(FIELD_SCHEMA, 1)
+                .get();
         
         DBCursor cursor;
         if (active)
@@ -505,11 +519,11 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                     .start()
                     .put(FIELD_PING + "." + FIELD_EXPIRES).greaterThanEquals(new Date())
                     .get();
-            cursor = testDrivers.find(queryObj, fieldsObj).skip(skip).limit(count);
+            cursor = testDrivers.find(queryObj, fieldsObj).sort(sortObj).skip(skip).limit(count);
         }
         else
         {
-            cursor = testDefs.find(null, fieldsObj).skip(skip).limit(count);
+            cursor = testDefs.find(null, fieldsObj).sort(sortObj).skip(skip).limit(count);
         }
         
         // Done
