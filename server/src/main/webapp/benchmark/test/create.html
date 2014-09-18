@@ -21,14 +21,9 @@
             <label for="inputTestDesc" class="col-lg-2 control-label">Test description</label>
             <div class="col-lg-10">
                 <div ng-show="form.tDesc.$dirty && form.tDesc.$invalid" class="alert alert-danger">
-                    <small class="error" ng-show="form.tDesc.error" class="required">
-                        Test description is required.
-                    </small>
-                    <small class="error" ng-show="form.tDesc.$error.minlength">
-                        Test description is needs at least 3 characters
-                    </small>
+                    
                 </div>
-                <input type="text" ng-model="test.description" name="tDesc" ng-minlength="3" class="form-control" id="inputTestDesc" placeholder="Test description" required>
+                <input type="text" ng-model="test.description" name="tDesc"  class="form-control" id="inputTestDesc" placeholder="Test description" required>
             </div>
         </div>
 
