@@ -6,7 +6,7 @@
         <div class="form-group">
             <label for="inputTestName" class="col-lg-2 control-label">Test name</label>
             <div class="col-lg-10">
-                <div ng-show="form.tName.$dirty && form.tName.$invalid" class="alert alert-danger">
+                <div ng-show="form.tName.$dirty && form.tName.$invalid && !form.tName.$focused" class="alert alert-danger">
                     <small class="error" ng-show="form.tName.error" class="required">
                         Test name is required.
                     </small>
@@ -14,7 +14,7 @@
                         Test name must have at least 3 characters
                     </small>
                 </div>
-                <input type="text" ng-model="test.name" name="tName" ng-minlength="3" class="form-control" id="inputTestName" placeholder="Test name" required>
+                <input type="text" ng-model="test.name" name="tName" ng-minlength="3" class="form-control" id="inputTestName" placeholder="Test name" required ng-focus>
             </div>
         </div>
         <div class="form-group">
