@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.test;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Collections;
@@ -381,9 +383,13 @@ public class Test implements
      */
     private void initNetworkDetails() throws Exception
     {
+        // We have some preferences about what to use
+        InetAddress ipv4 = null;
+        InetAddress multicast = null;
+        InetAddress ipv6 = null;
+        
         // Get an IP address and host name
         Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
-ext:
         while (nis.hasMoreElements())
         {
             NetworkInterface ni = nis.nextElement();
@@ -392,17 +398,35 @@ ext:
             while (ias.hasMoreElements())
             {
                 InetAddress ia = ias.nextElement();
-                if (ia.isLoopbackAddress())
+                if (ipv4 == null && ia instanceof Inet4Address)
                 {
-                    // Not interested.  We want something contactable.
-                    continue;
+                    // Our first choice
+                    ipv4 = ia;
                 }
-                // Found it
-                inetAddress = ia;
-                break ext;
+                else if (multicast != null && ia.isMulticastAddress())
+                {
+                    multicast = ia;
+                }
+                else if (ipv6 != null && ia instanceof Inet6Address)
+                {
+                    ipv6 = ia;
+                }
             }
         }
-        if (inetAddress == null)
+        // Now go by preference
+        if (ipv4 != null)
+        {
+            inetAddress = ipv4;
+        }
+        else if (multicast != null)
+        {
+            inetAddress = multicast;
+        }
+        else if (ipv6 != null)
+        {
+            inetAddress = ipv6;
+        }
+        else if (inetAddress == null)
         {
             inetAddress = InetAddress.getLocalHost();
         }
