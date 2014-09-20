@@ -8,7 +8,7 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
      when('/tests/:testId/properties', {templateUrl: 'benchmark/test/property.html', controller: 'TestPropertyCtrl'}).
      when('/tests/:testId', {templateUrl: 'benchmark/run/index.html', controller: 'TestRunListCtrl'}).
      when('/tests/:testId/create', {templateUrl: 'benchmark/run/create.html', controller: 'TestRunCreateCtrl'}).
-     when('/tests/:testId/copy', {templateUrl: 'benchmark/run/copy.html', controller: 'TestCopyCtrl'}).
+     when('/tests/:testId/copy', {templateUrl: 'benchmark/test/copy.html', controller: 'TestCopyCtrl'}).
      when('/tests/:testId/:runId', {templateUrl: 'benchmark/run/summary.html', controller: 'TestRunSummaryCtrl'}).
      when('/tests/:testId/:runId/copy', {templateUrl: 'benchmark/run/copy.html', controller: 'TestRunCopyCtrl'}).
      when('/tests/:testId/:runId/properties', {templateUrl: 'benchmark/run/property.html', controller: 'TestRunPropertyCtrl'}).
