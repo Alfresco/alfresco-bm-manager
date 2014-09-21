@@ -2,7 +2,7 @@ To create an archetype:
 Note: Commands are for Windows with Git tools installed
 
 Copy the 'src' folder to the archetype
-> cp -R src archetype\src\main\resources\archetype-resources\src
+> cp -R src archetype\src\main\resources\archetype-resources
 > cd archetype
 
 Check all properties and configuration files
@@ -14,13 +14,21 @@ Check all properties and configuration files
 Build the archetype
 > mvn clean install
 
+Clean up
+
 Test locally
 > cd target
 > mvn archetype:generate -DarchetypeCatalog=local
+> cd <your-artiface-id>
+> mvn clean install
+> cd ..
 
 Deploy archetype
 > cd ..
 > mvn deploy
+
+Clean up
+> rm -rf src\main\resources\archetype-resources\src
 
 To use, follow instructions on:
    https://ts.alfresco.com/share/page/site/bm/wiki-page?title=Benchmark_Test_Project_Development
