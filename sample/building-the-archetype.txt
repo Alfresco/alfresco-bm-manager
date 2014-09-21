@@ -25,7 +25,10 @@ Deploy archetype
 To use, follow instructions on:
    https://ts.alfresco.com/share/page/site/bm/wiki-page?title=Benchmark_Test_Project_Development
    If you are familiar with Maven then it is just this:
-      mvn archetype:generate -DarchetypeRepository=http://artifacts.alfresco.com/nexus/content/repositories/snapshots/ -DarchetypeGroupId=org.alfresco -DarchetypeArtifactId=alfresco-benchmark-sample-archetype
+      mvn archetype:generate
+            -DarchetypeRepository=http://artifacts.alfresco.com/nexus/content/groups/public/archetype-catalog.xml
+            -DarchetypeGroupId=org.alfresco
+            -DarchetypeArtifactId=alfresco-benchmark-sample-archetype
    Parameters can be chosen at the prompt or specified up front:
       -Dpackage=com.example
       -DartifactId=mytest
