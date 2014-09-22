@@ -18,6 +18,7 @@
  */
 package org.alfresco.bm.file;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,6 +26,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -38,14 +41,14 @@ import org.apache.commons.net.ftp.FTPReply;
  */
 public class FtpTestFileService extends AbstractTestFileService
 {
+    private static Log logger = LogFactory.getLog(FtpTestFileService.class);
+    
     private final String ftpHost;
     private final int ftpPort;
     private final String ftpUsername;
     private final String ftpPassword;
     private final String ftpPath;
     private boolean ftpLocalPassiveMode = true;
-    
-    private FTPClient ftp;
     
     public FtpTestFileService(
             FileDataService fileDataService,
@@ -73,7 +76,6 @@ public class FtpTestFileService extends AbstractTestFileService
         builder.append(", ftpUsername=").append(ftpUsername);
         builder.append(", ftpPassword=").append(ftpPassword);
         builder.append(", ftpPath=").append(ftpPath);
-        builder.append(", ftp=").append(ftp);
         builder.append("]");
         return builder.toString();
     }
@@ -92,57 +94,22 @@ public class FtpTestFileService extends AbstractTestFileService
     /**
      * Provides a safe (connected) FTP client
      */
-    private synchronized FTPClient getFTPClient()
+    private FTPClient getFTPClient()
     {
-        if (ftp != null && ftp.isAvailable())
-        {
-            // Do a small operation to check
-            try
-            {
-                int reply = ftp.pwd();
-                if (reply == FTPReply.PATHNAME_CREATED)
-                {
-                    // All good
-                    return ftp;
-                }
-                // Unlucky.  Fall through.
-            }
-            catch (IOException e)
-            {
-                // Unlucky.  Fall through.
-            }
-        }
-        
-        // Disconnect gracefully
-        if (ftp != null)
-        {
-            try
-            {
-                ftp.disconnect();
-            }
-            catch (IOException e)
-            {
-                // We ignore this
-            }
-            finally
-            {
-                ftp = null;
-            }
-        }
-        
+        FTPClient ftp;
         try
         {
             // Connect to the FTP server
             ftp = new FTPClient();
             // Connect
             ftp.connect(ftpHost, ftpPort);
-            if (ftpLocalPassiveMode)
-            {
-                ftp.enterLocalPassiveMode();
-            }
             if (!ftp.login(ftpUsername, ftpPassword))
             {
                 throw new IOException("FTP credentials rejected.");
+            }
+            if (ftpLocalPassiveMode)
+            {
+                ftp.enterLocalPassiveMode();
             }
             // Settings for the FTP channel
             ftp.setControlKeepAliveTimeout(300);
@@ -192,6 +159,18 @@ public class FtpTestFileService extends AbstractTestFileService
         {
             throw new RuntimeException("FTP file listing failed: " + this, e);
         }
+        finally
+        {
+            try
+            {
+                ftp.logout();
+                ftp.disconnect();
+            }
+            catch (IOException e)
+            {
+                logger.warn("Failed to close FTP connection: " + e.getMessage());
+            }
+        }
         // Index each of the files
         List<FileData> remoteFileDatas = new ArrayList<FileData>(ftpFiles.length);
         for (FTPFile ftpFile : ftpFiles)
@@ -214,20 +193,34 @@ public class FtpTestFileService extends AbstractTestFileService
     @Override
     protected void downloadRemoteFile(FileData fileData, File localFile) throws IOException
     {
-        String remoteName = fileData.getRemoteName();
+        String remoteName = ftpPath + "/" + fileData.getRemoteName();
+        FTPClient ftp = null;
         OutputStream os = null;
         try
         {
-            os = new FileOutputStream(localFile);
+            os = new BufferedOutputStream(new FileOutputStream(localFile));
             // It does not exist locally, so go and retrieve it
-            FTPClient ftp = getFTPClient();
-            ftp.retrieveFile(remoteName, os);
+            ftp = getFTPClient();
+            boolean success = ftp.retrieveFile(remoteName, os);
+            if (!success)
+            {
+                throw new IOException("Failed to complete download of file: " + fileData + " by " + this);
+            }
         }
         finally
         {
             if (os != null)
             {
                 try { os.close(); } catch (Throwable e) {}
+            }
+            try
+            {
+                ftp.logout();
+                ftp.disconnect();
+            }
+            catch (IOException e)
+            {
+                logger.warn("Failed to close FTP connection: " + e.getMessage());
             }
         }
     }
