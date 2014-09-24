@@ -54,7 +54,7 @@
      * Tests service.
      */
     .factory('TestService', function($resource) {
-        return $resource("api/v1/tests/:id", {
+        return $resource("api/v1/tests/:id/:param", {
             id: '@id'
         }, {
             //Define methods on the TestService Object
@@ -83,6 +83,14 @@
                     id: 'id'
                 }
             },
+            getDrivers: {
+                method: 'GET',
+                isArray: true,
+                params: {
+                    id: 'id',
+                    param:'drivers'
+                }
+            }
         })
     }).value('version', '0.1')
 
@@ -160,58 +168,18 @@
         function($scope, $location, TestService, TestPropertyService, UtilService) {
             $scope.data = {};
             $scope.properties = [];
-            $scope.drivers = {"collapsed":true};
             $scope.master = {};
-            $scope.drivers.prop = [
-               {
-                   "_id":
-                   {
-                       "$oid": "5419be8ec8d0be22095e226f"
-                   },
-                   "release": "alfresco-benchmark-tests-cmis-1.0-SNAPSHOT",
-                   "schema": 4,
-                   "ipAddress": "10.244.10.169",
-                   "hostname": "10.244.10.169",
-                   "contextPath": "/alfresco-benchmark-tests-cmis",
-                   "capabilities":
-                   {
-                       "system":
-                       [
-                           "1.7.0_51"
-                       ]
-                   },
-                   "ping":
-                   {
-                       "time": 1410973326568,
-                       "expires": 1410973386581
-                   }
-
-               },{
-                   "_id":
-                   {
-                       "$oid": "5419be8ec8d0be22095e226f"
-                   },
-                   "release": "alfresco-benchmark-tests-cmis-1.0-SNAPSHOT",
-                   "schema": 4,
-                   "ipAddress": "10.244.10.169",
-                   "hostname": "10.244.10.169",
-                   "contextPath": "/alfresco-benchmark-tests-cmis",
-                   "capabilities":
-                   {
-                       "system":
-                       [
-                           "1.7.0_51"
-                       ]
-                   },
-                   "ping":
-                   {
-                       "time": 1410973326568,
-                       "expires": 1410973386581
-                   }
-               }
-            ];
+            $scope.drivers = {"collapsed":true};
+            $scope.drivers.prop = [];
             var myname = $location.path().split('/');
             var testname = myname[2];
+
+            TestService.getDrivers({
+                id: testname
+            }, function(response) {
+                $scope.drivers.prop = response;
+            });
+
             TestService.getTest({
                 id: testname
             }, function(response) {
@@ -222,6 +190,7 @@
                 $scope.data.properties = result;
                 $scope.master = angular.copy($scope.data.test);
             });
+
 
             //callback for ng-click 'deleteTest':
             $scope.deleteTest = function(testId) {
@@ -251,7 +220,6 @@
                 };
                 $scope.updateTest(postData);
             }
-
 
             //callback for ng-click 'updateTestDesc':
             $scope.updateTestDesc = function(desc) {
