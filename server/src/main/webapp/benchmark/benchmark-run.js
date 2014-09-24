@@ -265,17 +265,22 @@
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
             $scope.testname = names[0];
+            $scope.runs = [];
 
-            $scope.update = function(testrun) {
-                $scope.master = angular.copy(testrun);
-            };
+            TestRunService.getTestRuns({
+                    id: $scope.testname
+                }, function(response) {
+                    $scope.runs = response; 
+                });
 
             $scope.reset = function() {
                 $scope.test = angular.copy($scope.master);
-            };
-
-            $scope.isUnchanged = function(testrunrun) {
-                return angular.equals(testrun, $scope.master);
+                if($scope.runs < 1){
+                    $window.location.hash = "#/";
+                    $window.location.reload();
+                }else{
+                    $location.path("/tests/" + $scope.testname); 
+                }
             };
 
             $scope.createTestRun = function(testrun) {
@@ -307,11 +312,6 @@
                         }
                     })
             }
-
-            $scope.reset = function() {
-                $scope.run = angular.copy($scope.master);
-            };
-            $scope.reset();
         }
     ])
 
