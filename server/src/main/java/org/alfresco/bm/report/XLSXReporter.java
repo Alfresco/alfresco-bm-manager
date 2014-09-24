@@ -300,13 +300,14 @@ public class XLSXReporter extends AbstractEventReporter
         {
             return;
         }
+        // Ensure we don't leak passwords
+        testRunObj = AbstractRestResource.maskValues(testRunObj);
+        
         BasicDBList propertiesList = (BasicDBList) testRunObj.get(FIELD_PROPERTIES);
         if (propertiesList == null)
         {
             return;
         }
-        // Ensure we don't leak passwords
-        AbstractRestResource.maskValues(testRunObj);
         // Order the properties, nicely
         TreeMap<String, DBObject> properties = new TreeMap<String, DBObject>();
         for (Object propertyObj : propertiesList)
