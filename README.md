@@ -1,5 +1,7 @@
 ### alfresco-benchmark
 
+More information on the <a href="https://wiki.alfresco.com/wiki/Benchmark_Framework_2.0">Alfresco Wiki</a>
+
 ### Get the code
 
 Git:

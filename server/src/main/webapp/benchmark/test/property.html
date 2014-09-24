@@ -76,8 +76,11 @@
                         <span ng-show="!readOnly"> 
                             <div ng-hide="propertyEditorEnabled">
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="!item.value">
-                                    <b ng-show="item.default != item.value">{{item.value}}</b>
-                                    <span ng-show="item.value == item.default"> {{item.value}} </span>
+                                    <div ng-hide="item.mask">
+                                        <b ng-show="item.default != item.value">{{item.value}}</b>
+                                        <span ng-show="item.value == item.default"> {{item.value}} </span>
+                                    </div>
+                                    <div ng-show="item.mask" type="password">*******</div>
                                 </a>
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
                             </div>
@@ -99,7 +102,7 @@
                                         </button>
                                     </span>
                                 </div>
-                                <span ng-hide="!item.value">{{item.default}}</span>
+                                <span ng-hide="!item.value || item.mask">{{item.default}}</span>
                             </div>
                         </div>
                     </div>
