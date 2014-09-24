@@ -74,7 +74,7 @@ public class FtpTestFileService extends AbstractTestFileService
         builder.append("FtpTestFileService [ftpHost=").append(ftpHost);
         builder.append(", ftpPort=").append(ftpPort);
         builder.append(", ftpUsername=").append(ftpUsername);
-        builder.append(", ftpPassword=").append(ftpPassword);
+        builder.append(", ftpPassword=").append("*****");
         builder.append(", ftpPath=").append(ftpPath);
         builder.append("]");
         return builder.toString();
@@ -176,6 +176,11 @@ public class FtpTestFileService extends AbstractTestFileService
         for (FTPFile ftpFile : ftpFiles)
         {
             String ftpFilename = ftpFile.getName();
+            // Watch out for . and ..
+            if (ftpFilename.equals(".") || ftpFilename.equals(".."))
+            {
+                continue;
+            }
             String ftpExtension = FileData.getExtension(ftpFilename);
             long ftpSize = ftpFile.getSize();
             
