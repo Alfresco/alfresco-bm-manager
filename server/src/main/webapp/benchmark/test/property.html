@@ -48,6 +48,29 @@
         Release: {{data.test.release}} Schema:{{data.test.schema}}            
     </div>
 </div>
+<!-- Driver details -->
+<div class="panel panel-default" >                                    
+    <div class="panel-heading">
+        <a ng-click="toggleCollapsedStates(drivers)" href="">
+            <h3>Driver Details
+            <i class="fa fa-chevron-down  pull-right" ng-hide="drivers.collapsed"></i>
+            <i class="fa fa-chevron-right pull-right" ng-show="drivers.collapsed"></i>
+            </h3>
+        </a>
+    </div>
+     <ul class="test list-group"  id="driver-list" ng-hide="drivers.collapsed">
+        <li class="list-group-item" ng-repeat="driver in drivers.prop">
+            <div class="row" ng-repeat="(key,value) in driver">        
+                <div class="col-xs-6 col-md-6">
+                    <h4 class="panel-title">{{key}}</h4> 
+                </div>
+                <div class="col-xs-6 col-md-6">
+                    <span >{{value}}</span>  
+                </div>
+            </div>
+        </li>
+    </ul>        
+</div>
 <!-- Properties -->
 <div ng-repeat="prop in data.properties">
     <div class="panel panel-default" >                                    
@@ -58,7 +81,6 @@
                 <i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed"></i>
                 </h3>
             </a>
-            
         </div>
         <!-- Collapse group -->
         <!-- List group -->

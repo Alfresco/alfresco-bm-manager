@@ -160,7 +160,56 @@
         function($scope, $location, TestService, TestPropertyService, UtilService) {
             $scope.data = {};
             $scope.properties = [];
-            $scope.master = {}
+            $scope.drivers = {"collapsed":true};
+            $scope.master = {};
+            $scope.drivers.prop = [
+               {
+                   "_id":
+                   {
+                       "$oid": "5419be8ec8d0be22095e226f"
+                   },
+                   "release": "alfresco-benchmark-tests-cmis-1.0-SNAPSHOT",
+                   "schema": 4,
+                   "ipAddress": "10.244.10.169",
+                   "hostname": "10.244.10.169",
+                   "contextPath": "/alfresco-benchmark-tests-cmis",
+                   "capabilities":
+                   {
+                       "system":
+                       [
+                           "1.7.0_51"
+                       ]
+                   },
+                   "ping":
+                   {
+                       "time": 1410973326568,
+                       "expires": 1410973386581
+                   }
+
+               },{
+                   "_id":
+                   {
+                       "$oid": "5419be8ec8d0be22095e226f"
+                   },
+                   "release": "alfresco-benchmark-tests-cmis-1.0-SNAPSHOT",
+                   "schema": 4,
+                   "ipAddress": "10.244.10.169",
+                   "hostname": "10.244.10.169",
+                   "contextPath": "/alfresco-benchmark-tests-cmis",
+                   "capabilities":
+                   {
+                       "system":
+                       [
+                           "1.7.0_51"
+                       ]
+                   },
+                   "ping":
+                   {
+                       "time": 1410973326568,
+                       "expires": 1410973386581
+                   }
+               }
+            ];
             var myname = $location.path().split('/');
             var testname = myname[2];
             TestService.getTest({
@@ -185,9 +234,11 @@
             $scope.cancelRename = function(){
                 $scope.data.test.name = $scope.master.name;
             }
+
             $scope.cancelDesc = function(){
                 $scope.data.test.description = $scope.master.description;
             }
+
             //callback for ng-click 'renameTest'
             $scope.renameTest = function(name) {
                 var postData = {
@@ -234,9 +285,7 @@
 
             //Updates the test and redirects to new page
             $scope.updateTest = function(postData) {
-                TestService.updateTest({}, postData, function(res) {
-                });
-
+                TestService.updateTest({}, postData, function(res) {});
                 $location.path("/tests/" + postData.name + "/properties");
             }
 
