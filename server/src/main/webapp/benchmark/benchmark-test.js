@@ -177,10 +177,10 @@
             TestService.getDrivers({
                 id: testname
             }, function(response) {
-                $scope.drivers.prop = response;
-                var t = response.replace('$','');
-                console.log(t);
-
+                //Strip $ as it prevents value from appearing
+                var jsonStr = JSON.stringify(response);
+                jsonStr = jsonStr.replace(/\$/g, '').replace('_id','ID');
+                $scope.drivers.prop = JSON.parse(jsonStr); 
             });
 
             TestService.getTest({
