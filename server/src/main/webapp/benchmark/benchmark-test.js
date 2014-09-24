@@ -178,6 +178,9 @@
                 id: testname
             }, function(response) {
                 $scope.drivers.prop = response;
+                var t = response.replace('$','');
+                console.log(t);
+
             });
 
             TestService.getTest({
