@@ -1,3 +1,5 @@
+<!-- popup modal message -->
+<modal data="modal"></modal>
 <div class="panel panel-default">
     <div class="panel-body">
         <div class="row" ng-show="testNameEditorEnabled">
@@ -46,6 +48,21 @@
             </div>
         </div>
         Release: {{data.test.release}} Schema:{{data.test.schema}}            
+    </div>
+    <div class="panel-footer">
+        <a href="#/tests/{{data.test.name}}/copy"  id="copyTestBtn1-{{data.test.name}}">
+            <i class="btn fa fa-files-o fa-lg"></i>
+        </a>
+        <a  ng-click="deleteTest(data.test.name)"  id="deleteTestBtn1-{{data.test.name}}">
+            <i class="btn fa fa-trash-o fa-lg"></i>
+        </a> 
+        <a  href="#/tests/{{data.test.name}}/" id="view1-{{data.test.name}}">
+            <i class="btn fa fa-arrow-circle-right fa-lg"></i>
+        </a>
+        <a href="#/tests/{{data.test.name}}/create"  id="createTestRunBtn">
+            <i class="btn fa fa-plus fa-lg" alt="Add New Test Run"></i>
+        </a>
+        <div class="clearfix"></div>
     </div>
 </div>
 <!-- Driver details -->

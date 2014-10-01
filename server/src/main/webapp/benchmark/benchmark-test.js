@@ -164,8 +164,8 @@
     /**
      * Controller to display test detail
      */
-    .controller('TestPropertyCtrl', ['$scope', '$location', 'TestService', 'TestPropertyService', 'UtilService',
-        function($scope, $location, TestService, TestPropertyService, UtilService) {
+    .controller('TestPropertyCtrl', ['$scope', '$location', 'TestService', 'TestPropertyService', 'UtilService','ModalService',
+        function($scope, $location, TestService, TestPropertyService, UtilService, ModalService) {
             $scope.data = {};
             $scope.properties = [];
             $scope.master = {};
@@ -319,6 +319,30 @@
                     ind.collapsed = true;
                     // $("#property-" + ind.uid).collapse('hide');
                 };
+            }
+
+                        // callback for ng-click 'deleteTest':
+            $scope.deleteTest = function(testId) {
+                $scope.modal = {
+                    display: true,
+                    title: 'Delete test ' + testId,
+                    message: 'Are you sure you want to delete ' + testId + ' ?',
+                    buttonClose: "Cancel",
+                    buttonOk: "Delete",
+                    actionName: "doDeleteTest",
+                    actionValue: [testId]
+                }
+                $scope.modal = ModalService.create($scope.modal);
+            }
+
+            $scope.doDeleteTest = function(name) {
+                TestService.deleteTest({
+                    id: name
+                }, function(response){
+                    $scope.data.tests = TestService.getTests()
+                });
+                $scope.data.tests = TestService.getTests();
+                $location.path("/tests/");
             }
         }
     ])
