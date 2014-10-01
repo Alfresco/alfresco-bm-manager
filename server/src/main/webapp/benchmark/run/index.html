@@ -1,16 +1,32 @@
 <div ng-show="hasError" class="alert alert-danger">{{error.msg}}</div>
 <!-- popup modal message -->
 <modal data="modal"></modal>
+
+
 <div ng-show="data.runs.length > 0">
-    <div class="row">
-        <div class="form-group">
-            <a href="#/tests/{{data.testname}}/create" class="btn btn-default pull-right" id="createTestRunBtn">
-                <span class="fa fa-plus" alt="Add New Test Run"></span>
-            </a>
-        </div>
-    </div>
     <div class="row row-offcanvas row-offcanvas-right">
         <div class="panel panel-default">
+            <div class="panel-body">
+                <h3>
+                    <span ng-hide="testNameEditorEnabled">
+                        {{data.testname}}
+                    </span>
+                <div class="pull-right">
+                           
+                <a href="#/tests/{{data.testname}}/copy"  id="copyTestBtn2-{{data.testname}}" class="btn btn-default ">
+                    <i class="fa fa-files-o fa-lg"></i>
+                </a>
+                <a id="editTest{{item.name}}" href="#/tests/{{data.testname}}/properties" class="btn btn-default ">
+                    <i class="fa fa-cog fa-lg"></i>
+                </a>
+                <a href="#/tests/{{data.testname}}/create" class="btn btn-default" id="createTestRunBtn">
+                    <span class="fa fa-plus" alt="Add New Test Run"></span>
+                </a>     
+                </div>
+</h3>
+                <div class="clearfix"></div>
+            </div>
+
             <table class="table table-striped">
                 <tr ng-repeat="item in data.runs | filter:query | orderBy:orderProp">
                     <td class="col-sm-2 text-left">
