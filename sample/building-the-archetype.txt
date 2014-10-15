@@ -31,7 +31,7 @@ Clean up
 > rm -rf src\main\resources\archetype-resources\src
 
 To use, follow instructions on:
-   https://ts.alfresco.com/share/page/site/bm/wiki-page?title=Benchmark_Test_Project_Development
+   http://wiki.alfresco.com/wiki/Benchmark_Framework_2.0:_Developing_Tests
    If you are familiar with Maven then it is just this:
       mvn archetype:generate
             -DarchetypeRepository=http://artifacts.alfresco.com/nexus/content/groups/public/archetype-catalog.xml
