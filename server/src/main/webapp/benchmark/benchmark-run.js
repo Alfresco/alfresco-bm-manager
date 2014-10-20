@@ -449,8 +449,8 @@
     /*
      * Run summary controller
      */
-    .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService',
-        function($scope, $location, $timeout, TestRunService) {
+    .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService','ModalService',
+        function($scope, $location, $timeout, TestRunService, ModalService) {
             var timer;
             $scope.mockData = []; //Implement call to get charts
             $scope.getSummary = function() {
@@ -475,6 +475,32 @@
                     $scope.summary.result = [da.resultsSuccess, da.resultsFail];
                 });
             }
+
+            //Call back to delete run
+            $scope.deleteRun = function(runname) {
+                $scope.modal = {
+                    display: true,
+                    title: 'Delete run ' + runname,
+                    message: 'Are you sure you want to delete ' + runname + ' ?',
+                    buttonClose: "Cancel",
+                    buttonOk: "Delete",
+                    actionName: "doDeleteRun",
+                    actionValue: [$scope.testname, runname]
+                }
+                $scope.modal = ModalService.create($scope.modal);
+            }
+
+            //Call back from modal to perform delete.
+            $scope.doDeleteRun = function(testname, runname) {
+                TestRunService.deleteTestRun({
+                    id: testname,
+                    runname: runname
+                }, function(response) {
+                    $location.path("/tests/" + $scope.testname);                    
+                })
+            }
+
+
             //Get the summary now!
             $scope.getSummary();
 

@@ -1,3 +1,5 @@
+<!-- popup modal message -->
+<modal data="modal"></modal>
 <div class="row" ng-show="summary.started > 0">
     <div class="form-group col-sm-12 col-xs-12">
         <span class="pull-right">
@@ -39,6 +41,24 @@
                         </div>
                     </div>
                 </div>
+                <table class="table table-striped">
+                  <tr>
+                    <td class="col-sm-5 text-right">
+                      <a ng-hide="item.hasStarted" id="startTestRunBtn-{{item.name}}"  class="btn">
+                        <span class="fa fa-play fa-lg"></span>
+                      </a>
+                      <a href="#/tests/{{testname}}/{{summary.name}}/copy" class="btn" id="copyTestBtn-{{summary.name}}">
+                        <span class="fa fa-files-o fa-lg"></span>
+                        </a>
+                      <a class="btn" id="editTestBtn-{{testname}}" href="#/tests/{{testname}}/{{summary.name}}/properties">
+                        <span class="fa fa-cog fa-lg"></span>
+                      </a>
+                      <a ng-click="deleteRun(summary.name)" class="btn" id="deleteTestBtn-{{summary.name}}">
+                        <span class="fa fa-trash-o fa-lg"></span>
+                      </a>
+                    </td>
+                  </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -50,6 +70,7 @@
         </div>
     </div>
 </div>
+ 
 <!-- line chart
 <div class="row" ng-show="summary.started > 0">
     <div class="col-md-12 col-sm-12 col-xs-12">
