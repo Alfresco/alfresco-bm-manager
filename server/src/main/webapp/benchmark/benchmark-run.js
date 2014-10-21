@@ -458,12 +458,13 @@
                 var names = path.replace("/tests/", "").split("/");
                 $scope.summary = {};
                 $scope.testname = names[0];
+                $scope.runname = names[1];
                 //inital chart display.
                 $scope.summary.result = [0, 100];
                 $scope.summary.total = 0;
                 TestRunService.getTestRunSummary({
-                    id: names[0],
-                    runname: names[1]
+                    id: $scope.testname,
+                    runname: $scope.runname
                 }, function(response) {
                     var da = response
                     $scope.summary = da;
@@ -477,24 +478,24 @@
             }
 
             //Call back to delete run
-            $scope.deleteRun = function(runname) {
+            $scope.deleteRun = function() {
                 $scope.modal = {
                     display: true,
-                    title: 'Delete run ' + runname,
-                    message: 'Are you sure you want to delete ' + runname + ' ?',
+                    title: 'Delete run ' + $scope.runname,
+                    message: 'Are you sure you want to delete ' + $scope.runname + ' ?',
                     buttonClose: "Cancel",
                     buttonOk: "Delete",
                     actionName: "doDeleteRun",
-                    actionValue: [$scope.testname, runname]
+                    actionValue: [$scope.testname, $scope.runname]
                 }
                 $scope.modal = ModalService.create($scope.modal);
             }
 
             //Call back from modal to perform delete.
-            $scope.doDeleteRun = function(testname, runname) {
+            $scope.doDeleteRun = function() {
                 TestRunService.deleteTestRun({
-                    id: testname,
-                    runname: runname
+                    id: $scope.testname,
+                    runname: $scope.runname
                 }, function(response) {
                     $location.path("/tests/" + $scope.testname);                    
                 })

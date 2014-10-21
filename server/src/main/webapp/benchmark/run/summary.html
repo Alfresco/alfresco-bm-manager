@@ -44,16 +44,16 @@
                 <table class="table table-striped">
                   <tr>
                     <td class="col-sm-5 text-right">
-                      <a ng-hide="item.hasStarted" id="startTestRunBtn-{{item.name}}"  class="btn">
-                        <span class="fa fa-play fa-lg"></span>
-                      </a>
+                      <a ng-hide="summary.state == NOT_SCHEDULED" id="startTestRunBtn-{{summary.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun()" class="btn">
+                                    <span class="fa fa-play fa-lg"></span>
+                                </a>
                       <a href="#/tests/{{testname}}/{{summary.name}}/copy" class="btn" id="copyTestBtn-{{summary.name}}">
                         <span class="fa fa-files-o fa-lg"></span>
                         </a>
                       <a class="btn" id="editTestBtn-{{testname}}" href="#/tests/{{testname}}/{{summary.name}}/properties">
                         <span class="fa fa-cog fa-lg"></span>
                       </a>
-                      <a ng-click="deleteRun(summary.name)" class="btn" id="deleteTestBtn-{{summary.name}}">
+                      <a ng-click="deleteRun()" class="btn" id="deleteTestBtn-{{summary.name}}">
                         <span class="fa fa-trash-o fa-lg"></span>
                       </a>
                     </td>
