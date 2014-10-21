@@ -452,13 +452,14 @@
     .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService','ModalService',
         function($scope, $location, $timeout, TestRunService, ModalService) {
             var timer;
+            var path = $location.path();
+            var names = path.replace("/tests/", "").split("/");
+            $scope.summary = {};
+            $scope.testname = names[0];
+            $scope.runname = names[1];
             $scope.mockData = []; //Implement call to get charts
+            
             $scope.getSummary = function() {
-                var path = $location.path();
-                var names = path.replace("/tests/", "").split("/");
-                $scope.summary = {};
-                $scope.testname = names[0];
-                $scope.runname = names[1];
                 //inital chart display.
                 $scope.summary.result = [0, 100];
                 $scope.summary.total = 0;
