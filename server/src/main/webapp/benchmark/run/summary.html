@@ -44,7 +44,7 @@
                 <table class="table table-striped">
                   <tr>
                     <td class="col-sm-5 text-right">
-                      <a ng-hide="summary.state == NOT_SCHEDULED" id="startTestRunBtn-{{summary.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun()" class="btn">
+                      <a ng-hide="summary.state != 'NOT_SCHEDULED' || hasStarted" id="startTestRunBtn-{{summary.name}}" ng-click="startRun()" class="btn">
                                     <span class="fa fa-play fa-lg"></span>
                                 </a>
                       <a href="#/tests/{{testname}}/{{summary.name}}/copy" class="btn" id="copyTestBtn-{{summary.name}}">

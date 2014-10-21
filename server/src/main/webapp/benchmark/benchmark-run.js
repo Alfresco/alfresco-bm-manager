@@ -500,7 +500,23 @@
                     $location.path("/tests/" + $scope.testname);                    
                 })
             }
+            //call back to start run
+            $scope.startRun = function() {
 
+                var version = $scope.summary.version;
+                var currentdate = new Date();
+                var time = currentdate.valueOf();
+                var json = {
+                    "version": version,
+                    "scheduled": time,
+                }
+                TestRunService.startTestRun({
+                    id: $scope.testname,
+                    runname: $scope.runname
+                }, json, function(response) {
+                    $scope.hasStarted = true;
+                })
+            }
 
             //Get the summary now!
             $scope.getSummary();
