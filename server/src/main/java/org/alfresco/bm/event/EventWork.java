@@ -83,7 +83,6 @@ public class EventWork implements Runnable
         this.sessionService = sessionService;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void run()
     {
@@ -188,11 +187,6 @@ public class EventWork implements Runnable
                         "   Processor: " + processor);
                 continue;
             }
-            // Ensure that any locally-stored data has a data owner attached
-            if (nextEvent.getDataKey() != null)
-            {
-                nextEvent.setDataOwner(serverId);
-            }
             // Carry over the session ID, if required
             if (propagateSessionId)
             {
@@ -216,12 +210,9 @@ public class EventWork implements Runnable
             }
         }
         
-        // Clean up any locally-store data and remove the event from the queue.
-        // This *must* come after the new events have been published;
-        // otherwise it's possible to have a short time without events.
+        // Remove the event from the queue.
         try
         {
-            event.cleanData();
             boolean deleted = eventService.deleteEvent(event);
             if (!deleted)
             {

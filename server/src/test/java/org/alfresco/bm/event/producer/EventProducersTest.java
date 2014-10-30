@@ -60,7 +60,6 @@ public class EventProducersTest
         eventDataKey = new Event("a", "Some data");
         eventDataKey.setId("123456789012345678901234"); 
         eventDataKey.setSessionId("sessionA");
-        eventDataKey.setDataOwner("Bob");
         eventInMem = new Event("a", this);
     }
     
@@ -94,8 +93,7 @@ public class EventProducersTest
         assertEquals(eventOriginal.getId(), event.getId());
         assertEquals(eventOriginal.getSessionId(), event.getSessionId());
         assertEquals((double) (System.currentTimeMillis()+10000L), event.getScheduledTime(), 200L);
-        assertEquals(eventOriginal.getDataOwner(), event.getDataOwner());
-        assertTrue(eventOriginal.getDataObject() == event.getDataObject());
+        assertTrue(eventOriginal.getData() == event.getData());
     }
     
     @Test
@@ -110,8 +108,7 @@ public class EventProducersTest
         assertEquals(eventOriginal.getId(), event.getId());
         assertEquals(eventOriginal.getSessionId(), event.getSessionId());
         assertEquals((double) (System.currentTimeMillis()), event.getScheduledTime(), 200L);
-        assertEquals(eventOriginal.getDataOwner(), event.getDataOwner());
-        assertTrue(eventOriginal.getDataObject() == event.getDataObject());
+        assertTrue(eventOriginal.getData() == event.getData());
     }
     
     @Test

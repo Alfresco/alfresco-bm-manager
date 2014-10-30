@@ -19,7 +19,6 @@
 package org.alfresco.bm.event;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -38,7 +37,6 @@ import com.mongodb.DBObject;
  * @since 2.0
  */
 @RunWith(JUnit4.class)
-@SuppressWarnings("deprecation")
 public class EventTest
 {
     @Test
@@ -117,9 +115,7 @@ public class EventTest
         long now = System.currentTimeMillis();
         
         Event event = new Event("A", null);
-        assertNull(event.getDataKey());
-        assertNull(event.getDataObject());
-        assertNull(event.getDataOwner());
+        assertNull(event.getData());
         assertNull(event.getId());
         assertNull(event.getLockOwner());
         assertEquals(0L, event.getLockTime());
@@ -143,56 +139,49 @@ public class EventTest
         long now = System.currentTimeMillis();
         
         Event event = new Event("A", now, null, true);
-        assertNull(event.getDataObject());
-        assertNotNull(event.getDataKey());
+        assertNull(event.getData());
     }
     
     @Test
     public void nullData()
     {
         Event event = new Event("A", 0L, null);
-        assertNull(event.getDataKey());
-        assertNull(event.getDataObject());
+        assertNull(event.getData());
     }
     
     @Test
     public void nullDataInMem()
     {
         Event event = new Event("A", 0L, null, true);
-        assertNotNull(event.getDataKey());
-        assertNull(event.getDataObject());
+        assertNull(event.getData());
     }
     
     @Test
     public void stringData()
     {
         Event event = new Event("A", 0L, "BOB");
-        assertNull(event.getDataKey());
-        assertEquals("BOB", event.getDataObject());
+        assertEquals("BOB", event.getData());
     }
     
     @Test
     public void stringDataInMem()
     {
         Event event = new Event("A", 0L, "BOB", true);
-        assertNotNull(event.getDataKey());
-        assertEquals("BOB", event.getDataObject());
+        assertEquals("BOB", event.getData());
     }
     
     @Test
     public void integerData()
     {
         Event event = new Event("A", 0L, Integer.MAX_VALUE);
-        assertNull(event.getDataKey());
-        assertEquals(Integer.MAX_VALUE, event.getDataObject());
+        assertEquals(Integer.MAX_VALUE, event.getData());
     }
     
     @Test
     public void integerDataInMem()
     {
         Event event = new Event("A", 0L, Integer.MAX_VALUE, true);
-        assertNotNull(event.getDataKey());
-        assertEquals(Integer.MAX_VALUE, event.getDataObject());
+        assertEquals(Integer.MAX_VALUE, event.getData());
     }
     
     @Test
@@ -201,8 +190,7 @@ public class EventTest
         DBObject bobTheObj = BasicDBObjectBuilder.start().add("BOB", Integer.MAX_VALUE).get();
         
         Event event = new Event("A", 0L, bobTheObj);
-        assertNull(event.getDataKey());
-        assertEquals(bobTheObj, event.getDataObject());
+        assertEquals(bobTheObj, event.getData());
     }
     
     @Test
@@ -211,23 +199,20 @@ public class EventTest
         DBObject bobTheObj = BasicDBObjectBuilder.start().add("BOB", Integer.MAX_VALUE).get();
         
         Event event = new Event("A", 0L, bobTheObj, true);
-        assertNotNull(event.getDataKey());
-        assertEquals(bobTheObj, event.getDataObject());
+        assertEquals(bobTheObj, event.getData());
     }
     
     @Test
     public void someObjectData()
     {
         Event event = new Event("A", 0L, this);
-        assertNotNull(event.getDataKey());
-        assertEquals(this, event.getDataObject());
+        assertEquals(this, event.getData());
     }
     
     @Test
     public void someObjectDataInMem()
     {
         Event event = new Event("A", 0L, this, true);
-        assertNotNull(event.getDataKey());
-        assertEquals(this, event.getDataObject());
+        assertEquals(this, event.getData());
     }
 }

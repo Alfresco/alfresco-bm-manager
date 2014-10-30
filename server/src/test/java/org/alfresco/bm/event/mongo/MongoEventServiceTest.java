@@ -143,7 +143,7 @@ public class MongoEventServiceTest
         assertNotNull("Did not find event with DBObject data.", foundObj);
         // Retrieve
         event = eventService.getEvent(eventId);
-        assertEquals("Original DBObject not pulled out.", foundObj.get(Event.FIELD_DATA), event.getDataObject());
+        assertEquals("Original DBObject not pulled out.", foundObj.get(Event.FIELD_DATA), event.getData());
     }
     
     /**
@@ -179,7 +179,7 @@ public class MongoEventServiceTest
             assertTrue("Scheduled time must be increasing. ", event.getScheduledTime() >= lastScheduledTime);
             lastScheduledTime = event.getScheduledTime();
             assertNotNull("Event must have an ID", event.getId());
-            assertNotNull("Data payload not present on Event", event.getDataObject());
+            assertNotNull("Data payload not present on Event", event.getData());
             // Delete the event
             assertTrue(
                     "Failed to delete event: " + event,
@@ -187,6 +187,30 @@ public class MongoEventServiceTest
         }
         // There should be exactly zero, now
         assertEquals(0, eventService.count());
+    }
+    
+    @Test
+    public void inMemoryDataNotPersistable()
+    {
+        Event eventIn = new Event("t1", this);
+        String id = eventService.putEvent(eventIn);
+        
+        // Now get the event
+        Event eventOut = eventService.getEvent(id);
+        assertNotNull(eventOut);
+        assertTrue("In-mem data not handled: " + eventOut, this == eventOut.getData());
+    }
+    
+    @Test
+    public void inMemoryDataForced()
+    {
+        Event eventIn = new Event("t1", System.currentTimeMillis(), "bulb", true);
+        String id = eventService.putEvent(eventIn);
+        
+        // Now get the event
+        Event eventOut = eventService.getEvent(id);
+        assertNotNull(eventOut);
+        assertTrue("In-mem data not handled: " + eventOut, eventIn.getData() == eventOut.getData());
     }
     
     @Test

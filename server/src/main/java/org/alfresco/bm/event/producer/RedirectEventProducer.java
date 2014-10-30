@@ -62,21 +62,18 @@ public class RedirectEventProducer extends AbstractEventProducer
     public List<Event> getNextEvents(Event event)
     {
         String oldId = event.getId();
-        @SuppressWarnings("deprecation")
-        String oldDataKey = event.getDataKey();
-        Object oldData = event.getDataObject();
         long oldScheduledTime = event.getScheduledTime();
         String oldSessionId = event.getSessionId();
-        String oldDataOwner = event.getDataOwner();
+        Object oldData = event.getData();
+        boolean oldDataInMemory = event.getDataInMemory();
         
-        boolean forceInMemoryStorage = oldDataKey != null;
         long scheduledTime = System.currentTimeMillis() + delay;
         if (oldScheduledTime > scheduledTime)
         {
             scheduledTime = oldScheduledTime;
         }
         
-        Event newEvent = new Event(newEventName, scheduledTime, oldData, forceInMemoryStorage);
+        Event newEvent = new Event(newEventName, scheduledTime, oldData, oldDataInMemory);
         if (oldId != null)
         {
             newEvent.setId(oldId);
@@ -84,10 +81,6 @@ public class RedirectEventProducer extends AbstractEventProducer
         if (oldSessionId != null)
         {
             newEvent.setSessionId(oldSessionId);
-        }
-        if (oldDataOwner != null)
-        {
-            newEvent.setDataOwner(oldDataOwner);
         }
         
         return Collections.singletonList(newEvent);

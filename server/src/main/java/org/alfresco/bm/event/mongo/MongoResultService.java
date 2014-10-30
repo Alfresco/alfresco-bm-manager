@@ -164,7 +164,6 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     /**
      * Helper to convert Mongo-persisted object to a client-visible {@link Event}
      */
-    @SuppressWarnings("deprecation")
     private Event convertToEvent(DBObject eventObj)
     {
         String name = (String) eventObj.get(Event.FIELD_NAME);
@@ -172,14 +171,10 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 ((Date) eventObj.get(Event.FIELD_SCHEDULED_TIME)).getTime() :
                 -1L;
         Object data = eventObj.get(Event.FIELD_DATA);
-        String dataKey = (String) eventObj.get(Event.FIELD_DATA_KEY);
-        String dataOwner = (String) eventObj.get(Event.FIELD_DATA_OWNER);
         String lockOwner = (String) eventObj.get(Event.FIELD_LOCK_OWNER);
         String sessionId = (String) eventObj.get(Event.FIELD_SESSION_ID);
         
         Event event = new Event(name, scheduledTime, data, false);
-        event.setDataKey(dataKey);
-        event.setDataOwner(dataOwner);
         event.setLockOwner(lockOwner);
         event.setSessionId(sessionId);
         // Done
@@ -207,6 +202,11 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         }
         
         DBObject eventObj = MongoEventService.convertEvent(event);
+        // Remove the event data if it is not persistable
+        if (!MongoEventService.canPersistDataObject(event.getData()))
+        {
+            eventObj.removeField(Event.FIELD_DATA);
+        }
         DBObject insertObj = BasicDBObjectBuilder
                 .start()
                 .add(EventRecord.FIELD_PROCESSED_BY, result.getProcessedBy())
