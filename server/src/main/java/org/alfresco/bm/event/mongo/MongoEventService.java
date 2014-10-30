@@ -199,16 +199,29 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
             throw new IllegalArgumentException("'event' may not be null.");
         }
         DBObject insertObj = convertEvent(event);
+
+        // Was the event's ID supplied to us
+        ObjectId eventIdObj = (ObjectId) insertObj.get(Event.FIELD_ID);
+        if (eventIdObj == null)
+        {
+            // We make up an ID here so that we can record the in-memory object, if necessary
+            eventIdObj = new ObjectId();
+            insertObj.put(Event.FIELD_ID, eventIdObj);
+        }
+        String eventId = eventIdObj.toString();
         
         // Replace the data with a key, if necessary
         Object data = event.getData();
         boolean storeInMem = (!canPersistDataObject(data) || event.getDataInMemory());
-        if (storeInMem)
+        if (storeInMem && data != null)
         {
             // We will only store the data if the insertion works
             insertObj.put(Event.FIELD_DATA_OWNER, dataOwner);
             insertObj.removeField(Event.FIELD_DATA);
-            // Only store locally it after a successful insert
+            // The data will be removed when the event is plucked for processing
+            // If we do an insert before putting this in the map, then it's possible for another
+            // thread to pull the event before the local data is even in the map.
+            runLocalData.put(eventId, data);
         }
         
         try
@@ -217,22 +230,13 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         }
         catch (MongoException e)
         {
+            runLocalData.remove(eventId);
             throw new RuntimeException(
                     "Failed to insert event:\n" +
                     "   Event: " + insertObj,
                     e);
         }
-        // Extract the ID
-        ObjectId eventIdObj = (ObjectId) insertObj.get(Event.FIELD_ID);
-        String eventId = eventIdObj.toString();
-        
-        // If the data owner was used, then the actual data, if there is any, still needs to be stored in memory
-        if (storeInMem && data != null)
-        {
-            // The data will be removed when the event is plucked for processing
-            runLocalData.put(eventId, data);
-        }
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
