@@ -213,20 +213,29 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
     @Override
     public void run()
     {
-        try
+        while (isRunning())
         {
-            runImpl();
-        }
-        catch (Throwable e)
-        {
-            // We can ignore errors if we have been told to stop
-            if (isRunning())
+            try
             {
-                logger.error("\tEvent processing terminated with error: " + testRunFqn, e);
+                runImpl();
             }
-            else
+            catch (Throwable e)
             {
-                logger.debug("\tEvent processing terminated with error: " + testRunFqn, e);
+                // We can ignore errors if we have been told to stop
+                if (isRunning())
+                {
+                    logger.error("\tEvent processing error: " + testRunFqn, e);
+                    synchronized (this)
+                    {
+                        try { wait(5000L); } catch (InterruptedException ee) {}
+                    }
+                    continue;
+                }
+                else
+                {
+                    logger.debug("\tEvent processing terminated with error: " + testRunFqn, e);
+                    break;
+                }
             }
         }
     }
