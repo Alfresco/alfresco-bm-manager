@@ -120,6 +120,7 @@ public abstract class AbstractEventReporter implements ReportGenerator, TestCons
                     // Push the window up
                     queryWindowStartTime = queryWindowEndTime;
                     queryWindowEndTime += oneHour;
+                    skip = 0;
                     // Requery
                     continue;
                 }
