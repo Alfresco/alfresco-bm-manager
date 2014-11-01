@@ -70,7 +70,7 @@
                     <!-- Add the following server to your security settings -->
                     <server>${bm.tomcat.server}</server>
                     <port>${bm.tomcat.port}</port>
-                    <path>/${project.artifactId}</path>
+                    <path>/${project.name}-${project.version}</path>
                 </configuration>
             </plugin>
             <plugin>
