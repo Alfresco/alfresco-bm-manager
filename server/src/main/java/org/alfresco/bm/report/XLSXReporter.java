@@ -35,6 +35,8 @@ import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.NotFoundException;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.poi.POIXMLProperties.CoreProperties;
@@ -62,6 +64,8 @@ import com.mongodb.DBObject;
  */
 public class XLSXReporter extends AbstractEventReporter
 {
+    private static Log logger = LogFactory.getLog(XLSXReporter.class);
+    
     private final String title;
     
     public XLSXReporter(TestRunServicesCache services, String test, String run)
@@ -424,7 +428,8 @@ public class XLSXReporter extends AbstractEventReporter
         long end = lastResult.getStartTime();
         long windowSize = AbstractEventReporter.getWindowSize(start, end, 100);         // Well-known window sizes
         
-        // Keep track of sheets by event name
+        // Keep track of sheets by event name.  Note that XLSX truncates sheets to 31 chars, so use 28 chars and ~01, ~02
+        final Map<String, String> sheetNames = new HashMap<String, String>(31);
         final Map<String, XSSFSheet> sheets = new HashMap<String, XSSFSheet>(31);
         final Map<String, AtomicInteger> rowNums = new HashMap<String, AtomicInteger>(31);
         
@@ -439,14 +444,50 @@ public class XLSXReporter extends AbstractEventReporter
                 // Get or create a sheet for each event
                 for (String eventName : statsByEventName.keySet())
                 {
-                    XSSFSheet sheet = sheets.get(eventName);
+                    // What sheet name to we use?
+                    String sheetName = sheetNames.get(eventName);
+                    if (sheetName == null)
+                    {
+                        sheetName = eventName;
+                        if (eventName.length() > 28)
+                        {
+                            int counter = 1;
+                            // Find a sheet name not in use
+                            while (true)
+                            {
+                                sheetName = eventName.substring(0, 28);
+                                sheetName = String.format("%s~%02d", sheetName, counter);
+                                // Have we used this, yet?
+                                if (sheets.containsKey(sheetName))
+                                {
+                                    // Yes, we have used it.
+                                    counter++;
+                                    continue;
+                                }
+                                // This is unique
+                                break;
+                            }
+                        }
+                        sheetNames.put(eventName, sheetName);
+                    }
+                    // Get and create the sheet, if necessary
+                    XSSFSheet sheet = sheets.get(sheetName);
                     if (sheet == null)
                     {
                         // Create
-                        sheet = workbook.createSheet(eventName);
-                        sheet.getHeader().setCenter(title + " - " + eventName);
-                        sheet.getPrintSetup().setFitWidth((short)1);
-                        sheet.getPrintSetup().setLandscape(true);
+                        try
+                        {
+                            sheet = workbook.createSheet(sheetName);
+                            sheets.put(sheetName, sheet);
+                            sheet.getHeader().setCenter(title + " - " + eventName);
+                            sheet.getPrintSetup().setFitWidth((short)1);
+                            sheet.getPrintSetup().setLandscape(true);
+                        }
+                        catch (Exception e)
+                        {
+                            logger.error("Unable to create workbook sheet for event: " + eventName, e);
+                            continue;
+                        }
                         // Intro
                         XSSFCell cell = sheet.createRow(0).createCell(0);
                         cell.setCellValue(title + " - " + eventName + ":");
@@ -490,8 +531,6 @@ public class XLSXReporter extends AbstractEventReporter
                         sheet.autoSizeColumn(6);
                         sheet.autoSizeColumn(7);
                         sheet.autoSizeColumn(8);
-                        // Store
-                        sheets.put(eventName, sheet);
                     }
                     AtomicInteger rowNum = rowNums.get(eventName);
                     if (rowNum == null)
