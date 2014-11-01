@@ -28,7 +28,7 @@ Deploy archetype
 > mvn deploy
 
 Clean up
-> rm -rf src\main\resources\archetype-resources\src
+> rm -rf src/main/resources/archetype-resources/src
 
 To use, follow instructions on:
    http://wiki.alfresco.com/wiki/Benchmark_Framework_2.0:_Developing_Tests
