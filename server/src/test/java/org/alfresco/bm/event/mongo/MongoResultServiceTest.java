@@ -20,6 +20,7 @@ package org.alfresco.bm.event.mongo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -173,6 +174,19 @@ public class MongoResultServiceTest
         eventRecord.setProcessedBy("someTestProcessor");
         // Done
         return eventRecord;
+    }
+    
+    @Test
+    public synchronized void persistenceAndSearchOfNonSerializableEventData() throws Exception
+    {
+        Event event = new Event("eventX", this);
+        EventRecord eventRecord = new EventRecord("SERVERID", true, 0L, 50L, "{data:x}", event);
+        resultService.recordResult(eventRecord);
+        
+        List<EventRecord> results = resultService.getResults("eventX", 0, 1);
+        assertEquals(1, results.size());
+        EventRecord eventRecordOut = results.get(0);
+        assertNull("Expect the event data to be left null.", eventRecordOut.getEvent().getData());
     }
     
     @Test

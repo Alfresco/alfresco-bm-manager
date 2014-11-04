@@ -157,6 +157,9 @@ public class EventWorkTest
     @Test
     public void testBasicSerializableEventData() throws Exception
     {
+        // Ensure that other EventService instances cannot grab our in-memory data
+        EventService anotherEventService = new MongoEventService(db, "es");
+        
         Object dataThatWillNotSerialize = new DataThatWillNotSerialize();
         nextEvents.add(new Event(EVENT_NAME, dataThatWillNotSerialize));
         EventResult result = new EventResult(nextEvents);
@@ -166,12 +169,12 @@ public class EventWorkTest
         
         assertEquals(1, resultService.countResultsBySuccess());
         assertEquals(1, eventService.count());
-        assertNull("The local data should not be available for other servers.", eventService.nextEvent("RANDOM_SERVER", Long.MAX_VALUE, false));
+        assertNull("The local data should not be available for other servers.", anotherEventService.nextEvent("RANDOM_SERVER", Long.MAX_VALUE, false));
         Event nextEvent = eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false);
         assertNotNull(nextEvent);
         
         // Check that we can get hold of the next event's data
-        assertTrue("Expect exactly the original event data.", dataThatWillNotSerialize == nextEvent.getDataObject());
+        assertTrue("Expect exactly the original event data.", dataThatWillNotSerialize == nextEvent.getData());
     }
     
     @Test
