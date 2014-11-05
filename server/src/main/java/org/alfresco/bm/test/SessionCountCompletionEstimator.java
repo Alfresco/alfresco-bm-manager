@@ -74,6 +74,11 @@ public class SessionCountCompletionEstimator extends AbstractCompletionEstimator
             completedSessions = sessionCount;       // Make sure it's 1.0 again
         }
         // Return the ratio
-        return (double) completedSessions/sessionCount;
+        double completion = (double) completedSessions/sessionCount;
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(String.format("Completion by sessions: %0.2d", completion));
+        }
+        return completion;
     }
 }
