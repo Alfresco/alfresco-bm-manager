@@ -11,19 +11,18 @@
                     <span ng-hide="testNameEditorEnabled">
                         {{data.testname}}
                     </span>
-                <div class="pull-right">
-                           
-                <a href="#/tests/{{data.testname}}/copy"  id="copyTestBtn2-{{data.testname}}" class="btn btn-default ">
-                    <i class="fa fa-files-o fa-lg"></i>
-                </a>
-                <a id="editTest{{item.name}}" href="#/tests/{{data.testname}}/properties" class="btn btn-default ">
-                    <i class="fa fa-cog fa-lg"></i>
-                </a>
-                <a href="#/tests/{{data.testname}}/create" class="btn btn-default" id="createTestRunBtn">
-                    <span class="fa fa-plus" alt="Add New Test Run"></span>
-                </a>     
-                </div>
-</h3>
+                    <div class="pull-right">
+                        <a href="#/tests/{{data.testname}}/copy"  id="copyTestBtn2-{{data.testname}}" class="btn btn-default ">
+                            <i class="fa fa-files-o fa-lg"></i>
+                        </a>
+                        <a id="editTest{{item.name}}" href="#/tests/{{data.testname}}/properties" class="btn btn-default ">
+                            <i class="fa fa-cog fa-lg"></i>
+                        </a>
+                        <a href="#/tests/{{data.testname}}/create" class="btn btn-default" id="createTestRunBtn">
+                            <span class="fa fa-plus" alt="Add New Test Run"></span>
+                        </a>     
+                    </div>
+                </h3>
                 <div class="clearfix"></div>
             </div>
 

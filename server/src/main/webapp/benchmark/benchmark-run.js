@@ -130,7 +130,7 @@
             },
         })
     }).value('version', '0.1')
-/**
+    /**
      * List test runs controller
      */
     .controller('TestRunListCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService',
