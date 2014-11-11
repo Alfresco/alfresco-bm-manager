@@ -345,6 +345,11 @@
             }, function(response) {
                 var redirect = "/tests/" + testname + "/" + runname +"/properties";
                 $scope.data = response;
+                $scope.data.properties.forEach(function(item){
+                    if(item.value == "undefined"){
+                        item.value = item.default;
+                    }
+                });
                 var result = UtilService.groupBy($scope.data.properties, function(item) {
                     return [item.group];
                 });
@@ -360,7 +365,7 @@
                 $scope.data = angular.copy($scope.master);
             }
 
-            //-------------- Test properties crud ----------
+            //-------------- Test run properties crud ----------
             //call back for update run
             $scope.updateRunName = function(name) {
                 var json = {
@@ -373,7 +378,7 @@
             }
 
             $scope.cancelEdit = function(item) {
-                item.newvalue = item.value;
+                // item.newvalue = item.value;
             }
 
             //call back for updating run description
@@ -398,7 +403,6 @@
             };
             // call back for update test property field
             $scope.updateProperty = function(item) {
-                item.value = item.newvalue;
                 var propData = {
                     "version": item.version,
                     "value": item.value
@@ -407,7 +411,6 @@
             }
 
             $scope.resetProperty = function(item) {
-                item.newvalue = "";
                 var restData = {
                     "version": item.version
                 };

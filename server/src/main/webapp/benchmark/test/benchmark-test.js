@@ -187,6 +187,12 @@
                 id: testname
             }, function(response) {
                 $scope.data.test = response;
+                //check default value if missing create one from default.
+                $scope.data.test.properties.forEach(function(item){
+                    if(item.value == undefined){
+                        item.value = item.default;
+                    }
+                });
                 var result = UtilService.groupBy($scope.data.test.properties, function(item) {
                     return [item.group];
                 });
@@ -263,7 +269,6 @@
             //-------------- Test properties crud ----------
             // call back for update test property field
             $scope.updateProperty = function(item) {
-                item.value = item.newvalue;
                 var propData = {
                     "version": item.version,
                     "value": item.value
@@ -274,7 +279,7 @@
             }
 
             $scope.cancelEdit = function(item) {
-                item.newvalue = item.value;
+                // item.newvalue = item.value;
             }
 
             $scope.resetProperty = function(item) {

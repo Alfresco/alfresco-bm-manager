@@ -133,8 +133,10 @@
                                     <span class="input-group-btn" ng-show="item.default != item.value">
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset</button>
                                     </span>
-                                    <input class="form-control ng-valid" ng-model="item.newvalue" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
-                                    <input class="form-control ng-valid" ng-model="item.newvalue" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
+                                    
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
+
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
                                     <span class="input-group-btn">
                                         <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
                                             <span class="glyphicon glyphicon-remove" />
