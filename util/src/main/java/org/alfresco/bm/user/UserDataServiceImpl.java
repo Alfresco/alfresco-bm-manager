@@ -345,6 +345,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         if(userDataObj == null)
         {
             queryObj.put(FIELD_RANDOMIZER, new BasicDBObject("$lt", random));
+            userDataObj = collection.findOne(queryObj);
         }
         return fromDBObject(userDataObj);
     }
