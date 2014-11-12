@@ -11,19 +11,18 @@
                     <span ng-hide="testNameEditorEnabled">
                         {{data.testname}}
                     </span>
-                <div class="pull-right">
-                           
-                <a href="#/tests/{{data.testname}}/copy"  id="copyTestBtn2-{{data.testname}}" class="btn btn-default ">
-                    <i class="fa fa-files-o fa-lg"></i>
-                </a>
-                <a id="editTest{{item.name}}" href="#/tests/{{data.testname}}/properties" class="btn btn-default ">
-                    <i class="fa fa-cog fa-lg"></i>
-                </a>
-                <a href="#/tests/{{data.testname}}/create" class="btn btn-default" id="createTestRunBtn">
-                    <span class="fa fa-plus" alt="Add New Test Run"></span>
-                </a>     
-                </div>
-</h3>
+                    <div class="pull-right">
+                        <a href="#/tests/{{data.testname}}/copy"  id="copyTestBtn2-{{data.testname}}" class="btn btn-default ">
+                            <i class="fa fa-files-o fa-lg"></i>
+                        </a>
+                        <a id="editTest{{item.name}}" href="#/tests/{{data.testname}}/properties" class="btn btn-default ">
+                            <i class="fa fa-cog fa-lg"></i>
+                        </a>
+                        <a href="#/tests/{{data.testname}}/create" class="btn btn-default" id="createTestRunBtn">
+                            <span class="fa fa-plus" alt="Add New Test Run"></span>
+                        </a>     
+                    </div>
+                </h3>
                 <div class="clearfix"></div>
             </div>
 
@@ -37,9 +36,9 @@
                     </td>
                     <td class="col-sm-4">
                         <a href="#/tests/{{data.testname}}/{{item.name}}">
-                            <div class="progress ">
+                            <div class="progress">
                                 <div class="progress-bar" role="progressbar" aria-valuenow="{{item.progress*100}}" aria-valuemin="0" aria-valuemax="100" style="width: {{item.progress*100}}%; ">
-                                    <span class="progress-value">{{item.progress*100}}</span>
+                                    <span>{{item.progress*100}}</span>
                                 </div>
                             </div>
                         </a>

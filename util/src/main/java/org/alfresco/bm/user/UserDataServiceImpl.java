@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -328,39 +329,11 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         return fromDBCursor(cursor);
     }
 
-    /**
-     * @return              the maximum value of the randomizer
-     */
-    private int getMaxRandomizer()
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_CREATION_STATE, DataCreationState.Created.toString())
-                .get();
-        DBObject sortObj = BasicDBObjectBuilder.start()
-                .add(FIELD_RANDOMIZER, -1)
-                .get();
-        DBObject fieldsObj = BasicDBObjectBuilder.start()
-                .add(FIELD_RANDOMIZER, Boolean.TRUE)
-                .get();
-        
-        DBObject resultObj = collection.findOne(queryObj, fieldsObj, sortObj);
-        if (resultObj == null)
-        {
-            return 0;
-        }
-        else
-        {
-            int randomizer = (Integer) resultObj.get(FIELD_RANDOMIZER);
-            return randomizer;
-        }
-    }
 
     @Override
     public UserData getRandomUser()
     {
-        int upper = getMaxRandomizer();             // The upper limit will be exclusive
-        int random = (int) (Math.random() * (double) upper);
-        
+        int random = (int) (Math.random() * (double) 1e6);
         DBObject queryObj = BasicDBObjectBuilder.start()
                 .add(FIELD_CREATION_STATE, DataCreationState.Created.toString())
                 .push(FIELD_RANDOMIZER)
@@ -369,6 +342,11 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .get();
         
         DBObject userDataObj = collection.findOne(queryObj);
+        if(userDataObj == null)
+        {
+            queryObj.put(FIELD_RANDOMIZER, new BasicDBObject("$lt", random));
+            userDataObj = collection.findOne(queryObj);
+        }
         return fromDBObject(userDataObj);
     }
     
