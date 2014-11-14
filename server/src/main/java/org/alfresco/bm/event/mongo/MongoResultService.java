@@ -207,6 +207,13 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         {
             eventObj.removeField(Event.FIELD_DATA);
         }
+        // Remove data that is captured in the result
+        eventObj.removeField(Event.FIELD_DATA_OWNER);           // This is covered by the processedBy
+        eventObj.removeField(Event.FIELD_ID);                   // Internal and not required
+        eventObj.removeField(Event.FIELD_SCHEDULED_TIME);       // This is the startTime - startDelay
+        eventObj.removeField(Event.FIELD_LOCK_TIME);            // Locking was an internal function
+        eventObj.removeField(Event.FIELD_LOCK_OWNER);           // Locking was an internal function
+        
         DBObject insertObj = BasicDBObjectBuilder
                 .start()
                 .add(EventRecord.FIELD_PROCESSED_BY, result.getProcessedBy())
