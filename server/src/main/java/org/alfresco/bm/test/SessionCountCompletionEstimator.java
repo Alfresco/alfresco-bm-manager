@@ -32,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class SessionCountCompletionEstimator extends AbstractCompletionEstimator
 {
-    private static Log logger = LogFactory.getLog(EventCountCompletionEstimator.class);
+    private static Log logger = LogFactory.getLog(SessionCountCompletionEstimator.class);
     
     private final SessionService sessionService;
     private final long sessionCount;
@@ -77,7 +77,7 @@ public class SessionCountCompletionEstimator extends AbstractCompletionEstimator
         double completion = (double) completedSessions/sessionCount;
         if (logger.isDebugEnabled())
         {
-            logger.debug(String.format("Completion by sessions: %0.2d", completion));
+            logger.debug(String.format("Completion by sessions: %2.2f", completion));
         }
         return completion;
     }
