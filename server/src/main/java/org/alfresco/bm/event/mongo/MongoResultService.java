@@ -210,11 +210,11 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         // Remove data that is captured in the result
         eventObj.removeField(Event.FIELD_DATA_OWNER);           // This is covered by the processedBy
         eventObj.removeField(Event.FIELD_ID);                   // Internal and not required
-        eventObj.removeField(Event.FIELD_SCHEDULED_TIME);       // This is the startTime - startDelay
+        eventObj.removeField(Event.FIELD_SCHEDULED_TIME);       // This is the (startTime - startDelay)
         eventObj.removeField(Event.FIELD_LOCK_TIME);            // Locking was an internal function
         eventObj.removeField(Event.FIELD_LOCK_OWNER);           // Locking was an internal function
         
-        DBObject insertObj = BasicDBObjectBuilder
+        BasicDBObjectBuilder insertObjBuilder = BasicDBObjectBuilder
                 .start()
                 .add(EventRecord.FIELD_PROCESSED_BY, result.getProcessedBy())
                 .add(EventRecord.FIELD_CHART, result.isChart())
@@ -224,9 +224,12 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 .add(EventRecord.FIELD_START_TIME, new Date(result.getStartTime()))
                 .add(EventRecord.FIELD_SUCCESS, result.isSuccess())
                 .add(EventRecord.FIELD_TIME, result.getTime())
-                .add(EventRecord.FIELD_WARNING, result.getWarning())
-                .add(EventRecord.FIELD_EVENT, eventObj)
-                .get();
+                .add(EventRecord.FIELD_EVENT, eventObj);
+        if (result.getWarning() != null)
+        {
+            insertObjBuilder.add(EventRecord.FIELD_WARNING, result.getWarning());
+        }
+        DBObject insertObj = insertObjBuilder.get();
         
         try
         {
