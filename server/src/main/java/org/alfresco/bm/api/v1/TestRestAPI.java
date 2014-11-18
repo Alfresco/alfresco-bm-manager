@@ -109,10 +109,11 @@ public class TestRestAPI extends AbstractRestResource
                     ",count:" + count +
                     "]");
         }
+        DBCursor cursor = null;
         try
         {
             String json = "[]";
-            DBCursor cursor = testDAO.getTests(release, schema, skip, count);
+            cursor = testDAO.getTests(release, schema, skip, count);
             if (cursor.count() > 0)
             {
                 json = JSON.serialize(cursor);
@@ -131,6 +132,10 @@ public class TestRestAPI extends AbstractRestResource
         {
             throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
             return null;
+        }
+        finally
+        {
+            try { cursor.close(); } catch (Exception e) {}
         }
     }
 
@@ -466,6 +471,7 @@ public class TestRestAPI extends AbstractRestResource
             throwAndLogException(Status.BAD_REQUEST, "No test name provided: " + exampleUrl);
         }
         
+        DBCursor cursor = null;
         try
         {
             DBObject dbObject = testDAO.getTest(test, false);
@@ -477,7 +483,7 @@ public class TestRestAPI extends AbstractRestResource
             Integer schema = (Integer) dbObject.get(FIELD_SCHEMA);
 
             String json = "[]";
-            DBCursor cursor = testDAO.getDrivers(release, schema, activeOnly);
+            cursor = testDAO.getDrivers(release, schema, activeOnly);
             if (cursor.count() > 0)
             {
                 json = JSON.serialize(cursor);
@@ -496,6 +502,10 @@ public class TestRestAPI extends AbstractRestResource
         {
             throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
             return null;
+        }
+        finally
+        {
+            try { cursor.close(); } catch (Exception e) {}
         }
     }
     
@@ -712,13 +722,14 @@ public class TestRestAPI extends AbstractRestResource
             }
         }
 
+        DBCursor cursor = null;
         try
         {
             String json = "[]";
-            DBCursor dbCursor = testDAO.getTestRuns(test, skip, count, states);
-            if (dbCursor.count() > 0)
+            cursor = testDAO.getTestRuns(test, skip, count, states);
+            if (cursor.count() > 0)
             {
-                json = JSON.serialize(dbCursor);
+                json = JSON.serialize(cursor);
             }
             if (logger.isDebugEnabled())
             {
@@ -734,6 +745,10 @@ public class TestRestAPI extends AbstractRestResource
         {
             throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
             return null;
+        }
+        finally
+        {
+            try { cursor.close(); } catch (Exception e) {}
         }
     }
 
