@@ -33,6 +33,7 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.alfresco.bm.test.prop.TestProperty;
 import org.apache.commons.logging.Log;
@@ -63,6 +64,7 @@ public class Test implements
     private ApplicationContext ctx;
     
     private final MongoTestDAO testDAO;
+    private final LogService logService;
 
     private final String release;
     private final Integer schema;
@@ -83,15 +85,19 @@ public class Test implements
     
     /**
      * @param testDAO               data persistence
+     * @param logService            logging
      * @param release               the software release name of this test
      * @param schema                the property schema version
      * @param description           the test description
      * @param contextPath           the context under which the application was launched
      * @param defaults              provider of all the test defaults
      */
-    public Test(MongoTestDAO testDAO, String release, Integer schema, String description, String contextPath, TestDefaults defaults)
+    public Test(
+            MongoTestDAO testDAO, LogService logService,
+            String release, Integer schema, String description, String contextPath, TestDefaults defaults)
     {
         this.testDAO = testDAO;
+        this.logService = logService;
         this.release = release;
         this.schema = schema;
         this.description = description;
@@ -272,7 +278,7 @@ public class Test implements
                         continue;
                     }
                     // Build a test run
-                    TestRun testRun = new TestRun(testDAO, testRunId, ctx, driverId);
+                    TestRun testRun = new TestRun(testDAO, logService, testRunId, ctx, driverId);
                     testRuns.put(testRunId, testRun);
                     if (logger.isDebugEnabled())
                     {

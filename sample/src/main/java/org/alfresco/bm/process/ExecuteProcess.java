@@ -94,7 +94,7 @@ public class ExecuteProcess extends AbstractEventProcessor
         super.suspendTimer();
         
         // Get the user email
-        String processName = (String) event.getDataObject();
+        String processName = (String) event.getData();
         
         // We can also get the less transient session data
         String sessionId = event.getSessionId();

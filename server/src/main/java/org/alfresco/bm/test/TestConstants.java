@@ -80,6 +80,8 @@ public interface TestConstants
      * Common test run properties
      */
     public static final String PROP_DRIVER_ID = "driverId";
+    public static final String PROP_TEST = "test";
+    public static final String PROP_TEST_RUN = "testRun";
     public static final String PROP_TEST_RUN_ID = "testRunId";
     public static final String PROP_TEST_RUN_FQN = "testRunFqn";
     

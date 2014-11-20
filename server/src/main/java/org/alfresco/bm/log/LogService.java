@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2013 Alfresco Software Limited.
+ * Copyright (C) 2005-2014 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -18,45 +18,68 @@
  */
 package org.alfresco.bm.log;
 
-import java.util.List;
+import com.mongodb.DBCursor;
 
 /**
- * Interface for service providing detailed cluster-wide server logs
+ * Interface for service providing detailed system-wide logging
  * 
  * @author Derek Hulley
- * @since 1.4
+ * @since 2.0.3
  */
 public interface LogService
 {
-    public static final int TRACE = 0;
-    public static final int DEBUG = 1;
-    public static final int INFO = 2;
-    public static final int WARN = 3;
-    public static final int ERROR = 4;
-    public static final int FATAL = 4;
+    /**
+     * Log levels for the benchmark {@link LogService}
+     * @author Derek Hulley
+     * @since 2.0.3
+     */
+    public static enum LogLevel
+    {
+        TRACE,
+        DEBUG,
+        INFO,
+        WARN,
+        ERROR,
+        FATAL;
+        
+        /**
+         * Get the severity level
+         * 
+         * @return          Returns the {@link #ordinal() ordinal} unless there is a specific alternative
+         */
+        public int getLevel()
+        {
+            return ordinal();
+        }
+    }
     
     /**
      * Log a message
+     * 
+     * @param driverId              the driver ID from which the message originated (optional)
+     * @param test                  the name of the test (optional)
+     * @param testRun               the name of the test run (optional)
+     * @param level                 the severity of the message
+     * @param msg                   the log message
      */
-    void log(String serverId, String testRunFQN, int severity, String msg);
+    void log(String driverId, String test, String testRun, LogLevel level, String msg);
     
     /**
-     * Retrieve log messages
+     * Retrieve log messages in a cursor
      * 
-     * @param clusterUUID           cluster identifier (mandatory)
-     * @param testRunFQN            the name of the test run (mandatory)
-     * @param serverId              server ID (optional)
-     * @param severity              minimum severity (mandatory)
+     * @param driverId              driver ID (optional)
+     * @param test                  the name of the test (optional)
+     * @param testRun               the name of the test run (optional)
+     * @param level                 minimum severity (optional)
      * @param minTime               minimum log message time (inclusive)
      * @param maxTime               maximum log message time (exlusive)
      * @param skip                  number of results to skip
      * @param limit                 limit the total number of results
-     * @return                      a list of server log messages
+     * @return                      a results cursor that must be closed
      */
-    List<LogMessage> getLogs(
-            String testRunFQN,
-            String serverId,
-            int severity,
+    DBCursor getLogs(
+            String driverId, String test, String testRun,
+            LogLevel level,
             Long minTime, Long maxTime,
             int skip, int limit);
 }

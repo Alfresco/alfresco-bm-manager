@@ -29,6 +29,9 @@ import java.util.List;
 import org.alfresco.bm.event.mongo.MongoEventService;
 import org.alfresco.bm.event.mongo.MongoResultService;
 import org.alfresco.bm.event.producer.EventProducerRegistry;
+import org.alfresco.bm.log.LogService;
+import org.alfresco.bm.log.MongoLogService;
+import org.alfresco.bm.log.TestRunLogService;
 import org.alfresco.bm.session.MongoSessionService;
 import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.apache.commons.lang3.time.StopWatch;
@@ -51,13 +54,16 @@ import com.mongodb.DB;
 public class EventWorkTest
 {
     private static final String SERVER_ID = "testserver";
-    private static final String TEST_RUN_FQN = "EventWorkTest.X";
+    private static final String TEST_NAME = "EventWorkTest";
+    private static final String TEST_RUN_NAME = "X";
+    private static final String TEST_RUN_FQN = TEST_NAME + "." + TEST_RUN_NAME;
     private static final String EVENT_NAME = "x.y";
     
     private static MongoDBForTestsFactory mongoFactory;
     private MongoEventService eventService;
     private MongoResultService resultService;
     private MongoSessionService sessionService;
+    private TestRunLogService logService;
     private DB db;
     private Event event;
     private List<Event> nextEvents;
@@ -77,6 +83,8 @@ public class EventWorkTest
         resultService.start();
         sessionService = new MongoSessionService(db, "ss");
         sessionService.start();
+        LogService mongoLogService = new MongoLogService(db, Long.MAX_VALUE, 1000, 0);
+        logService = new TestRunLogService(mongoLogService, SERVER_ID, TEST_NAME, TEST_RUN_NAME);
 
         event = new Event(EVENT_NAME, "SOME_DATA");
         event.setId(eventService.putEvent(event));
@@ -87,7 +95,8 @@ public class EventWorkTest
                 SERVER_ID, TEST_RUN_FQN, event,
                 new TestEventProcessor(),
                 eventProducers,
-                eventService, resultService, sessionService);
+                eventService, resultService, sessionService,
+                logService);
     }
     
     @After

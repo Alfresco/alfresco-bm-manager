@@ -104,7 +104,7 @@ public class RaiseEventsEventProcessor extends AbstractEventProcessor
         DBObject data;
         try
         {
-            data = (DBObject) event.getDataObject();
+            data = (DBObject) event.getData();
         }
         catch (ClassCastException e)
         {

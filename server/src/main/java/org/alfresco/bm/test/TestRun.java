@@ -24,6 +24,8 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.alfresco.bm.event.EventProcessor;
+import org.alfresco.bm.log.LogService;
+import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
@@ -50,20 +52,25 @@ public class TestRun implements TestConstants
     private static Log logger = LogFactory.getLog(TestRun.class);
     
     private final MongoTestDAO testDAO;
+    private final LogService logService;
     private final ObjectId id;
     private final ApplicationContext parentCtx;
     private final String driverId;
     private AbstractXmlApplicationContext testRunCtx;       // This will be created when the test run actually starts
+    private String test;                                    // Only populated once the test run starts
+    private String run;                                     // Only populated once the test run starts
 
     /**
      * @param testDAO               data persistence
+     * @param logService            logging
      * @param id                    the id of the test that this run controls
      * @param parentCtx             the parent context for all test runs
      * @param driverId              the ID of the driver controlling the test run
      */
-    public TestRun(MongoTestDAO testDAO, ObjectId id, ApplicationContext parentCtx, String driverId)
+    public TestRun(MongoTestDAO testDAO, LogService logService, ObjectId id, ApplicationContext parentCtx, String driverId)
     {
         this.testDAO = testDAO;
+        this.logService = logService;
         this.id = id;
         this.parentCtx = parentCtx;
         this.driverId = driverId;
@@ -269,7 +276,10 @@ public class TestRun implements TestConstants
     }
     
     /**
-     * Called to ensure that the application context is started
+     * Called to ensure that the application context is started.
+     * <p/>
+     * Note that we only pull out the test and test run names at this point so that we don't end up
+     * using stale data.
      */
     private synchronized void start()
     {
@@ -315,6 +325,8 @@ public class TestRun implements TestConstants
         Properties testRunProps = new Properties();
         {
             testRunProps.put(PROP_DRIVER_ID, driverId);
+            testRunProps.put(PROP_TEST, test);
+            testRunProps.put(PROP_TEST_RUN, run);
             testRunProps.put(PROP_TEST_RUN_ID, id.toString());
             testRunProps.put(PROP_TEST_RUN_FQN, testRunFqn);
 
@@ -404,25 +416,37 @@ public class TestRun implements TestConstants
             this.testRunCtx = testRunCtx;
             testRunCtx.refresh();
             testRunCtx.start();
+            this.test = test;
+            this.run = run;
             // Make sure that the required components are present and of the correct type
             // There may be multiple beans of the type, so we have to use the specific bean name.
             @SuppressWarnings("unused")
             CompletionEstimator estimator = (CompletionEstimator) testRunCtx.getBean("completionEstimator");
             @SuppressWarnings("unused")
             EventProcessor startEventProcessor = (EventProcessor) testRunCtx.getBean("event.start");
+            
+            // Log the successful startup
+            logService.log(driverId, test, run, LogLevel.INFO, "Successful startup of test run '" + testRunFqn + "'.");
         }
         catch (Exception e)
         {
             Throwable root = ExceptionUtils.getRootCause(e);
             if (root != null && (root instanceof MongoException || root instanceof IOException))
             {
+                String msg1 = "Failed to start test run application '" + testRunFqn + "': " + e.getCause().getMessage();
+                String msg2 = "Set the test run property '" + PROP_MONGO_TEST_HOST + "' (<server>:<port>) as required.";
                 // We deal with this specifically as it's a simple case of not finding the MongoDB
-                logger.error("Failed to start test run application '" + id + "': " + e.getCause().getMessage());
-                logger.error("Set the test run property '" + PROP_MONGO_TEST_HOST + "' (<server>:<port>) as required.");
+                logger.error(msg1);
+                logger.error(msg2);
+                logService.log(driverId, test, run, LogLevel.ERROR, msg1);
+                logService.log(driverId, test, run, LogLevel.ERROR, msg2);
             }
             else
             {
-                logger.error("Failed to start test run application '" + id + "': ", e);
+                String stack = ExceptionUtils.getStackTrace(e);
+                logger.error("Failed to start test run application '" + testRunFqn + "': ", e);
+                String error = "Failed to start test run application '" + testRunFqn + ". \r\n" + stack;
+                logService.log(driverId, test, run, LogLevel.ERROR, error);
             }
             stop();
         }
@@ -485,5 +509,8 @@ public class TestRun implements TestConstants
         {
             testRunCtx = null;
         }
+        
+        // Log the successful shutdown
+        logService.log(driverId, test, run, LogLevel.INFO, "Successful shutdown of test run '" + test + "." + run + "'.");
     }
 }

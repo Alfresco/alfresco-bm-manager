@@ -29,7 +29,9 @@ import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.CommandFailureException;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -47,19 +49,45 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
 {
     private static Log logger = LogFactory.getLog(MongoResultService.class);
 
-    private final DBCollection collection;
+    private DBCollection collection;
+    private boolean checkIndexes = false;
 
     /**
      * Construct a test result provider against a Mongo database and given collection name
      */
     public MongoResultService(DB db, String collection)
     {
-        this.collection = db.getCollection(collection);
+        try
+        {
+            this.collection = db.createCollection(collection, new BasicDBObject());
+            checkIndexes = true;
+        }
+        catch (CommandFailureException e)
+        {
+            if (!db.collectionExists(collection))
+            {
+                // The collection is really not there
+                throw e;
+            }
+            // Someone else created it
+            this.collection = db.getCollection(collection);
+            this.checkIndexes = false;
+        }
     }
     
     @Override
     public void start() throws Exception
     {
+        checkIndexes();
+    }
+    
+    private void checkIndexes() throws Exception
+    {
+        if (!checkIndexes)
+        {
+            return;
+        }
+        
         // Initialize indexes
         DBObject idx_EVENT_NAME_START = BasicDBObjectBuilder
                 .start(EventRecord.FIELD_EVENT_NAME, Integer.valueOf(1))

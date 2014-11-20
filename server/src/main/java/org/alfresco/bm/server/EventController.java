@@ -18,7 +18,10 @@
  */
 package org.alfresco.bm.server;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -35,8 +38,11 @@ import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.EventWork;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.event.producer.EventProducerRegistry;
+import org.alfresco.bm.log.LogService.LogLevel;
+import org.alfresco.bm.log.TestRunLogService;
 import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.LifecycleListener;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -75,6 +81,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
     private final ExecutorService executor;
     private final ResultService resultService;
     private final SessionService sessionService;
+    private final TestRunLogService logService;
     private final int threadCount;
 
     private int eventsPerSecondPerThread = DEFAULT_EVENTS_PER_SECOND_PER_THREAD;
@@ -93,6 +100,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
      * @param eventProcessors   the registry of processors for events
      * @param resultService     the service used to store and retrieve event results
      * @param sessionService    the service to carry session IDs between events
+     * @param logService        the service to record log messages for the end user
      * @param threadCount       the number of threads available to the processor
      */
     public EventController(
@@ -103,6 +111,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
             EventProcessorRegistry eventProcessors,
             ResultService resultService,
             SessionService sessionService,
+            TestRunLogService logService,
             int threadCount)
     {
         thread = new Thread(new ThreadGroup(testRunFqn), this, testRunFqn + "-Controller");
@@ -115,6 +124,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
         this.eventProcessors = eventProcessors;
         this.resultService = resultService;
         this.sessionService = sessionService;
+        this.logService = logService;
         this.threadCount = threadCount;
         // Configure threads
         CustomizableThreadFactory threadFactory = new CustomizableThreadFactory(testRunFqn + "-");
@@ -224,7 +234,9 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
                 // We can ignore errors if we have been told to stop
                 if (isRunning())
                 {
+                    String stack = ExceptionUtils.getStackTrace(e);
                     logger.error("\tEvent processing error: " + testRunFqn, e);
+                    logService.log(LogLevel.ERROR, "EventController's run method was terminated.  Attempting a restart: " + stack);
                     synchronized (this)
                     {
                         try { wait(5000L); } catch (InterruptedException ee) {}
@@ -246,9 +258,9 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
     private void runImpl()
     {
         int eventsPerSecond = (threadCount * eventsPerSecondPerThread);
-        logger.info(
-                "\tEvent processing started: " + testRunFqn +
-                " (" + eventsPerSecond + " events per second using " + threadCount + " threads)");
+        String msgStarted = "Event processing started: " + testRunFqn + " (" + eventsPerSecond + " events per second using " + threadCount + " threads)";
+        logger.info("\t" + msgStarted);
+        logService.log(LogLevel.INFO, msgStarted);
 
         // Keep details on when we started looking for events
         long eventProcessStartTime = System.currentTimeMillis();
@@ -341,7 +353,8 @@ runStateChanged:
                     serverId, testRunFqn,
                     event,
                     processor, eventProducers,
-                    eventService, resultService, sessionService);
+                    eventService, resultService, sessionService,
+                    logService);
             try
             {
                 // Grabbing an event automatically applies a short-lived lock to prevent
@@ -353,6 +366,10 @@ runStateChanged:
             {
                 // Should not occur as the caller executes
                 eventSearchesPerformed += threadCount;
+                // Log it
+                logService.log(
+                        LogLevel.WARN, "EventController's execution of an event was rejected.  "
+                        + "Are there enough drivers to handle the event load?");
             }
             catch (RuntimeException e)
             {
@@ -361,9 +378,13 @@ runStateChanged:
             }
         }
         
-        logger.info("\tEvent processing stopped: " + testRunFqn);
+        String msgStopped = "Event processing stopped: " + testRunFqn;
+        logger.info("\t" + msgStopped);
+        logService.log(LogLevel.INFO, msgStopped);
     }
     
+    /** Keep track of event names that have been warned about w.r.t. missing event processors. */
+    private Set<String> nullEventProcessorWarnings = Collections.synchronizedSet(new HashSet<String>());
     /**
      * Get a processor for the event.  If an event is not mapped, and error is logged
      * and the event is effectively absorbed.
@@ -372,15 +393,20 @@ runStateChanged:
     {
         String eventName = event.getName();
         EventProcessor processor = eventProcessors.getProcessor(eventName);
-        if (processor == null)
+        if (processor == null && nullEventProcessorWarnings.add(eventName))
         {
+            String msg =
+                    "No event processor mapped to event.  Use a TerminateEventProducer to silently route events to nowhere: \n" +
+                    "   Event name: " + eventName + "\n" +
+                    "   Event:      " + event;
+            // We are only here if we have not issued a warning already
             if (logger.isDebugEnabled())
             {
-                logger.debug("\n" +
-                        "No event processor mapped to event: \n" +
-                        "   Event name: " + eventName + "\n" +
-                        "   Event:      " + event);
+                logger.debug("\n" + msg);
             }
+            logService.log(LogLevel.WARN, msg);
+            
+            // Assign to do nothing
             processor = doNothingProcessor;
         }
         return processor;

@@ -18,6 +18,7 @@
  */
 package org.alfresco.bm.api.v1;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -38,6 +39,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.alfresco.bm.api.AbstractRestResource;
+import org.alfresco.bm.log.LogService;
+import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.TestService;
@@ -76,17 +79,20 @@ public class TestRestAPI extends AbstractRestResource
 {
     private final MongoTestDAO testDAO;
     private final TestService testService;
+    private final LogService logService;
     private final TestRunServicesCache testRunServices;
     
     /**
      * @param testDAO                   low-level data service for tests
      * @param testService               test service for retrieving calculated data
+     * @param logService                service to log basic crud for end user record
      * @param testRunServices           factory providing access to test run services
      */
-    public TestRestAPI(MongoTestDAO testDAO, TestService testService, TestRunServicesCache testRunServices)
+    public TestRestAPI(MongoTestDAO testDAO, TestService testService, LogService logService, TestRunServicesCache testRunServices)
     {
         this.testDAO = testDAO;
         this.testService = testService;
+        this.logService = logService;
         this.testRunServices = testRunServices;
     }
     
@@ -137,19 +143,6 @@ public class TestRestAPI extends AbstractRestResource
         {
             try { cursor.close(); } catch (Exception e) {}
         }
-    }
-
-    /**
-     * Retired for a *POST* to '/'
-     */
-    @POST
-    @Path("/create")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public String createTestOld(TestDetails testDetails)
-    {
-        return createTest(testDetails);
     }
 
     @POST
@@ -256,6 +249,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 logger.debug("Outbound: " + json);
             }
+            logService.log(null, name, null, LogLevel.INFO, "New test + '" + name + "' using " + release + " schema " + schema);
             return json;
         }
         catch (WebApplicationException e)
@@ -439,6 +433,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 throwAndLogException(Status.NOT_FOUND, "The test '" + test + "' was not deleted.");
             }
+            logService.log(null, test, null, LogLevel.INFO, "Deleted test + '" + test + "'.");
         }
         catch (WebApplicationException e)
         {
@@ -855,6 +850,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 logger.debug("Outbound: " + json);
             }
+            logService.log(null, test, name, LogLevel.INFO, "Created test run + '" + name + "' in test '" + test + "'.");
             return json;
         }
         catch (WebApplicationException e)
@@ -1061,6 +1057,7 @@ public class TestRestAPI extends AbstractRestResource
             {
                 throwAndLogException(Status.NOT_FOUND, "The test run '" + test + "." + run + "' was not deleted.");
             }
+            logService.log(null, test, run, LogLevel.INFO, "Deleted test run + '" + run + "' in test '" + test + "'.");
         }
         catch (WebApplicationException e)
         {
@@ -1378,6 +1375,7 @@ public class TestRestAPI extends AbstractRestResource
         {
             logger.debug("Outbound: " + json);
         }
+        logService.log(null, test, run, LogLevel.INFO, "Test run '" + test + "." + run + "' scheduled for " + new Date(scheduled));
         return json;
     }
     
@@ -1433,6 +1431,7 @@ public class TestRestAPI extends AbstractRestResource
         {
             logger.debug("Outbound: " + json);
         }
+        logService.log(null, test, run, LogLevel.WARN, "Test run terminated: " + test + "." + run);
         return json;
     }
     

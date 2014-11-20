@@ -29,6 +29,17 @@
     </bean>
     
     <!--                 -->
+    <!-- Logging         -->
+    <!--                 -->
+
+    <bean id="testRunLogService" class="org.alfresco.bm.log.TestRunLogService">
+        <constructor-arg name="logService" ref="logService" />
+        <constructor-arg name="driverId" value="${driverId}" />
+        <constructor-arg name="test" value="${test}" />
+        <constructor-arg name="testRun" value="${testRun}" />
+    </bean>
+
+    <!--                 -->
     <!-- Reporting       -->
     <!--                 -->
 
@@ -90,6 +101,7 @@
         <constructor-arg name="eventProducers" ref="eventProducers" />
         <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="sessionService" ref="sessionService" />
+        <constructor-arg name="logService" ref="testRunLogService" />
         <constructor-arg name="threadCount" value="${events.threads.count}" />
         <property name="eventsPerSecondPerThread" value="${events.threads.eventsPerSecondPerThread}" />
     </bean>

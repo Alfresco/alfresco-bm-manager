@@ -18,17 +18,24 @@
  */
 package org.alfresco.bm.api.v1;
 
-import java.util.List;
+import java.util.Date;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.alfresco.bm.api.AbstractRestResource;
-import org.alfresco.bm.log.LogWatcher;
+import org.alfresco.bm.log.LogService;
+import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.test.LifecycleController;
+
+import com.mongodb.DBCursor;
+import com.mongodb.util.JSON;
 
 /**
  * <b>REST API V1</b><br/>
@@ -47,16 +54,16 @@ import org.alfresco.bm.test.LifecycleController;
 public class StatusAPI extends AbstractRestResource
 {
     private final LifecycleController lifeCycleController;
-    private final LogWatcher logWatcher;
+    private final LogService logService;
     
     /**
      * @param lifeCycleController       used to report on startup issues
-     * @param logWatcher                used to access log files
+     * @param logService                get log messages
      */
-    public StatusAPI(LifecycleController lifeCycleController, LogWatcher logWatcher)
+    public StatusAPI(LifecycleController lifeCycleController, LogService logService)
     {
         this.lifeCycleController = lifeCycleController;
-        this.logWatcher = logWatcher;
+        this.logService = logService;
     }
     
     @GET
@@ -88,27 +95,68 @@ public class StatusAPI extends AbstractRestResource
     @GET
     @Path("/logs")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getLogFilenames()
+    public String getLogs(
+            @QueryParam("driverId") String driverId,
+            @QueryParam("test") String test,
+            @QueryParam("run") String run,
+            @DefaultValue("INFO") @QueryParam("level") String levelStr,
+            @DefaultValue("0") @QueryParam("from") Long from,
+            @DefaultValue("" + Long.MAX_VALUE) @QueryParam("to") Long to,
+            @DefaultValue("0") @QueryParam("skip") int skip,
+            @DefaultValue("50") @QueryParam("count") int count
+            )
     {
         if (logger.isDebugEnabled())
         {
-            logger.debug("Inbound: <none>");
+            logger.debug(
+                    "Inbound: " +
+                    "[driverId:" + driverId +
+                    ",test:" + test +
+                    ",run:" + run +
+                    ",level:" + levelStr +
+                    ",from:" + new Date(from) +
+                    ",to:" + new Date(to) +
+                    ",skip:" + skip +
+                    ",count:" + count +
+                    "]");
         }
+        LogLevel level = LogLevel.INFO;
         try
         {
-            List<String> logFiles = logWatcher.getLogFilenames();
-            String json = gson.toJson(logFiles);
+            level = LogLevel.valueOf(levelStr);
+        }
+        catch (Exception e)
+        {
+            // Just allow this
+        }
+        
+        DBCursor cursor = null;
+        try
+        {
+            String json = "[]";
+            cursor = logService.getLogs(driverId, test, run, level, from, to, skip, count);
+            if (cursor.count() > 0)
+            {
+                json = JSON.serialize(cursor);
+            }
             if (logger.isDebugEnabled())
             {
                 logger.debug("Outbound: " + json);
             }
             return json;
         }
+        catch (WebApplicationException e)
+        {
+            throw e;
+        }
         catch (Exception e)
         {
-            logger.error(e);
             throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
             return null;
+        }
+        finally
+        {
+            try { cursor.close(); } catch (Exception e) {}
         }
     }
 }

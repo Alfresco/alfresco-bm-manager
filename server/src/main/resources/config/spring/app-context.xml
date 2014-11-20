@@ -20,11 +20,12 @@
     <bean id="api.v1.tests" class="org.alfresco.bm.api.v1.TestRestAPI">
         <constructor-arg name="testDAO" ref="testDAO" />
         <constructor-arg name="testService" ref="testService" />
+        <constructor-arg name="logService" ref="logService" />
         <constructor-arg name="testRunServices" ref="testRunServices" />
     </bean>
     <bean id="api.v1.status" class="org.alfresco.bm.api.v1.StatusAPI">
         <constructor-arg name="lifeCycleController" ref="appLifeCycleController" />
-        <constructor-arg name="logWatcher" ref="logWatcher" />
+        <constructor-arg name="logService" ref="logService" />
     </bean>
  
     <!--            -->
@@ -63,6 +64,7 @@
         <constructor-arg>
             <array>
                 <ref bean="logWatcher" />
+                <ref bean="logService" />
                 <ref bean="testDAO" />
                 <ref bean="testDefaults" />
                 <ref bean="test" />
@@ -82,6 +84,7 @@
     
     <bean id="test" class="org.alfresco.bm.test.Test">
         <constructor-arg name="testDAO" ref="testDAO" />
+        <constructor-arg name="logService" ref="logService" />
         <constructor-arg name="release" value="${app.release}" />
         <constructor-arg name="schema" value="${app.schema}" />
         <constructor-arg name="description" value="${app.description}" />
@@ -95,9 +98,9 @@
         <constructor-arg name="logDir" value="${app.dir}" />
     </bean>
     
-    <!--           -->
-    <!-- Mongo     -->
-    <!--           -->
+    <!--                 -->
+    <!-- Mongo Config    -->
+    <!--                 -->
     
     <bean id="configMongoURI" class="com.mongodb.MongoClientURI" >
         <constructor-arg name="uri" value="${mongo.config.uri}" />
@@ -114,10 +117,36 @@
         <constructor-arg name="database" value="${mongo.config.database}" />
     </bean>
 
+    <!--                 -->
+    <!-- Mongo Logging   -->
+    <!--                 -->
+    
+    <bean id="logMongoURI" class="com.mongodb.MongoClientURI" >
+        <constructor-arg name="uri" value="${mongo.log.uri}" />
+    </bean>
+
+    <bean id="logMongoClient" class="org.alfresco.mongo.MongoClientFactory" >
+        <constructor-arg name="mongoClientURI" ref="configMongoURI" />
+        <constructor-arg name="username" value="${mongo.log.username}" />
+        <constructor-arg name="password" value="${mongo.log.password}" />
+    </bean>
+
+    <bean id="logMongoDB" class="org.alfresco.mongo.MongoDBFactory" >
+        <constructor-arg name="mongoClient" ref="configMongoClient" />
+        <constructor-arg name="database" value="${mongo.log.database}" />
+    </bean>
+
     <!--           -->
     <!-- Services  -->
     <!--           -->
     
+    <bean id="logService" class="org.alfresco.bm.log.MongoLogService">
+        <constructor-arg name="db" ref="logMongoDB" />
+        <constructor-arg name="size" value="${mongo.log.size}" />
+        <constructor-arg name="max" value="${mongo.log.max}" />
+        <constructor-arg name="ttl" value="${mongo.log.ttl}" />
+    </bean>
+
     <bean id="testDAO" class="org.alfresco.bm.test.mongo.MongoTestDAO">
         <constructor-arg name="db" ref="configMongoDB" />
     </bean>

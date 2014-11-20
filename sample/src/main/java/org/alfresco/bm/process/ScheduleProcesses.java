@@ -115,7 +115,7 @@ public class ScheduleProcesses extends AbstractEventProcessor
     @Override
     public EventResult processEvent(Event event) throws Exception
     {
-        Integer alreadyScheduled = (Integer) event.getDataObject();
+        Integer alreadyScheduled = (Integer) event.getData();
         if (alreadyScheduled == null)
         {
             alreadyScheduled = Integer.valueOf(0);

@@ -252,7 +252,7 @@ public class MongoResultServiceTest
             List<EventRecord> records = resultService.getResults(null, skip, limit);
             for (EventRecord record : records)
             {
-                assertTrue(record.getEvent().getDataObject() instanceof DBObject);
+                assertTrue(record.getEvent().getData() instanceof DBObject);
                 assertTrue(record.getData() instanceof DBObject);
                 if (record.getTime() > 900L)
                 {

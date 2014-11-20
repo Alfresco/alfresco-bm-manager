@@ -249,14 +249,12 @@ To retrieve a csv stream of the test run results:
    
 To retrieve results for charting (time-series):
    GET:   <bm-server>/api/v1/tests/SAMPLE1/runs/RUN01/results/ts
-   Content-Type:application/json
-   {
+   OPTIONS:
       "fromTime":<ms since Epoch. Optional and will be rebased to near the first event, if necessary.>,
       "timeUnit":<The units of the 'reportPeriod' value.  Default: 'SECONDS'.>,
       "reportPeriod":<How often to report statistics, expressed as a number of 'timeUnits'.  Default 1.>,
       "smoothing":<Number of x-axis values to include in smoothing curve.  Default 1.>,
       "chartOnly":<Whether or not to include only data interesting to end-users.  Default 'true'.>
-   }
    Return JSON example for {reportPeriod:10, timeUnit:"seconds", smoothing:2}
    [
       { "time" : 1406839320000 , "name" : "process" , "median" : 34.87096774193548 , "min" : 10.0, "max" : 60.0 , "stdDev" : 15.637789319012697 , "num" : 62 , "numPerSec" : 3.1 , "fail" : 13 , "failPerSec" : 0.65} ,
@@ -266,3 +264,29 @@ To retrieve results for charting (time-series):
       { "time" : 1406839340000 , "name" : "process" , "median" : 35.63768115942029 , "min" : 10.0 , "max" : 60.0 , "stdDev" : 14.266464187847879 , "num" : 138 , "numPerSec" : 6.9 , "fail" : 37 , "failPerSec" : 1.85} ,
       { "time" : 1406839340000 , "name" : "scheduleProcesses" , "median" : 4.0 , "min" : 4.0 , "max" : 4.0 , "stdDev" : 0.0 , "num" : 1 , "numPerSec" : 0.05 , "fail" : 0 , "failPerSec" : 0.0}]}
    ]
+
+Retrieve any log messages in reverse time order:
+   GET:   <bm-server>/api/v1/logs
+   OPTIONS:
+      "skip":paging skip; optional; int
+      "count":page size; optional; int
+      "driverId":Id of the load driver instance to filter for; optional; string
+      "test":name of the test to filter for; optional; string
+      "run":name of the test run to filter for; optional; string
+      "from":start time of results - inclusive; optional; long
+      "to":end time of results - exclusive; optional; long
+   Return JSON example:
+    [
+       {
+           "time":
+           {
+               "$date": "2014-11-19T17:13:00.488Z"
+           },
+           "level": 2,
+           "msg": "Successful shutdown of test run 'Sample.02'.",
+           "d_id": "546ccf0b399a2c70badd4d88",
+           "t": "Sample",
+           "tr": "02"
+       }
+    ]
+

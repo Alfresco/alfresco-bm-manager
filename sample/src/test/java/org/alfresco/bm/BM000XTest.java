@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -35,6 +36,8 @@ import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.log.LogService;
+import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
@@ -49,6 +52,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.springframework.context.ApplicationContext;
+
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 
 /**
  * Sample on how to run your test against a local Mongo instance.
@@ -103,12 +109,13 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
     public void testRunFinished(ApplicationContext testCtx, String test, String run)
     {
         TestRunServicesCache services = testCtx.getBean(TestRunServicesCache.class);
+        LogService logService = testCtx.getBean(LogService.class);
         MongoTestDAO testDAO = services.getTestDAO();
         TestService testService = services.getTestService();
         ResultService resultService = services.getResultService(test, run);
         SessionService sessionService = services.getSessionService(test, run);
         assertNotNull(resultService);
-        TestRestAPI testAPI = new TestRestAPI(testDAO, testService, services);
+        TestRestAPI testAPI = new TestRestAPI(testDAO, testService, logService, services);
         ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
         
@@ -169,5 +176,24 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         // Check the session data
         assertEquals("All sessions should be closed: ", 0L, sessionService.getActiveSessionsCount());
         assertEquals("All sessions should be used: ", 200L, sessionService.getAllSessionsCount());
+        
+        // Check the log messages
+        DBCursor logs = logService.getLogs(null, test, run, LogLevel.INFO, null, null, 0, 500);
+        try
+        {
+            assertEquals("Incorrect number of log messages for this test run. ", 6, logs.size());
+            logger.debug("Log messages for " + test + "." + "." + run);
+            while (logs.hasNext())
+            {
+                DBObject log = logs.next();
+                Date time = (Date) log.get("time");
+                String msg = (String) log.get("msg");
+                logger.debug("   " + " >>> " + time + " >>> " + msg);
+            }
+        }
+        finally
+        {
+            logs.close();
+        }
     }
 }

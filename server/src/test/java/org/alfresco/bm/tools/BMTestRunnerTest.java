@@ -18,10 +18,14 @@
  */
 package org.alfresco.bm.tools;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
 
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.log.LogService;
+import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.report.CSVReporter;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunServicesCache;
@@ -36,7 +40,9 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.mongodb.DBCursor;
 import com.mongodb.ServerAddress;
+import com.mongodb.util.JSON;
 
 /**
  * @see BMTestRunner
@@ -79,6 +85,7 @@ public class BMTestRunnerTest implements TestConstants
             mockDB.destroy();
         }
     }
+    
     
     /**
      * Check that time-based limits are applied
@@ -234,6 +241,20 @@ public class BMTestRunnerTest implements TestConstants
                     throw new RuntimeException(e);
                 }
                 Assert.assertTrue(summary.contains("Standard Deviation (ms)"));
+                
+                // Check the log messages for the test run
+                LogService logService = testCtx.getBean(LogService.class);
+                DBCursor cursor = logService.getLogs(null, test, run, LogLevel.TRACE, null, null, 0, Integer.MAX_VALUE);
+                try
+                {
+                    String logs = cursor.size() > 0 ? JSON.serialize(cursor) : "[]";
+                    // The test run context start/stop gives 2 messages; the EventController start/stop gives another 2
+                    assertEquals("The number of log messages needs to be exact: " + cursor + "\n " + logs, 6, cursor.size());
+                }
+                finally
+                {
+                    cursor.close();
+                }
             }
         };
         

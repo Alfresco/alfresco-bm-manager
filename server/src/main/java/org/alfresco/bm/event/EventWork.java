@@ -26,6 +26,8 @@ import java.util.Set;
 
 import org.alfresco.bm.event.producer.EventProducer;
 import org.alfresco.bm.event.producer.EventProducerRegistry;
+import org.alfresco.bm.log.LogService.LogLevel;
+import org.alfresco.bm.log.TestRunLogService;
 import org.alfresco.bm.session.SessionService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -54,6 +56,7 @@ public class EventWork implements Runnable
     private final EventService eventService;
     private final ResultService resultService;
     private final SessionService sessionService;
+    private final TestRunLogService logService;
     
     /**
      * Construct work to be executed by a thread
@@ -66,12 +69,14 @@ public class EventWork implements Runnable
      * @param eventService      the queue events that will be updated with new events
      * @param resultService     the service to store results of the execution
      * @param sessionService    the service manage sessions
+     * @param logService        the service to report any issues
      */
     public EventWork(
             String serverId, String testRunFqn,
             Event event,
             EventProcessor processor, EventProducerRegistry eventProducers,
-            EventService eventService, ResultService resultService, SessionService sessionService)
+            EventService eventService, ResultService resultService, SessionService sessionService,
+            TestRunLogService logService)
     {
         this.serverId = serverId;
         this.testRunFqn = testRunFqn;
@@ -81,6 +86,7 @@ public class EventWork implements Runnable
         this.eventService = eventService;
         this.resultService = resultService;
         this.sessionService = sessionService;
+        this.logService = logService;
     }
 
     @Override
@@ -98,7 +104,9 @@ public class EventWork implements Runnable
             result = processor.processEvent(event, stopWatch);
             if (result == null)
             {
-                throw new RuntimeException("Event processtor returned null result: " + processor);
+                String msg = "Event processtor returned null result: " + processor;
+                logService.log(LogLevel.FATAL, msg);
+                throw new RuntimeException(msg);
             }
         }
         catch (Throwable e)
@@ -154,6 +162,8 @@ public class EventWork implements Runnable
         }
         catch (Throwable e)
         {
+            String stack = ExceptionUtils.getStackTrace(e);
+            logService.log(LogLevel.ERROR, "Failed to record an result " + recordedEvent + ": " + stack);
             logger.error("Failed recorded event: " + recordedEvent, e);
         }
         
@@ -178,13 +188,15 @@ public class EventWork implements Runnable
             if (nextEvent == null)
             {
                 // Ignore it but log the error
-                logger.error("\n" +
+                String msg =
                         "Null event in list of next events: \n" +
                         "   Owner:     " + serverId + "\n" +
                         "   Test Run:  " + testRunFqn + "\n" +
                         "   Event:     " + event + "\n" +
                         "   Time:      " + time + "\n" +
-                        "   Processor: " + processor);
+                        "   Processor: " + processor;
+                logger.error("\n" + msg);
+                logService.log(LogLevel.WARN, msg);
                 continue;
             }
             // Carry over the session ID, if required
@@ -200,13 +212,15 @@ public class EventWork implements Runnable
             }
             catch (Throwable e)
             {
-                logger.error(
+                String stack = ExceptionUtils.getStackTrace(e);
+                String msg =
                         "Failed to insert event into queue: \n" +
                         "  Event to insert:     " + nextEvent + "\n" +
                         "  Inbound event:       " + event + "\n" +
                         "  Process used:        " + processor + "\n" +
-                        "  Events produced:     " + eventNamesSeen,
-                        e);
+                        "  Events produced:     " + eventNamesSeen;
+                logService.log(LogLevel.ERROR, msg + "\n" + stack);
+                logger.error(msg, e);
             }
         }
         
@@ -216,12 +230,17 @@ public class EventWork implements Runnable
             boolean deleted = eventService.deleteEvent(event);
             if (!deleted)
             {
-                logger.error("Event was not deleted from the queue: " + event);
+                String msg = "Event was not deleted from the queue: " + event;
+                logger.error(msg);
+                logService.log(LogLevel.ERROR, msg);
             }
         }
         catch (Throwable e)
         {
-            logger.error("Failed to remove event from the queue: " + event, e);
+            String stack = ExceptionUtils.getStackTrace(e);
+            String msg = "Failed to remove event from the queue: " + event;
+            logger.error(msg, e);
+            logService.log(LogLevel.ERROR, msg + "\n" + stack);
         }
     }
 
@@ -252,7 +271,9 @@ public class EventWork implements Runnable
             if (!eventNamesSeen.add(eventName))
             {
                 // The event was already present, which means we would enter a loop
-                throw new RuntimeException("Event is part of a cyclical production configuration: " + event);
+                String msg = "Event is part of a cyclical production configuration: " + event;
+                logService.log(LogLevel.ERROR, msg);
+                throw new RuntimeException(msg);
             }
             // Recurse into each one of these
             producedEvents = getNextEvents(producedEvents, eventNamesSeen);

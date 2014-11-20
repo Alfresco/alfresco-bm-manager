@@ -114,7 +114,7 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
     {
         super.suspendTimer();
         
-        Object input = event.getDataObject();
+        Object input = event.getData();
         String sessionId = event.getSessionId();
         // Start a session, if necessary
         long sessionStartTime = -1L;

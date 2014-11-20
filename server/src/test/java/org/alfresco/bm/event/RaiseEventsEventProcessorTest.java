@@ -70,7 +70,7 @@ public class RaiseEventsEventProcessorTest
         
         EventResult result = processor.processEvent(event);
         Assert.assertEquals(20, result.getNextEvents().size());
-        Assert.assertEquals(new BasicDBObject("sound", "WOOF"), result.getNextEvents().get(0).getDataObject());
+        Assert.assertEquals(new BasicDBObject("sound", "WOOF"), result.getNextEvents().get(0).getData());
     }
     
     @Test
@@ -85,7 +85,7 @@ public class RaiseEventsEventProcessorTest
         Assert.assertEquals(11, result.getNextEvents().size());
         allEvents.addAll(result.getNextEvents());
         
-        event = new Event("", result.getNextEvents().get(10).getDataObject());
+        event = new Event("", result.getNextEvents().get(10).getData());
         result = processor.processEvent(event);
         Assert.assertEquals(10, result.getNextEvents().size());
         allEvents.addAll(result.getNextEvents());
@@ -115,7 +115,7 @@ public class RaiseEventsEventProcessorTest
                 // The next event delta must increase
                 Assert.assertEquals("Event delay not correct.", 100L, delta);
                 // Check the data
-                Assert.assertEquals(new BasicDBObject("sound", "WOOF"), nextEvent.getDataObject());
+                Assert.assertEquals(new BasicDBObject("sound", "WOOF"), nextEvent.getData());
             }
             lastEventScheduledTime = allEventScheduledTime;
         }
