@@ -14,8 +14,6 @@ Check all properties and configuration files
 Build the archetype
 > mvn clean install
 
-Clean up
-
 Test locally
 > cd target
 > mvn archetype:generate -DarchetypeCatalog=local
