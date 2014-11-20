@@ -33,6 +33,7 @@ Move onto the new version
 > find . -name archetype-metadata.xml | xargs sed -i -e 's/2.0.3/2.0.4-SNAPSHOT/g'
 > find . -name archetype.properties | xargs sed -i -e 's/2.0.3/2.0.4-SNAPSHOT/g'
 > git status
+> mvn clean install
 > git add *
 > git commit
 > git checkout master
