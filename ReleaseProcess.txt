@@ -1,0 +1,24 @@
+Create a new branch for the release process.
+If the current version is 2.0.3-SNAPSHOT, then it will be:
+> git branch -b V2.0.3
+
+Update POM file revision numbers
+> find . -name pom.xml | xargs sed -i -e 's/2.0.3-SNAPSHOT/2.0.3/g'
+> find . -name archetype-metadata.xml | xargs sed -i -e 's/2.0.3-SNAPSHOT/2.0.3/g'
+> find . -name archetype.properties | xargs sed -i -e 's/2.0.3-SNAPSHOT/2.0.3/g'
+> git status
+  On branch prepare-V2.0.3
+  Changes not staged for commit:
+        modified:   pom.xml
+        modified:   sample/archetype/pom.xml
+        modified:   sample/archetype/src/main/resources/META-INF/maven/archetype-metadata.xml
+        modified:   sample/archetype/src/test/resources/projects/basic/archetype.properties
+        modified:   sample/pom.xml
+        modified:   server/pom.xml
+        modified:   util/pom.xml
+
+Build, test and deploy the artifacts:
+> mvn clean install
+> mvn deploy -DskipTests
+
+Follow instructions in sample/building-the-archetype
