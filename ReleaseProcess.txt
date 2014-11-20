@@ -22,3 +22,19 @@ Build, test and deploy the artifacts:
 > mvn deploy -DskipTests
 
 Follow instructions in sample/building-the-archetype
+
+Commit all the changes:
+> git add *
+> git commit
+
+Tag the branch in GitHub
+Move onto the new version
+> find . -name pom.xml | xargs sed -i -e 's/2.0.3/2.0.4-SNAPSHOT/g'
+> find . -name archetype-metadata.xml | xargs sed -i -e 's/2.0.3/2.0.4-SNAPSHOT/g'
+> find . -name archetype.properties | xargs sed -i -e 's/2.0.3/2.0.4-SNAPSHOT/g'
+> git status
+> git add *
+> git commit
+> git checkout master
+
+Merge the branch into 'master'
