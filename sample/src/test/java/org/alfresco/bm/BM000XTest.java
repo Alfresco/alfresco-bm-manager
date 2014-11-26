@@ -127,8 +127,8 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
             List<EventRecord> eventRecord = resultService.getResults(eventName, 0, 1);
             logger.info("   " + eventRecord);
             assertFalse(
-                    "An event was created that has no available processor or producer.  Use the TerminateEventProducer to absorb events.",
-                    eventRecord.contains("processedBy=unknown"));
+                    "An event was created that has no available processor or producer: " + eventRecord + ".  Use the TerminateEventProducer to absorb events.",
+                    eventRecord.toString().contains("processedBy=unknown"));
         }
 
         // One successful START event

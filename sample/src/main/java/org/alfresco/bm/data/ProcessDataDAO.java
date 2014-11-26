@@ -38,7 +38,6 @@ public class ProcessDataDAO
     /**
      * @param db                    MongoDB
      * @param collection            name of DB collection containing process data
-     * @param processCount          number of unfinished processes to create
      */
     public ProcessDataDAO(DB db, String collection)
     {

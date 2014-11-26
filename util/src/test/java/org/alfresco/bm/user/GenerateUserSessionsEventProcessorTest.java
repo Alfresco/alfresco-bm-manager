@@ -105,7 +105,7 @@ public class GenerateUserSessionsEventProcessorTest
         assertEquals(10, result.getNextEvents().size());        // No rescheduling
         for (Event nextEvent : result.getNextEvents())
         {
-            String username = (String) nextEvent.getDataObject();
+            String username = (String) nextEvent.getData();
             assertNotNull("User not found: " + username, userDataService.findUserByUsername(username));
         }
     }

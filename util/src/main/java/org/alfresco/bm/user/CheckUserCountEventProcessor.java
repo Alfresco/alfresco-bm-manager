@@ -85,7 +85,7 @@ public class CheckUserCountEventProcessor extends AbstractEventProcessor
         Event nextEvent = new Event(
                 eventNameUsersReady,
                 System.currentTimeMillis(),
-                event.getDataObject());
+                event.getData());
         // Just pass the inbound data through
         return new EventResult(
                 String.format(MSG_FOUND_USERS, actualUserCount, userCount),
