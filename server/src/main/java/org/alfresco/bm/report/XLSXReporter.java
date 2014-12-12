@@ -42,13 +42,26 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.poi.POIXMLProperties.CoreProperties;
 import org.apache.poi.openxml4j.util.Nullable;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Chart;
+import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.charts.AxisPosition;
+import org.apache.poi.ss.usermodel.charts.ChartAxis;
+import org.apache.poi.ss.usermodel.charts.ChartDataSource;
+import org.apache.poi.ss.usermodel.charts.ChartLegend;
+import org.apache.poi.ss.usermodel.charts.DataSources;
+import org.apache.poi.ss.usermodel.charts.LegendPosition;
+import org.apache.poi.ss.usermodel.charts.LineChartData;
+import org.apache.poi.ss.usermodel.charts.LineChartSerie;
+import org.apache.poi.ss.usermodel.charts.ValueAxis;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -576,5 +589,88 @@ public class XLSXReporter extends AbstractEventReporter
             }
         };
         resultService.getResults(handler, start, windowSize, windowSize, false);
+        
+        // Create charts in the sheets
+        for (String eventName : sheetNames.keySet())
+        {
+            // Get the sheet name
+            String sheetName = sheetNames.get(eventName);
+            if (sheetName == null)
+            {
+                logger.error("Did not find sheet for event: " + eventName);
+                continue;
+            }
+            // Get the sheet
+            XSSFSheet sheet = sheets.get(sheetName);
+            if (sheet == null)
+            {
+                logger.error("Did not find sheet for name: " + sheetName);
+                continue;
+            }
+            // What row did we get up to
+            AtomicInteger rowNum = rowNums.get(eventName);
+            if (rowNum == null)
+            {
+                logger.error("Did not find row number for event: " + sheetName);
+                continue;
+            }
+            
+            // This axis is common to both charts
+            ChartDataSource<Number> xTime = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 0, 0));
+
+            // Graph of event times
+            XSSFDrawing drawingTimes = sheet.createDrawingPatriarch();
+            ClientAnchor anchorTimes = drawingTimes.createAnchor(0, 0, 0, 0, 0, 5, 15, 25);
+            Chart chartTimes = drawingTimes.createChart(anchorTimes);
+            ChartLegend legendTimes = chartTimes.getOrCreateLegend();
+            legendTimes.setPosition(LegendPosition.BOTTOM);
+            
+            LineChartData chartDataTimes = chartTimes.getChartDataFactory().createLineChartData();
+            
+            ChartAxis bottomAxisTimes = chartTimes.getChartAxisFactory().createCategoryAxis(AxisPosition.BOTTOM);
+            bottomAxisTimes.setNumberFormat("#,##0;-#,##0");
+            ValueAxis leftAxisTimes = chartTimes.getChartAxisFactory().createValueAxis(AxisPosition.LEFT);
+            
+            // Mean
+            ChartDataSource<Number> yMean = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 1, 1));
+            LineChartSerie yMeanSerie = chartDataTimes.addSerie(xTime, yMean);
+            yMeanSerie.setTitle(title + " - " + eventName + ": Mean (ms)");
+            
+            // Std Dev
+            ChartDataSource<Number> yStdDev = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 4, 4));
+            LineChartSerie yStdDevSerie = chartDataTimes.addSerie(xTime, yStdDev);
+            yStdDevSerie.setTitle(title + " - " + eventName + ": Standard Deviation (ms)");
+
+            // Plot event times
+            chartTimes.plot(chartDataTimes, bottomAxisTimes, leftAxisTimes);
+            
+            // Graph of event volumes
+            
+            // Graph of event times
+            XSSFDrawing drawingVolumes = sheet.createDrawingPatriarch();
+            ClientAnchor anchorVolumes = drawingVolumes.createAnchor(0, 0, 0, 0, 0, 25, 15, 35);
+            Chart chartVolumes = drawingVolumes.createChart(anchorVolumes);
+            ChartLegend legendVolumes = chartVolumes.getOrCreateLegend();
+            legendVolumes.setPosition(LegendPosition.BOTTOM);
+            
+            LineChartData chartDataVolumes = chartVolumes.getChartDataFactory().createLineChartData();
+            
+            ChartAxis bottomAxisVolumes = chartVolumes.getChartAxisFactory().createCategoryAxis(AxisPosition.BOTTOM);
+            bottomAxisVolumes.setNumberFormat("#,##0;-#,##0");
+            ValueAxis leftAxisVolumes = chartVolumes.getChartAxisFactory().createValueAxis(AxisPosition.LEFT);
+            
+            // Number per second
+            ChartDataSource<Number> yNumPerSec = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 6, 6));
+            LineChartSerie yNumPerSecSerie = chartDataVolumes.addSerie(xTime, yNumPerSec);
+            yNumPerSecSerie.setTitle(title + " - " + eventName + ": Events per Second");
+            
+            // Failures per second
+            ChartDataSource<Number> yFailPerSec = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 8, 8));
+            LineChartSerie yFailPerSecSerie = chartDataVolumes.addSerie(xTime, yFailPerSec);
+            yFailPerSecSerie.setTitle(title + " - " + eventName + ": Failures per Second");
+
+            // Plot volumes
+            chartVolumes.plot(chartDataVolumes, bottomAxisVolumes, leftAxisVolumes);
+        }
     }
 }

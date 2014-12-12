@@ -30,7 +30,7 @@
     -->
     
     <bean id="event.start" class="org.alfresco.bm.event.RaiseEventsEventProcessor" parent="event.base" >
-        <constructor-arg name="outputEventName" value="doNothing" />
+        <constructor-arg name="outputEventName" value="randomSample" />
         <constructor-arg name="timeBetweenEvents" value="5" />
         <constructor-arg name="outputEventCount" value="20" />
         <property name="eventNames">
@@ -43,9 +43,15 @@
         <property name="chart" value="false" />
     </bean>
     
-    <bean id="event.doNothing" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" >
+    <bean id="event.randomSample" class="org.alfresco.bm.event.DelayingSampleEventProcessor" parent="event.base" >
+        <constructor-arg name="outputEventName" value="randomSampleDone" />
+        <constructor-arg name="minTime" value="50" />
+        <constructor-arg name="maxTime" value="100" />
+        <constructor-arg name="failurePercent" value="0" />
         <property name="chart" value="true" />
     </bean>
+    
+    <bean id="producer.randomSampleDone" class="org.alfresco.bm.event.producer.TerminateEventProducer" parent="producer.base" />
     
     <!-- NB: We replace the MongoDB factory with in-memory versions here -->
     <!--     Test will not do this step normally but the unit testing code for the benchmark-server project requires it -->
