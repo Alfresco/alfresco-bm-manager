@@ -60,6 +60,9 @@ public class Event
     /**
      * Construct an event with some data, scheduling it for the current time.
      * <p/>
+     * <b>NB: </b> BEWARE OF JAVA AUTOBOXING OF NUMERIC DATA.  This constructor
+     *             assumes the event trigger time is <b>now</b>.
+     * <p/>
      * Use a {@link DBObject} to allow full MongoDB-friendly persistence, allowing
      * searching for <b>data.X</b>-style searches where the object has key *X*, say.
      * The data, if a {@link String}, will be persisted directly with this event.
