@@ -57,6 +57,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
     public static final String FIELD_LAST_NAME = "lastName";
     public static final String FIELD_EMAIL = "email";
     public static final String FIELD_DOMAIN = "domain";
+    public static final String FIELD_GROUPS = "groups";
 
     public static final String FIELD_ID = "id";
     public static final String FIELD_KEY = "key";
@@ -154,6 +155,12 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         userData.setLastName((String) userDataObj.get(FIELD_LAST_NAME));
         userData.setEmail((String) userDataObj.get(FIELD_EMAIL));
         userData.setDomain((String) userDataObj.get(FIELD_DOMAIN));
+        if (userDataObj.get(FIELD_GROUPS) != null)      // Conditional for backward compatibility
+        {
+            @SuppressWarnings("unchecked")
+            List<String> groups = (List<String>) userDataObj.get(FIELD_GROUPS);
+            userData.setGroups(groups);
+        }
         // Done
         return userData;
     }
@@ -196,7 +203,8 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
                 .add(FIELD_FIRST_NAME, data.getFirstName())
                 .add(FIELD_LAST_NAME, data.getLastName())
                 .add(FIELD_EMAIL, data.getEmail())
-                .add(FIELD_DOMAIN, data.getDomain());
+                .add(FIELD_DOMAIN, data.getDomain())
+                .add(FIELD_GROUPS, data.getGroups());
         DBObject insertObj = insertObjBuilder.get();
         
         try
@@ -440,6 +448,44 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
         return fromDBObject(userDataObj);
     }
     
+    /*
+     * USER GROUP SERVICES
+     */
+
+    @Override
+    public void addUserGroups(String username, List<String> groups)
+    {
+        DBObject queryObj = BasicDBObjectBuilder.start()
+                .add(FIELD_USERNAME, username)
+                .get();
+        DBObject updateObj = BasicDBObjectBuilder.start()
+                .push("$addToSet")
+                    .push(FIELD_GROUPS)
+                        .add("$each", groups)
+                    .pop()
+                .pop()
+                .get();
+        collection.update(queryObj, updateObj);
+    }
+    
+    @Override
+    public void removeUserGroups(String username, List<String> groups)
+    {
+        DBObject queryObj = BasicDBObjectBuilder.start()
+                .add(FIELD_USERNAME, username)
+                .get();
+        DBObject updateObj = BasicDBObjectBuilder.start()
+                .push("$pullAll")
+                    .add(FIELD_GROUPS, groups)
+                .pop()
+                .get();
+        collection.update(queryObj, updateObj);
+    }
+    
+    /*
+     * CLASSES
+     */
+
     public static class Range
     {
         private int min;

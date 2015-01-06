@@ -18,6 +18,10 @@
  */
 package org.alfresco.bm.user;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -95,6 +99,12 @@ public class UserDataServiceTest
         user.setPassword(username);
         
         return user;
+    }
+    
+    @Test
+    public void testSetUp()
+    {
+        assertEquals(USERS.length, userDataService.countUsers(null, DataCreationState.NotScheduled));
     }
     
     @Test
@@ -225,5 +235,25 @@ public class UserDataServiceTest
         {
             // Expected
         }
+    }
+    
+    @Test
+    public void testUserGroups()
+    {
+        UserData user = userDataService.findUserByUsername(USERS[0]);
+        String username = user.getUsername();
+        // By default, there should be no groups
+        assertNotNull(user.getGroups());
+        assertEquals(0, user.getGroups().size());
+        
+        // Give the user some groups
+        userDataService.addUserGroups(username, Arrays.asList("A", "B", "C", "A"));     // Ensure duplicates are removed
+        user = userDataService.findUserByUsername(username);
+        assertEquals(Arrays.asList("A", "B", "C"), user.getGroups());
+        
+        // Remove some groups
+        userDataService.removeUserGroups(username, Arrays.asList("A", "B", "B"));
+        user = userDataService.findUserByUsername(username);
+        assertEquals(Arrays.asList("C"), user.getGroups());
     }
 }

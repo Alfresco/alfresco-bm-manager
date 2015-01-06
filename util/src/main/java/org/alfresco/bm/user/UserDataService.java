@@ -109,7 +109,7 @@ public interface UserDataService
     /**
      * An iterator over domains in the users collection.
      * 
-     * @return an iterator over domains
+     * @return          an iterator over domains
      * 
      * @see #DEFAULT_DOMAIN
      */
@@ -120,8 +120,8 @@ public interface UserDataService
      * <p/>
      * Note that this is useful only for large numbers of users.
      * 
-     * @param       domain the user domain
-     * @return      a random user or <tt>null</tt> if none are available
+     * @param domain    the user domain
+     * @return          a random user or <tt>null</tt> if none are available
      * 
      * @see #DEFAULT_DOMAIN
      */
@@ -132,10 +132,32 @@ public interface UserDataService
      * <p/>
      * Note that this is useful only for large numbers of users.
      * 
-     * @param       domain the user domain
-     * @return      a random user or <tt>null</tt> if none are available
+     * @param domain    the user domain
+     * @return          a random user or <tt>null</tt> if none are available
      * 
      * @see #DEFAULT_DOMAIN
      */
     UserData getRandomUserFromDomains(List<String> domains);
+
+    /*
+     * USER GROUP SERVICES
+     */
+
+    /**
+     * Record additional groups that the user belongs to.
+     * The list of groups does not have to be complete i.e. the groups are added to the set of existing user groups.
+     * 
+     * @param username      the username
+     * @param groups        new groups for the user
+     */
+    void addUserGroups(String username, List<String> groups);
+
+    /**
+     * Remove some groups from the user's groups list
+     * 
+     * @param username      the username
+     * @param groups        groups to which the user no longer belongs
+     */
+    void removeUserGroups(String username, List<String> groups);
+    
 }

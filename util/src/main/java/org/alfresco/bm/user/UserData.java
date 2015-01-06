@@ -19,6 +19,9 @@
 package org.alfresco.bm.user;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.alfresco.bm.data.DataCreationState;
 
@@ -41,11 +44,13 @@ public class UserData implements Serializable
     private String lastName;
     private String email;
     private String domain;
+    private List<String> groups;
     
     public UserData()
     {
         randomizer = (int)(Math.random() * 1E6);
         creationState = DataCreationState.Unknown;
+        groups = Collections.emptyList();
     }
 
     public int getRandomizer()
@@ -124,6 +129,15 @@ public class UserData implements Serializable
         this.domain = domain;
     }
     
+    public List<String> getGroups()
+    {
+        return groups;
+    }
+    public void setGroups(List<String> groups)
+    {
+        this.groups = Collections.unmodifiableList(new ArrayList<String>(groups));
+    }
+
     @Override
     public String toString()
     {
@@ -136,6 +150,8 @@ public class UserData implements Serializable
         builder.append(email);
         builder.append(", domain=");
         builder.append(domain);
+        builder.append(", groups=");
+        builder.append(groups);
         builder.append("]");
         return builder.toString();
     }
