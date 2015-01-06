@@ -31,44 +31,44 @@ public interface UserDataService
     /**
      * @throws DuplicateKeyException    if the username is already used
      */
-    public void createNewUser(UserData data);
+    void createNewUser(UserData data);
 
     /**
      * Update a user's password
      */
-    public void setUserPassword(String username, String password);
+    void setUserPassword(String username, String password);
 
     /**
      * Change the 'created' state of the user i.e. whether the user exists on the server or not
      */
-    public void setUserCreationState(String username, DataCreationState creationState);
+    void setUserCreationState(String username, DataCreationState creationState);
     
     /**
      * @param domain                the domain to search or <tt>null</tt> for all domains
      * @param creationState         optional creation state to filter the count or <tt>null</tt> for all 
      */
-    public long countUsers(String domain, DataCreationState creationState);
+    long countUsers(String domain, DataCreationState creationState);
 
     /**
      * Delete users by create state
      * 
      * @param creationState         the user creation state to target or <tt>null<tt> to delete all users
      */
-    public long deleteUsers(DataCreationState creationState);
+    long deleteUsers(DataCreationState creationState);
     
     /**
      * Find a user by username
      * 
      * @return                          the {@link UserData} found otherwise <tt>null</tt>.
      */
-    public UserData findUserByUsername(String username);
+    UserData findUserByUsername(String username);
     
     /**
      * Find a user by email address
      * 
      * @return                          the {@link UserData} found otherwise <tt>null</tt>.
      */
-    public UserData findUserByEmail(String email);
+    UserData findUserByEmail(String email);
     
     /**
      * Get the users based on user creation state
@@ -78,7 +78,7 @@ public interface UserDataService
      * @param count         number of users to fetch
      * @return              List of user data, which may be empty or less than the required count
      */
-    public List<UserData> getUsersByCreationState(DataCreationState creationState, int startIndex, int count);
+    List<UserData> getUsersByCreationState(DataCreationState creationState, int startIndex, int count);
     
     /**
      * Select a random, pre-created user.
@@ -87,7 +87,7 @@ public interface UserDataService
      * 
      * @return      a random user or <tt>null</tt> if none are available
      */
-    public UserData getRandomUser();
+    UserData getRandomUser();
 
     /*
      * USER DOMAIN SERVICES
@@ -104,7 +104,7 @@ public interface UserDataService
      * 
      * @see #DEFAULT_DOMAIN
      */
-    public List<UserData> getUsersInDomain(String domain, int startIndex, int count);
+    List<UserData> getUsersInDomain(String domain, int startIndex, int count);
 
     /**
      * An iterator over domains in the users collection.
@@ -113,7 +113,7 @@ public interface UserDataService
      * 
      * @see #DEFAULT_DOMAIN
      */
-    public Iterator<String> getDomainsIterator();
+    Iterator<String> getDomainsIterator();
     
     /**
      * Select a random, pre-created user.
@@ -125,7 +125,7 @@ public interface UserDataService
      * 
      * @see #DEFAULT_DOMAIN
      */
-    public UserData getRandomUserFromDomain(String domain);
+    UserData getRandomUserFromDomain(String domain);
 
     /**
      * Select a random, pre-created user that is a member of one of the given domains.
