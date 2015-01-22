@@ -87,7 +87,7 @@ public class FileFolderServiceTest
     @Test
     public void parentPath()
     {
-        FolderData folderData = new FolderData("R1", "home", "/myfolders", 0L);
+        FolderData folderData = new FolderData("R1", "home", "/myfolders", 0L, 0L);
         assertEquals("/", folderData.getParentPath());
         assertEquals("myfolders", folderData.getName());
     }
@@ -95,7 +95,7 @@ public class FileFolderServiceTest
     @Test
     public void createAndRead()
     {
-        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 17L);
+        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 6L, 17L);
         assertEquals("tests", folderData.getName());
         assertEquals("/myfolders", folderData.getParentPath());
         // Persist
@@ -118,86 +118,101 @@ public class FileFolderServiceTest
     @Test(expected=DuplicateKey.class)
     public void uniqueId()
     {
-        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 17L);
+        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 6L, 17L);
         fileFolderService.createNewFolder(folderData);
 
-        FolderData folderData2 = new FolderData("A123", "home", "/myfolders/reports", 5L);
+        FolderData folderData2 = new FolderData("A123", "home", "/myfolders/reports", 6L, 5L);
         fileFolderService.createNewFolder(folderData2);
     }
     
     @Test(expected=DuplicateKey.class)
     public void uniquePath()
     {
-        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 17L);
+        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 3L, 17L);
         fileFolderService.createNewFolder(folderData);
 
-        FolderData folderData2 = new FolderData("B456", "home", "/myfolders/tests", 5L);
+        FolderData folderData2 = new FolderData("B456", "home", "/myfolders/tests", 2L, 5L);
         fileFolderService.createNewFolder(folderData2);
     }
     
     @Test
     public void increment()
     {
-        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 17L);
+        FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 3L, 17L);
         fileFolderService.createNewFolder(folderData);
+        fileFolderService.incrementFolderCount("home", "/myfolders/tests", 3L);
         fileFolderService.incrementFileCount("home", "/myfolders/tests", 3L);
         FolderData folderDataCheck = fileFolderService.getFolder("A123");
+        assertEquals(6L, folderDataCheck.getFolderCount());
         assertEquals(20L, folderDataCheck.getFileCount());
     }
+//    
+//    @Test
+//    public void childFolderCounts()
+//    {
+//        fileFolderService.createNewFolder("a", "home", "/a");
+//        fileFolderService.createNewFolder("aa", "home", "/a/a");
+//        fileFolderService.createNewFolder("ab", "home", "/a/b");
+//        fileFolderService.createNewFolder("ac", "home", "/a/c");
+//        fileFolderService.createNewFolder("aca", "home", "/a/c/a");
+//        fileFolderService.createNewFolder("acb", "home", "/a/c/b");
+//        fileFolderService.createNewFolder("", "home", "/b");
+//        
+//        assertEquals(3L, fileFolderService.countChildFolders("home", "/a"));
+//        assertEquals(0L, fileFolderService.countChildFolders("home", "/a/a"));
+//        assertEquals(2L, fileFolderService.countChildFolders("home", "/a/c"));
+//        assertEquals(2L, fileFolderService.countChildFolders("home", "/"));
+//    }
+//    
+//    @Test
+//    public void folderLists()
+//    {
+//        fileFolderService.createNewFolder("a", "home", "/a");
+//        fileFolderService.createNewFolder("aa", "home", "/a/a");
+//        fileFolderService.createNewFolder("ab", "home", "/a/b");
+//        fileFolderService.createNewFolder("ac", "home", "/a/c");
+//        fileFolderService.createNewFolder("aca", "home", "/a/c/a");
+//        fileFolderService.createNewFolder("acb", "home", "/a/c/b");
+//        fileFolderService.createNewFolder("", "home", "/b");
+//        
+//        assertEquals(3L, fileFolderService.getChildFolders("home", "/a", 0, 10).size());
+//        assertEquals(1L, fileFolderService.getChildFolders("home", "/a", 0, 1).size());
+//        assertEquals(2L, fileFolderService.getChildFolders("home", "/a", 1, 10).size());
+//        assertEquals(0L, fileFolderService.getChildFolders("home", "/a/a", 0, 10).size());
+//        assertEquals(2L, fileFolderService.getChildFolders("home", "/a/c", 0, 10).size());
+//        assertEquals(2L, fileFolderService.getChildFolders("home", "/", 0, 10).size());
+//    }
     
     @Test
-    public void childFolderCounts()
+    public void getFoldersByFolderCounts()
     {
         fileFolderService.createNewFolder("a", "home", "/a");
         fileFolderService.createNewFolder("aa", "home", "/a/a");
+        fileFolderService.createNewFolder("Aa", "home", "/A/a");
         fileFolderService.createNewFolder("ab", "home", "/a/b");
         fileFolderService.createNewFolder("ac", "home", "/a/c");
         fileFolderService.createNewFolder("aca", "home", "/a/c/a");
         fileFolderService.createNewFolder("acb", "home", "/a/c/b");
         fileFolderService.createNewFolder("", "home", "/b");
         
-        assertEquals(3L, fileFolderService.countChildFolders("home", "/a"));
-        assertEquals(0L, fileFolderService.countChildFolders("home", "/a/a"));
-        assertEquals(2L, fileFolderService.countChildFolders("home", "/a/c"));
-        assertEquals(2L, fileFolderService.countChildFolders("home", "/"));
-    }
-    
-    @Test
-    public void folderLists()
-    {
-        fileFolderService.createNewFolder("a", "home", "/a");
-        fileFolderService.createNewFolder("aa", "home", "/a/a");
-        fileFolderService.createNewFolder("ab", "home", "/a/b");
-        fileFolderService.createNewFolder("ac", "home", "/a/c");
-        fileFolderService.createNewFolder("aca", "home", "/a/c/a");
-        fileFolderService.createNewFolder("acb", "home", "/a/c/b");
-        fileFolderService.createNewFolder("", "home", "/b");
+        fileFolderService.incrementFolderCount("home", "/a/a", 20L);
+        fileFolderService.incrementFolderCount("home", "/A/a", 10L);
+        fileFolderService.incrementFolderCount("home", "/a/b", 10L);
+        fileFolderService.incrementFolderCount("home", "/a/c", 30L);
         
-        assertEquals(3L, fileFolderService.getChildFolders("home", "/a", 0, 10).size());
-        assertEquals(1L, fileFolderService.getChildFolders("home", "/a", 0, 1).size());
-        assertEquals(2L, fileFolderService.getChildFolders("home", "/a", 1, 10).size());
-        assertEquals(0L, fileFolderService.getChildFolders("home", "/a/a", 0, 10).size());
-        assertEquals(2L, fileFolderService.getChildFolders("home", "/a/c", 0, 10).size());
-        assertEquals(2L, fileFolderService.getChildFolders("home", "/", 0, 10).size());
-    }
-    
-    @Test
-    public void listByFileCounts()
-    {
-        fileFolderService.createNewFolder("a", "home", "/a");
-        fileFolderService.createNewFolder("aa", "home", "/a/a");
-        fileFolderService.createNewFolder("ab", "home", "/a/b");
-        fileFolderService.createNewFolder("ac", "home", "/a/c");
-        fileFolderService.createNewFolder("aca", "home", "/a/c/a");
-        fileFolderService.createNewFolder("acb", "home", "/a/c/b");
-        fileFolderService.createNewFolder("", "home", "/b");
-        
-        assertEquals(3L, fileFolderService.getChildFolders("home", "/a", 0, 10).size());
-        assertEquals(1L, fileFolderService.getChildFolders("home", "/a", 0, 1).size());
-        assertEquals(2L, fileFolderService.getChildFolders("home", "/a", 1, 10).size());
-        assertEquals(0L, fileFolderService.getChildFolders("home", "/a/a", 0, 10).size());
-        assertEquals(2L, fileFolderService.getChildFolders("home", "/a/c", 0, 10).size());
-        assertEquals(2L, fileFolderService.getChildFolders("home", "/", 0, 10).size());
+        assertEquals(1, fileFolderService.getFoldersByFolderCounts("home", "/A", 0L, 100L, 0, 10).size());
+        assertEquals(6, fileFolderService.getFoldersByFolderCounts("home", "/a", 0L, 100L, 0, 10).size());
+        assertEquals(2, fileFolderService.getFoldersByFolderCounts("home", "/a", 10L, 20L, 0, 10).size());
+        // Path sorting if used
+        assertEquals("/a/a", fileFolderService.getFoldersByFolderCounts("home", "/a", 10L, 20L, 0, 1).get(0).getPath());
+        assertEquals("/a/b", fileFolderService.getFoldersByFolderCounts("home", "/a", 10L, 20L, 1, 1).get(0).getPath());
+        // Check case-sensitive path sorting
+        assertEquals("/A/a", fileFolderService.getFoldersByFolderCounts("home", "", 10L, 20L, 0, 1).get(0).getPath());
+        assertEquals("/a/a", fileFolderService.getFoldersByFolderCounts("home", "", 10L, 20L, 1, 1).get(0).getPath());
+        assertEquals("/a/b", fileFolderService.getFoldersByFolderCounts("home", "", 10L, 20L, 2, 1).get(0).getPath());
+        // Numerical sorting when path not present
+        assertEquals("/a/a", fileFolderService.getFoldersByFolderCounts("home", null, 10L, 30L, 2, 1).get(0).getPath());
+        assertEquals("/a/c", fileFolderService.getFoldersByFolderCounts("home", null, 10L, 30L, 3, 1).get(0).getPath());
     }
     
     @Test

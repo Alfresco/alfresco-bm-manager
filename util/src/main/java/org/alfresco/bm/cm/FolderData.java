@@ -31,17 +31,19 @@ public class FolderData
     private final String id;
     private final String root;
     private final String path;
+    private final long folderCount;
     private final long fileCount;
 
     /**
      * @param id                the unique ID of the folder.  The value must be unique but is dependent on the format used by the system in test
      * @param root              a root folder that the path is relative to.  The format is determined by the target test system.
      * @param path              the folder patch from the root.  The <tt>root</tt> and <tt>path</tt> combination must be unique
+     * @param folderCount       the number of subfolders in the folder
      * @param fileCount         the number of files in the folder
      * 
      * @throws IllegalArgumentException if the values are <tt>null</tt>
      */
-    public FolderData(String id, String root, String path, long fileCount)
+    public FolderData(String id, String root, String path, long folderCount, long fileCount)
     {
         if (id == null || root == null || path == null)
         {
@@ -52,24 +54,19 @@ public class FolderData
         this.root = root;
         this.path = path;
         this.fileCount = fileCount;
+        this.folderCount = folderCount;
     }
 
     @Override
     public String toString()
     {
-        return "FolderData [id=" + id + ", root=" + root + ", path=" + path + ", fileCount=" + fileCount + "]";
+        return "FolderData [id=" + id + ", root=" + root + ", path=" + path + ", folderCount=" + folderCount + ", fileCount=" + fileCount + "]";
     }
 
     @Override
     public int hashCode()
     {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (int) (fileCount ^ (fileCount >>> 32));
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((path == null) ? 0 : path.hashCode());
-        result = prime * result + ((root == null) ? 0 : root.hashCode());
-        return result;
+        return (root.hashCode() + 31 * path.hashCode());
     }
 
     @Override
@@ -84,6 +81,7 @@ public class FolderData
         FolderData other = (FolderData) obj;
         
         return
+                this.folderCount == other.folderCount &&
                 this.fileCount == other.fileCount &&
                 this.id.equals(other.id) &&
                 this.root.equals(other.root) &&
@@ -105,6 +103,11 @@ public class FolderData
         return path;
     }
 
+    public long getFolderCount()
+    {
+        return folderCount;
+    }
+    
     public long getFileCount()
     {
         return fileCount;

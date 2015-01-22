@@ -45,8 +45,9 @@ public class FileFolderService implements InitializingBean
     public static final String FIELD_ID = "_id";
     public static final String FIELD_ROOT = "root";
     public static final String FIELD_PATH = "path";
-    public static final String FIELD_PARENT_PATH = "parentPath";
+//    public static final String FIELD_PARENT_PATH = "parentPath";      This field is not required at present
     public static final String FIELD_NAME = "name";
+    public static final String FIELD_FOLDER_COUNT = "folderCount";
     public static final String FIELD_FILE_COUNT = "fileCount";
     
     private static Log logger = LogFactory.getLog(FileFolderService.class);
@@ -83,17 +84,17 @@ public class FileFolderService implements InitializingBean
                 .get();
         collection.createIndex(uidxRootPath, optRootPath);
 
-        DBObject uidxRootParentName = BasicDBObjectBuilder.start()
-                .add(FIELD_ROOT, 1)
-                .add(FIELD_PARENT_PATH, 1)
-                .add(FIELD_NAME, 1)
-                .get();
-        DBObject optRootParentName = BasicDBObjectBuilder.start()
-                .add("name", "uidxRootParentName")
-                .add("unique", Boolean.FALSE)
-                .get();
-        collection.createIndex(uidxRootParentName, optRootParentName);
-
+//        DBObject uidxRootParentName = BasicDBObjectBuilder.start()
+//                .add(FIELD_ROOT, 1)
+//                .add(FIELD_PARENT_PATH, 1)
+//                .add(FIELD_NAME, 1)
+//                .get();
+//        DBObject optRootParentName = BasicDBObjectBuilder.start()
+//                .add("name", "uidxRootParentName")
+//                .add("unique", Boolean.FALSE)
+//                .get();
+//        collection.createIndex(uidxRootParentName, optRootParentName);
+//
         DBObject idxRootFileCount = BasicDBObjectBuilder.start()
                 .add(FIELD_ROOT, 1)
                 .add(FIELD_FILE_COUNT, 1)
@@ -103,6 +104,16 @@ public class FileFolderService implements InitializingBean
                 .add("unique", Boolean.FALSE)
                 .get();
         collection.createIndex(idxRootFileCount, optRootFileCount);
+
+        DBObject idxRootFolderCount = BasicDBObjectBuilder.start()
+                .add(FIELD_ROOT, 1)
+                .add(FIELD_FOLDER_COUNT, 1)
+                .get();
+        DBObject optRootFolderCount = BasicDBObjectBuilder.start()
+                .add("name", "idxRootFolderCount")
+                .add("unique", Boolean.FALSE)
+                .get();
+        collection.createIndex(idxRootFolderCount, optRootFolderCount);
     }
     
     /**
@@ -120,8 +131,9 @@ public class FileFolderService implements InitializingBean
         String id = (String) folderDataObj.get(FIELD_ID);
         String root = (String) folderDataObj.get(FIELD_ROOT);
         String path = (String) folderDataObj.get(FIELD_PATH);
+        Long folderCount = (Long) folderDataObj.get(FIELD_FOLDER_COUNT);
         Long fileCount = (Long) folderDataObj.get(FIELD_FILE_COUNT);
-        FolderData folderData = new FolderData(id, root, path, fileCount);
+        FolderData folderData = new FolderData(id, root, path, folderCount, fileCount);
         // Done
         return folderData;
     }
@@ -157,7 +169,7 @@ public class FileFolderService implements InitializingBean
      */
     public void createNewFolder(String id, String root, String path)
     {
-        FolderData folder = new FolderData(id, root, path, 0L);
+        FolderData folder = new FolderData(id, root, path, 0L, 0L);
         createNewFolder(folder);
     }
 
@@ -170,8 +182,9 @@ public class FileFolderService implements InitializingBean
                 .add(FIELD_ID, data.getId())
                 .add(FIELD_ROOT, data.getRoot())
                 .add(FIELD_PATH, data.getPath())
-                .add(FIELD_PARENT_PATH, data.getParentPath())
+//                .add(FIELD_PARENT_PATH, data.getParentPath())
                 .add(FIELD_NAME, data.getName())
+                .add(FIELD_FOLDER_COUNT, data.getFolderCount())
                 .add(FIELD_FILE_COUNT, data.getFileCount());
         DBObject insertObj = insertObjBuilder.get();
         
@@ -221,6 +234,40 @@ public class FileFolderService implements InitializingBean
     }
     
     /**
+     * Increment the count of the subfolders in a folder.
+     * 
+     * @param root              the root that the folder is in
+     * @param path              the path from the root
+     * @param fileCountInc      the file count increment (can be negative)
+     */
+    public void incrementFolderCount(String root, String path, long folderCountInc)
+    {
+        DBObject queryObj = BasicDBObjectBuilder.start()
+                .add(FIELD_ROOT, root)
+                .add(FIELD_PATH, path)
+                .get();
+        DBObject updateObj = BasicDBObjectBuilder.start()
+                .push("$inc")
+                    .add(FIELD_FOLDER_COUNT, folderCountInc)
+                .pop()
+                .get();
+        WriteResult result = collection.update(queryObj, updateObj);
+        if (result.getN() != 1)
+        {
+            throw new RuntimeException(
+                    "Failed to update folder's subfolder count: \n" +
+                    "   Root:   " + root + "\n" +
+                    "   Path:   " + path + "\n" +
+                    "   Result:   " + result);
+        }
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Incremented the subfolder count on " + root + "/" + path + " by " + folderCountInc);
+        }
+    }
+    
+    /**
      * Increment the count of the files in a folder.
      * 
      * @param root              the root that the folder is in
@@ -254,76 +301,149 @@ public class FileFolderService implements InitializingBean
         }
     }
     
+//    /**
+//     * Produces a count of the folders that have the given root and path as a <b>parent</b> folder.
+//     * <p/>
+//     * If the following files exist:
+//     * <pre>
+//     *      /home/tests/a
+//     *      /home/tests/b
+//     * </pre>
+//     * then the counts for:
+//     * <pre>
+//     *      /home/tests
+//     * </pre>
+//     * will be <tt>2</tt>
+//     * 
+//     * @return      the folder count
+//     */
+//    public long countChildFolders(String root, String path)
+//    {
+//        DBObject queryObj = BasicDBObjectBuilder.start()
+//                .add(FIELD_ROOT, root)
+//                .add(FIELD_PARENT_PATH, path)
+//                .get();
+//        long count = collection.count(queryObj);
+//        // Done
+//        if (logger.isDebugEnabled())
+//        {
+//            logger.debug("Count of children for " + root + path + ": " + count);
+//        }
+//        return count;
+//    }
+//    
+//    /**
+//     * Get a list of folders that have the given root and path as a <b>parent</b> folder.
+//     * <p/>
+//     * If the path given is:
+//     * <pre>
+//     *      /home/tests
+//     * </pre>
+//     * then the following results can be returned:
+//     * <pre>
+//     *      /home/tests/a
+//     *      /home/tests/b
+//     * </pre>
+//     * 
+//     * @param root              the root that the folder is in
+//     * @param path              the path that will be the parent of all child folders returned
+//     * @param skip              the number of entries to skip
+//     * @param limit             the number of entries to return
+//     * @return                  the child folders
+//     */
+//    public List<FolderData> getChildFolders(String root, String path, int skip, int limit)
+//    {
+//        DBObject queryObj = BasicDBObjectBuilder.start()
+//                .add(FIELD_ROOT, root)
+//                .add(FIELD_PARENT_PATH, path)
+//                .get();
+//        DBObject sortObj = BasicDBObjectBuilder.start()
+//                .add(FIELD_ROOT, 1)
+//                .add(FIELD_PARENT_PATH, 1)
+//                .get();
+//        DBCursor cursor = collection.find(queryObj).sort(sortObj).skip(skip).limit(limit);
+//        List<FolderData> results = fromDBCursor(cursor);
+//        // Done
+//        if (logger.isDebugEnabled())
+//        {
+//            logger.debug("Found " + results.size() + " results in folder " + root + path);
+//        }
+//        return results;
+//    }
+//    
     /**
-     * Produces a count of the folders that have the given root and path as a <b>parent</b> folder.
-     * <p/>
-     * If the following files exist:
-     * <pre>
-     *      /home/tests/a
-     *      /home/tests/b
-     * </pre>
-     * then the counts for:
-     * <pre>
-     *      /home/tests
-     * </pre>
-     * will be <tt>2</tt>
+     * Get a list of folders filtered by the number of child files
      * 
-     * @return      the folder count
-     */
-    public long countChildFolders(String root, String path)
-    {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_ROOT, root)
-                .add(FIELD_PARENT_PATH, path)
-                .get();
-        long count = collection.count(queryObj);
-        // Done
-        if (logger.isDebugEnabled())
-        {
-            logger.debug("Count of children for " + root + path + ": " + count);
-        }
-        return count;
-    }
-    
-    /**
-     * Get a list of folders that have the given root and path as a <b>parent</b> folder.
-     * <p/>
-     * If the path given is:
-     * <pre>
-     *      /home/tests
-     * </pre>
-     * then the following results can be returned:
-     * <pre>
-     *      /home/tests/a
-     *      /home/tests/b
-     * </pre>
-     * 
-     * @param root              the root that the folder is in
-     * @param path              the path that will be the parent of all child folders returned
+     * @param root              the root that the folder is in (mandatory)
+     * @param path              the path that will be the parent of all child folders returned (optional).
+     *                          The given folder at the given path and <b>all subfolders</b> will be included.
+     * @param minFolders        the minimum number of subfolders in the folder (inclusive, optional)
+     * @param maxFolders        the maximum number of subfolders in the folder (inclusive, optional)
      * @param skip              the number of entries to skip
      * @param limit             the number of entries to return
-     * @return                  the child folders
+     * @return                  the folders with the correct number of children
      */
-    public List<FolderData> getChildFolders(String root, String path, int skip, int limit)
+    public List<FolderData> getFoldersByFolderCounts(
+            String root, String path,
+            Long minFolders, Long maxFolders,
+            int skip, int limit)
     {
-        DBObject queryObj = BasicDBObjectBuilder.start()
-                .add(FIELD_ROOT, root)
-                .add(FIELD_PARENT_PATH, path)
-                .get();
-        DBObject sortObj = BasicDBObjectBuilder.start()
-                .add(FIELD_ROOT, 1)
-                .add(FIELD_PARENT_PATH, 1)
-                .get();
+        BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start()
+                .add(FIELD_ROOT, root);
+        if (path != null)
+        {
+            queryObjBuilder.add(FIELD_PATH, java.util.regex.Pattern.compile("^" + path));
+        }
+        if (minFolders != null || maxFolders != null)
+        {
+            queryObjBuilder.push(FIELD_FOLDER_COUNT);
+            {
+                if (minFolders != null)
+                {
+                    queryObjBuilder.add("$gte", minFolders);
+                }
+                if (maxFolders != null)
+                {
+                    queryObjBuilder.add("$lte", maxFolders);
+                }
+            }
+            queryObjBuilder.pop();
+        }
+        DBObject queryObj = queryObjBuilder.get();
+        
+        DBObject sortObj = null;
+        if (path != null)
+        {
+            sortObj = BasicDBObjectBuilder.start()
+                    .add(FIELD_ROOT, 1)
+                    .add(FIELD_PATH, 1)
+                    .get();
+        }
+        else
+        {
+            sortObj = BasicDBObjectBuilder.start()
+                    .add(FIELD_ROOT, 1)
+                    .add(FIELD_FOLDER_COUNT, 1)
+                    .get();
+        }
+        
         DBCursor cursor = collection.find(queryObj).sort(sortObj).skip(skip).limit(limit);
         List<FolderData> results = fromDBCursor(cursor);
         // Done
         if (logger.isDebugEnabled())
         {
-            logger.debug("Found " + results.size() + " results in folder " + root + path);
+            logger.debug(
+                    "Found " + results.size() + " results for file counts: \n" +
+                    "   root:       " + root + "\n" +
+                    "   path:       " + path + "\n" +
+                    "   minFolders: " + minFolders + "\n" +
+                    "   maxFolders: " + maxFolders + "\n" +
+                    "   skip:       " + skip + "\n" +
+                    "   limit:      " + limit);
         }
         return results;
     }
-    
+
     /**
      * Get a list of folders filtered by the number of child files
      * 
@@ -334,9 +454,12 @@ public class FileFolderService implements InitializingBean
      * @param maxFiles          the maximum number of files in the folder (inclusive, optional)
      * @param skip              the number of entries to skip
      * @param limit             the number of entries to return
-     * @return                  the child folders
+     * @return                  the folders with the correct number of children
      */
-    public List<FolderData> getFoldersByFileCounts(String root, String path, Long minFiles, Long maxFiles, int skip, int limit)
+    public List<FolderData> getFoldersByFileCounts(
+            String root, String path,
+            Long minFiles, Long maxFiles,
+            int skip, int limit)
     {
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start()
                 .add(FIELD_ROOT, root);
