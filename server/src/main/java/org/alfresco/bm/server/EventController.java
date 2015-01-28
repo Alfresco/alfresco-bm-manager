@@ -386,14 +386,14 @@ runStateChanged:
     /** Keep track of event names that have been warned about w.r.t. missing event processors. */
     private Set<String> nullEventProcessorWarnings = Collections.synchronizedSet(new HashSet<String>());
     /**
-     * Get a processor for the event.  If an event is not mapped, and error is logged
+     * Get a processor for the event.  If an event is not mapped, an error is logged
      * and the event is effectively absorbed.
      */
     private EventProcessor getProcessor(Event event)
     {
         String eventName = event.getName();
         EventProcessor processor = eventProcessors.getProcessor(eventName);
-        if (processor == null && nullEventProcessorWarnings.add(eventName))
+        if (processor == null)
         {
             String msg =
                     "No event processor mapped to event.  Use a TerminateEventProducer to silently route events to nowhere: \n" +
@@ -404,7 +404,10 @@ runStateChanged:
             {
                 logger.debug("\n" + msg);
             }
-            logService.log(LogLevel.WARN, msg);
+            if (nullEventProcessorWarnings.add(eventName))
+            {
+                logService.log(LogLevel.WARN, msg);
+            }
             
             // Assign to do nothing
             processor = doNothingProcessor;
