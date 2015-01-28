@@ -19,6 +19,7 @@
 package org.alfresco.bm.cm;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Data representing folder
@@ -29,44 +30,56 @@ import org.apache.commons.io.FilenameUtils;
 public class FolderData
 {
     private final String id;
-    private final String root;
+    private final String context;
     private final String path;
+    private final int level;
+    private final String name;
+    private final String parentPath;
     private final long folderCount;
     private final long fileCount;
 
     /**
      * @param id                the unique ID of the folder.  The value must be unique but is dependent on the format used by the system in test
-     * @param root              a root folder that the path is relative to.  The format is determined by the target test system.
-     * @param path              the folder patch from the root.  The <tt>root</tt> and <tt>path</tt> combination must be unique
+     * @param context           an arbitrary context in which the folder path is valid.  The format is determined by the target test system.
+     * @param path              the folder path with the given context.  The <tt>context</tt> and <tt>path</tt> combination must be unique
      * @param folderCount       the number of subfolders in the folder
      * @param fileCount         the number of files in the folder
      * 
      * @throws IllegalArgumentException if the values are <tt>null</tt>
      */
-    public FolderData(String id, String root, String path, long folderCount, long fileCount)
+    public FolderData(String id, String context, String path, long folderCount, long fileCount)
     {
-        if (id == null || root == null || path == null)
+        if (id == null || context == null || path == null)
         {
             throw new IllegalArgumentException();
         }
+        if (!path.isEmpty() && (!path.startsWith("/") || path.endsWith("/")))
+        {
+            throw new IllegalArgumentException("Path must start with '/' and not end with '/'.");
+        }
         
         this.id = id;
-        this.root = root;
+        this.context = context;
         this.path = path;
         this.fileCount = fileCount;
         this.folderCount = folderCount;
+        
+        // Derived data
+        this.level = StringUtils.countMatches(path,  "/");
+        this.name = FilenameUtils.getName(path);
+        this.parentPath = FilenameUtils.getFullPathNoEndSeparator(path);
     }
 
     @Override
     public String toString()
     {
-        return "FolderData [id=" + id + ", root=" + root + ", path=" + path + ", folderCount=" + folderCount + ", fileCount=" + fileCount + "]";
+        return "FolderData [id=" + id + ", context=" + context + ", path=" + path + ", folderCount=" + folderCount + ", fileCount=" + fileCount + "]";
     }
 
     @Override
     public int hashCode()
     {
-        return (root.hashCode() + 31 * path.hashCode());
+        return (context.hashCode() + 31 * path.hashCode());
     }
 
     @Override
@@ -84,7 +97,7 @@ public class FolderData
                 this.folderCount == other.folderCount &&
                 this.fileCount == other.fileCount &&
                 this.id.equals(other.id) &&
-                this.root.equals(other.root) &&
+                this.context.equals(other.context) &&
                 this.path.equals(other.path);
     }
 
@@ -93,14 +106,37 @@ public class FolderData
         return id;
     }
 
-    public String getRoot()
+    public String getContext()
     {
-        return root;
+        return context;
     }
 
     public String getPath()
     {
         return path;
+    }
+    
+    public int getLevel()
+    {
+        return level;
+    }
+    
+    /**
+     * @see FilenameUtils#getName(String)
+     */
+    public String getName()
+    {
+        return name;
+    }
+    
+    /**
+     * Get the path that the parent would have.
+     * 
+     * @return      the parent path i.e. the path without the {@link #getName() name} of this folder
+     */
+    public String getParentPath()
+    {
+        return parentPath;
     }
 
     public long getFolderCount()
@@ -111,23 +147,5 @@ public class FolderData
     public long getFileCount()
     {
         return fileCount;
-    }
-    
-    /**
-     * @see FilenameUtils#getName(String)
-     */
-    public String getName()
-    {
-        return FilenameUtils.getName(path);
-    }
-    
-    /**
-     * Get the path that the parent would have.
-     * 
-     * @return      the parent path i.e. the path without the {@link #getName() name} of this folder
-     */
-    public String getParentPath()
-    {
-        return FilenameUtils.getFullPathNoEndSeparator(path);
     }
 }
