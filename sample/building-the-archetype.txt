@@ -24,6 +24,7 @@ Test locally
 > cd <your-artiface-id>
 > mvn clean install
 > cd ..
+> rm -rf <your-artifact-id>
 
 Deploy archetype
 > cd ..
