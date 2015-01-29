@@ -6,7 +6,7 @@ Copy the 'src' folder to the archetype
 > cd archetype
 
 Update dependency versions numbers
-find . -name archetype-metatadata.xml | xargs sed -i -e 's/2.0.4-SNAPSHOT/2.0.4/g'
+find . -name archetype-metadata.xml | xargs sed -i -e 's/2.0.4-SNAPSHOT/2.0.4/g'
 find . -name archetype.properties | xargs sed -i -e 's/server-version=2.0.4-SNAPSHOT/server-version=2.0.4/g'
 
 Check all properties and configuration files
