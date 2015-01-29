@@ -5,6 +5,10 @@ Copy the 'src' folder to the archetype
 > cp -R src archetype\src\main\resources\archetype-resources
 > cd archetype
 
+Update dependency versions numbers
+find . -name archetype-metatadata.xml | xargs sed -i -e 's/2.0.4-SNAPSHOT/2.0.4/g'
+find . -name archetype.properties | xargs sed -i -e 's/server-version=2.0.4-SNAPSHOT/server-version=2.0.4/g'
+
 Check all properties and configuration files
 > start pom.xml
 > start src\main\resources\archetype-resources\pom.xml
