@@ -1,5 +1,5 @@
 /* 
-Filter rows marked as "filtrable" based on filtre-value data searched in "filtre" input
+Filter rows marked as "filterable" based on filter-value data searched in "filtre" input
 This will also expand and collapse the "test list-groups" in order to view all the filtered values
 */ 
 
@@ -24,7 +24,7 @@ function TestProperties($scope) {
         properties.showAll(" ng-hide");
         return;
       }
-      filterValue.innerHTML = ".filtrable:not([filtre-value*=\"" + this.value.toLowerCase() + "\"]) { display: none; }";
+      filterValue.innerHTML = ".filterable:not([filter-value*=\"" + this.value.toLowerCase() + "\"]) { display: none; }";
       properties.showAll("");
       });
     });
