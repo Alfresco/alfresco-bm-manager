@@ -44,6 +44,12 @@
                     <li ng-repeat="breadcrumb in breadcrumbs.getAll()" class="{{breadcrumb.active}}">
                         <a href="#{{breadcrumb.path}}">{{breadcrumb.name}}</a>
                     </li>
+                     <form class="navbar-form navbar-left ng-pristine" ng-if="breadcrumbs.getLast().name == 'properties'" ng-app="Filter" ng-controller="TestProperties">
+                        <div class="form-group">
+                            <input type="search" placeholder="filter..." class="form-control" value="" id="filter">
+                            <style id="filter_value"></style>
+                        </div>
+                    </form>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -70,6 +76,7 @@
     <script src="benchmark/run/benchmark-run.js"></script>
     <script src="benchmark/d3benchmark.js"></script>
     <script src="js/d3/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/filter.js"></script>
 </body>
 
 </html>

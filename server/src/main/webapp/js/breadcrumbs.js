@@ -30,6 +30,9 @@ angular.module('benchmark-breadcrumbs', [])
             factory.getFirst = function() {
                 return breadcrumbs[0] || {};
             };
+            factory.getLast = function() {
+                return breadcrumbs[breadcrumbs.length-1] || {};
+            };
             return factory;
         }
     ])
