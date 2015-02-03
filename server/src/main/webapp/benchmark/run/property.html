@@ -78,7 +78,7 @@
         <!-- Collapse group -->
         <!-- List group -->
         <ul class="test list-group" id="property-{{prop.uid}}" ng-hide="prop.collapsed">
-            <li class="list-group-item" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse ">
+            <li class="list-group-item filterable" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse "  filter-value="{{item.title.toLowerCase()}}">
                 <div class="row">                                               
                     <div class="col-xs-6 col-md-6">
                         <h4 class="panel-title">{{item.title}} </h4> 
