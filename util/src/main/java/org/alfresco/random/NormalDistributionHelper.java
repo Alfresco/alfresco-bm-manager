@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2014 Alfresco Software Limited.
+ * Copyright (C) 2005-2015 Alfresco Software Limited.
  *
  * This file is part of Alfresco
  *
@@ -21,7 +21,8 @@ package org.alfresco.random;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 /**
- * Normal time distribution
+ * Utility functions guided by the
+ * <a href="http://en.wikipedia.org/wiki/Normal_distribution">Normal Distribution</a>.
  * 
  * @author Derek Hulley
  * @since 1.2
@@ -40,19 +41,21 @@ public class NormalDistributionHelper
     
     /**
      * Get a random long where a standard deviation of 1.0 corresponds to the
-     * min and max values provided.  The returned values is cut off at the
-     * minimum and maximum values given. 
+     * min and max values provided.  The sampling is repeated until a value is
+     * found within the range given.
      */
     public long getValue(long min, long max)
     {
-        double sample = normalDistribution.sample();
-        if (sample < -1.0)
+        if (min > max)
         {
-            sample = -1.0;
+            throw new IllegalArgumentException("Min must less than or equal to max.");
         }
-        else if (sample > 1.0)
+        
+        double sample = -2.0;
+        // Keep sampling until we get something within bounds of the standard deviation
+        while (sample < -1.0 || sample > 1.0)
         {
-            sample = 1.0;
+            sample = normalDistribution.sample();
         }
         long halfRange = (max - min)/2L;
         long mean = min + halfRange;
