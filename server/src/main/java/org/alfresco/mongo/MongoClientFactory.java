@@ -18,6 +18,8 @@
  */
 package org.alfresco.mongo;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
@@ -83,10 +85,8 @@ public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableB
      */
     public MongoClientFactory(MongoClientURI mongoClientURI, String username, String password) throws UnknownHostException
     {
-        if (mongoClientURI == null)
-        {
-            throw new IllegalArgumentException("'mongoClientURI' argument may not be null.");
-        }
+        validateMongoURI(mongoClientURI);
+
         if (mongoClientURI.getDatabase() != null)
         {
             throw new IllegalArgumentException(
@@ -152,5 +152,31 @@ public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableB
     public void destroy() throws Exception
     {
         mongoClient.close();
+    }
+    
+    /**
+     * Validates Mongo DB URI 
+     * @param mongoClientURI {MongoClientURI} must not be null and host must contain valid URI only. 
+     */
+    private void validateMongoURI(MongoClientURI mongoClientURI)
+    {
+        if (null== mongoClientURI)
+        {
+            throw new IllegalArgumentException("'mongoClientURI' argument may not be null.");
+        }
+        for(String host : mongoClientURI.getHosts())
+        {
+            if ( null != host && host.trim().length() > 0)
+            {
+                try
+                {
+                    new URI(host);
+                }
+                catch (URISyntaxException e)
+                {
+                    throw new IllegalArgumentException("'mongoClientURI' argument must contain valid URI only.", e);
+                }
+            }
+        }
     }
 }
