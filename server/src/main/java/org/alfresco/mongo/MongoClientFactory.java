@@ -18,6 +18,8 @@
  */
 package org.alfresco.mongo;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
@@ -83,10 +85,8 @@ public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableB
      */
     public MongoClientFactory(MongoClientURI mongoClientURI, String username, String password) throws UnknownHostException
     {
-        if (mongoClientURI == null)
-        {
-            throw new IllegalArgumentException("'mongoClientURI' argument may not be null.");
-        }
+        validateMongoClientURI(mongoClientURI);
+
         if (mongoClientURI.getDatabase() != null)
         {
             throw new IllegalArgumentException(
@@ -152,5 +152,50 @@ public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableB
     public void destroy() throws Exception
     {
         mongoClient.close();
+    }
+    
+    
+    /**
+     * Validates MongoClientURI 
+     * @param mongoClientURI {MongoClientURI} must not be null and contain valid host and (optional) port. 
+     */
+    private void validateMongoClientURI(MongoClientURI mongoClientURI)
+    {
+        // 1. Argument not optional
+        if (null== mongoClientURI)
+        {
+            throw new IllegalArgumentException("'mongoClientURI' argument may not be null.");
+        }
+        
+        // 2.  Validate host
+        for(String host : mongoClientURI.getHosts())
+        {
+            // ensure not null or empty or just whitespace chars
+            if ( null != host && host.trim().length() > 0)
+            {
+                try
+                {
+                    // create a URI from the host name - may throw URISyntaxException
+                    URI uri = new URI("my://" + host); 
+                    
+                    // get host without port from URI
+                    host = uri.getHost();
+
+                    if (null == host || host.trim().length() == 0 )
+                    {
+                        throw new IllegalArgumentException("'mongoClientURI' argument must contain a valid host.");
+                    }
+                }
+                catch (URISyntaxException ex)
+                {
+                    // validation failed due to malformed host
+                    throw new IllegalArgumentException("'mongoClientURI' argument must contain a valid host.", ex);
+                }
+            }
+            else
+            {
+                throw new IllegalArgumentException("'mongoClientURI' argument: host is mandatory.");
+            }
+        }
     }
 }
