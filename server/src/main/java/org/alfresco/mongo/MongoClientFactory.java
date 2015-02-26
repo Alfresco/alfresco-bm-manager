@@ -183,18 +183,18 @@ public class MongoClientFactory implements FactoryBean<MongoClient>, DisposableB
 
                     if (null == host || host.trim().length() == 0 )
                     {
-                        throw new IllegalArgumentException("'mongoClientURI' argument must contain a valid host.");
+                        throw new IllegalArgumentException("'mongoClientURI' argument must contain a valid host: " + mongoClientURI);
                     }
                 }
                 catch (URISyntaxException ex)
                 {
                     // validation failed due to malformed host
-                    throw new IllegalArgumentException("'mongoClientURI' argument must contain a valid host.", ex);
+                    throw new IllegalArgumentException("'mongoClientURI' argument must contain a valid host: " + mongoClientURI);
                 }
             }
             else
             {
-                throw new IllegalArgumentException("'mongoClientURI' argument: host is mandatory.");
+                throw new IllegalArgumentException("'mongoClientURI' argument: host is mandatory: " + mongoClientURI);
             }
         }
     }

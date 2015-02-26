@@ -58,6 +58,7 @@ import com.mongodb.DBObject;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.MongoTimeoutException;
 import com.mongodb.util.JSON;
 
 /**
@@ -1042,6 +1043,16 @@ public class TestRestAPI extends AbstractRestResource
                         }
                         collection.drop();
                     }
+                }
+                catch (IllegalArgumentException e)
+                {
+                    // This is valid if MongoDB host was not set
+                    logService.log(null, test, run, LogLevel.WARN, "Unable to clean test run '" + run + "' in test '" + test + "': " + e.getMessage());
+                }
+                catch (MongoTimeoutException e)
+                {
+                    // This is valid if the test run does not reference a valid MongoDB host
+                    logService.log(null, test, run, LogLevel.WARN, "Unable to clean test run '" + run + "' in test '" + test + "'; MongoDB connection timed out: " + mongoTestHost);
                 }
                 finally
                 {
