@@ -136,15 +136,24 @@ public class LifecycleController
         StringBuffer sb = new StringBuffer(1024);
         sb.append("\nStarting ...");
         
-        logger.debug("Starting components: " + name);
+        if (logger.isDebugEnabled())
+        {        
+            logger.debug("Starting components: " + name);
+        }
         for (LifecycleListener listener : lifecycleListeners)
         {
             String listenerName = listener.getClass().getName();
-            logger.debug("   Starting component: " + listenerName);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("   Starting component: " + listenerName);
+            }
             try
             {
                 listener.start();
-                logger.debug("   Started component: " + listenerName);
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("   Started component: " + listenerName);
+                }
                 sb.append("\n   Started component: " + listenerName);
             }
             catch (Exception e)
@@ -171,7 +180,10 @@ public class LifecycleController
                 }
             }
         }
-        logger.debug("Started components: " + name);
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Started components: " + name);
+        }
         log.append(sb.toString());
     }
     
@@ -191,15 +203,24 @@ public class LifecycleController
         StringBuffer sb = new StringBuffer(1024);
         sb.append("\nStopping ...");
         
-        logger.debug("Stopping components: " + name);
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Stopping components: " + name);
+        }
         for (LifecycleListener listener : lifecycleListeners)
         {
             String listenerName = listener.getClass().getName();
-            logger.debug("   Stopping component: " + listenerName);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("   Stopping component: " + listenerName);
+            }
             try
             {
                 listener.stop();
-                logger.debug("   Stopped component: " + listenerName);
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("   Stopped component: " + listenerName);
+                }
                 sb.append("\n   Stopped component: " + listenerName);
             }
             catch (Exception e)
@@ -221,7 +242,10 @@ public class LifecycleController
                 sb.append("\n").append(stackWriter.getBuffer().toString());
             }
         }
-        logger.debug("Stopped components: " + name);
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Stopped components: " + name);
+        }
         log.append(sb.toString());
     }
     
