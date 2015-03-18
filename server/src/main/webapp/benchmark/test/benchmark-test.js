@@ -360,14 +360,30 @@
             $scope.master = {};
             $scope.defs = {};
             $scope.nodefs = false;
-            TestDefService.getAllTestDefs(function(response) {
-                $scope.defs = response;
-                if ($scope.defs.length == 0) {
-                    $scope.nodefs = true;
+            $scope.showActiveTests = true;
+            
+            $scope.showActiveTestDefs = function(value) {
+                if (value == true) {
+                    TestDefService.getTestDefs(function(response) {
+                    $scope.defs = response;
+                    if ($scope.defs.length == 0) {
+                        $scope.nodefs = true;
+                    } else {
+                        $scope.nodefs = false;
+                    }
+                   }); 
                 } else {
-                    $scope.nodefs = false;
-                }
-            });
+                    TestDefService.getAllTestDefs(function(response) {
+                    $scope.defs = response;
+                    if ($scope.defs.length == 0) {
+                        $scope.nodefs = true;
+                    } else {
+                        $scope.nodefs = false;
+                    }
+                   }); 
+                };
+            };
+
             $scope.update = function(test) {
                 $scope.master = angular.copy(test);
             };
@@ -409,6 +425,7 @@
                     $scope.errorMsg = "Valid test version and schema is required.";
                 }
             }
+            $scope.showActiveTestDefs(true);
             $scope.reset();
         }
     ])

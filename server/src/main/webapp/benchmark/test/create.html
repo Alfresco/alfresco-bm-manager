@@ -30,7 +30,8 @@
                 <select class="form-control" ng-model="test.def">
                     <option ng-repeat="item in defs" value="{{item.release}}-schema:{{item.schema}}">{{item.release}}-schema:{{item.schema}}</option>
                 </select>
-                <span ng-show="nodefs">No active test found</span>
+                <input type="checkbox" ng-model="showActiveTests" ng-checked="true" ng-change="showActiveTestDefs(showActiveTests)"> show only active tests definition
+                <span ng-show="nodefs"><i>(No active tests found)</i></span>
             </div>
         </div>
 
