@@ -446,6 +446,24 @@
                     ind.collapsed = true;
                 };
             }
+            $scope.attentionRequired = false;
+
+            $scope.attentionReq = function(item) {
+                //for the case when we don't have a value and default '--' one exists
+                if (angular.isUndefined(item.value) && item.default.indexOf('--') > -1)
+                {
+                    $scope.attentionRequired = true;
+                    $scope.attentionMessage = "* {" + item.group + " / " +item.name + "}: A value must be set.";
+                }
+
+                var isAttentionReq = item.value.indexOf('--') > -1;
+                if (isAttentionReq)
+                {
+                    $scope.attentionRequired = true;
+                    $scope.attentionMessage = "* {" + item.group + " / " +item.name + "}: A value must be set.";
+                }
+                return isAttentionReq;
+            }
         }
     ])
 
