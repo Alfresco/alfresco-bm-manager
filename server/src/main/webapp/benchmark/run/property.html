@@ -1,3 +1,10 @@
+<div ng-show="attentionRequired" class="alert alert-danger alert-dismissible fade in">
+      <button aria-label="Close" data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span></button>
+      <h4 id="attention-required">Attention Required<a href="#oh-snap!-you-got-an-error!" class="anchorjs-link"><span class="anchorjs-icon"></span></a></h4>
+  <p>Please review the following properties values before starting your tests:</p>
+  <h6><i>{{attentionMessage}}</i></h6>
+</div>
+
 <div class="panel panel-default">
     <div class="panel-body ">
         <div class="row" ng-show="runNameEditorEnabled">
@@ -86,7 +93,9 @@
                             {{item.description}}
                         </p>
                     </div>
+
                     <div class="col-xs-6 col-md-6">
+                        <span ng-show="attentionReq(item)"></span>
                         <span ng-show="readOnly">{{item.value}}</span>                                             
                         <span ng-show="!readOnly"> 
                             <div ng-hide="propertyEditorEnabled">
@@ -107,7 +116,7 @@
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset </button>
                                     </span>
                                     <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">                                                                                  
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">
                                     <span class="input-group-btn">
                                         <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
                                             <span class="glyphicon glyphicon-remove" />
@@ -119,7 +128,7 @@
                                 </div>
                                 <div ng-hide="item.mask">{{item.default}}</div>
                             </div>
-                        </div>
+                        </div> 
                     </div>
                 </div>
             </li>

@@ -171,6 +171,7 @@
             $scope.master = {};
             $scope.drivers = {"collapsed":true};
             $scope.drivers.prop = [];
+            $scope.attentionRequired=false;
             var myname = $location.path().split('/');
             var testname = myname[2];
 
@@ -349,6 +350,17 @@
                 $scope.data.tests = TestService.getTests();
                 $location.path("/tests/");
             }
+
+            $scope.attentionReq = function(item) {
+                var isAttentionReq = item.value.indexOf('--') > -1;
+                if (isAttentionReq)
+                {
+                    $scope.attentionRequired = true;
+                    $scope.attentionMessage = "* {" + item.group + " / " +item.name + "} = should not contain '---' chars.";
+                }
+                return isAttentionReq;
+            }
+            
         }
     ])
 
