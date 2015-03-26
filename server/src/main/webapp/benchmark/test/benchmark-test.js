@@ -377,7 +377,26 @@
             $scope.showActiveTestDefs = function(value) {
                 if (value == true) {
                     TestDefService.getTestDefs(function(response) {
-                    $scope.defs = response;
+                    var uniqueDefs = [];    //this will contain the unique list of final custom test defs
+                    var isReleaseFound = function (releaseName) {
+                          for(var i = 0; i < uniqueDefs.length; i++){
+                            if(uniqueDefs[i]["release"]==releaseName){
+                                uniqueDefs[i]["count"] +=1;
+                                return true;
+                            }
+                          }
+                          return false;
+                    };
+                    
+                    for(var i = 0; i < response.length; i++){
+                        if (!isReleaseFound(response[i]["release"]))
+                        {
+                            response[i]["count"]= 1;
+                            uniqueDefs.push(response[i]);         
+                        }
+                    }
+                    
+                    $scope.defs = uniqueDefs;
                     if ($scope.defs.length == 0) {
                         $scope.nodefs = true;
                     } else {
