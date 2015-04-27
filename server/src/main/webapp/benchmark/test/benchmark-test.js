@@ -571,13 +571,33 @@
 
             //callback for ng-click 'renameTest'
             $scope.executeCopyTest = function(test) {
-                var postData = {
-                    "copyOf": $scope.data.name,
-                    "version": $scope.data.version,
-                    "release": $scope.data.release,
-                    "schema": $scope.data.schema,
-                    "name": test.name
-                };
+                if (test.def !== undefined) {
+                    var def = test.def.split("-schema:");
+                    var release = def[0];
+                    var schema = def[1];
+                    var postData = {
+                        "copyOf": $scope.data.name,
+                        "version": $scope.data.version,
+                        "release": release,
+                        "schema": schema,
+                        "name": test.name
+                    };
+                    TestService.saveTest({}, postData, function(res) {
+                        if (res.name === postData.name) {
+                            $location.path("/tests/" + res.name + "/properties");
+                        }
+                    }, function error(error) {
+                        $scope.hasError = true;
+                        if (error.status == 500) {
+                            $scope.errorMsg = "The name already exists, please choose another unique name.";
+                        } else {
+                            $scope.errorMsg = error.data.error;
+                        }
+                    });
+                } else {
+                    $scope.hasError = true;
+                    $scope.errorMsg = "Valid test version and schema is required.";
+                }
 
                 TestService.copyTest({}, postData, function(res) {
                         $scope.response = res;
