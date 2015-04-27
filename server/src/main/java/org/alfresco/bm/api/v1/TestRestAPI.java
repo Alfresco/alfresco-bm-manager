@@ -209,7 +209,7 @@ public class TestRestAPI extends AbstractRestResource
             if (copy)
             {
                 // This is a copy
-                written = testDAO.copyTest(name, copyOf, version);
+                written = testDAO.copyTest(name, release, schema, copyOf, version);
                 if (!written)
                 {
                     DBObject copyOfObj = testDAO.getTest(copyOf, false);

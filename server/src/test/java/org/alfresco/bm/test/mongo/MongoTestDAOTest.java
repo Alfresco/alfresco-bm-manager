@@ -1012,17 +1012,17 @@ public class MongoTestDAOTest implements TestConstants
         cursor.close();
         
         // Copy the test
-        assertFalse("Copied test version should not have matched", dao.copyTest("testA_CP1", testA, 1));
+        assertFalse("Copied test version should not have matched", dao.copyTest("testA_CP1", null, null, testA, 1));
         try
         {
-            dao.copyTest("testA(CP1)", testA, 0);
+            dao.copyTest("testA(CP1)", null, null, testA, 0);
             fail("Copy test name not validated");
         }
         catch (IllegalArgumentException e)
         {
             // Expected
         }
-        assertTrue(dao.copyTest("testA_CP1", testA, 0));
+        assertTrue(dao.copyTest("testA_CP1", null, null, testA, 0));
 
         // Should be copied without runs
         cursor = dao.getTestRuns("testA_CP1", 0, 5);
@@ -1032,6 +1032,19 @@ public class MongoTestDAOTest implements TestConstants
         // Check properties
         checkPropertyValue(testA, null, "one.str", "ONE DEFAULT", "SET_AT_TEST", 1, TestPropertyOrigin.TEST);
         checkPropertyValue("testA_CP1", null, "one.str", "ONE DEFAULT", "SET_AT_TEST", 1, TestPropertyOrigin.TEST);
+        
+        // Create a new test and copy-create from one to the other
+        String testB = createTest(null);
+        DBObject testBObj = dao.getTest(testB, false);
+        String testBRelease = (String) testBObj.get(FIELD_RELEASE);
+        Integer testBSchema = (Integer) testBObj.get(FIELD_SCHEMA);
+        assertTrue(dao.copyTest("testB_CP1", testBRelease, testBSchema, testA, 0));
+        assertEquals(testBRelease, dao.getTest("testB_CP1", false).get(FIELD_RELEASE));
+        assertEquals(testBSchema, dao.getTest("testB_CP1", false).get(FIELD_SCHEMA));
+        
+        // Check properties
+        checkPropertyValue("testB_CP1", null, "one.str", "ONE DEFAULT", "SET_AT_TEST", 1, TestPropertyOrigin.TEST);
+        
     }
     
     @Test

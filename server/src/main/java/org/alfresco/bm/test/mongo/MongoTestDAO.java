@@ -826,11 +826,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
      * Test runs are not copied.
      * 
      * @param name                  a globally-unique name using {@link ConfigConstants#TEST_NAME_REGEX}
+     * @param release               the test definition software release or <tt>null</tt> to use the same release as the source test
+     * @param schema                the schema number or <tt>null</tt> to use the same schema as the source test
      * @param copyOfTest            the test name to copy
      * @param copyOfVersion         the version of the test to copy
      * @return                      <tt>true</tt> if the test was copied or <tt>false</tt> if not
      */
-    public boolean copyTest(String test, String copyOfTest, int copyOfVersion)
+    public boolean copyTest(String test, String release, Integer schema, String copyOfTest, int copyOfVersion)
     {
         // Get the test
         DBObject copyOfTestObj = getTest(copyOfTest, true);
@@ -839,8 +841,15 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             logger.warn("Did not find test to copy: " + test + " (V" + copyOfVersion + ")");
             return false;
         }
-        String release = (String) copyOfTestObj.get(FIELD_RELEASE);
-        Integer schema = (Integer) copyOfTestObj.get(FIELD_SCHEMA);
+        if (release == null)
+        {
+            // Use the source test release
+            release = (String) copyOfTestObj.get(FIELD_RELEASE);
+        }
+        if (schema == null)
+        {
+            schema = (Integer) copyOfTestObj.get(FIELD_SCHEMA);
+        }
         String description = (String) copyOfTestObj.get(FIELD_DESCRIPTION);
         
         // Copy the test
@@ -866,6 +875,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 continue;
             }
             String propName = (String) copyPropObj.get(FIELD_NAME);
+            // Is this property present in the new test (might be copying between releases)
+            if (getProperty(test, null, propName) == null)
+            {
+                // The new test does not have the property so do not import the overridden value
+                continue;
+            }
+            
             String propValue = (String) copyPropObj.get(FIELD_VALUE);
             Integer versionZero = Integer.valueOf(0);
             this.setPropertyOverride(test, null, propName, versionZero, propValue);
@@ -1985,7 +2001,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
      * @param test                      the name of the test
      * @param run                       the name of the run or <tt>null</tt> to find the value for the test only
      * @param propertyName              the name of the property (never <tt>null</tt>)
-     * @return                          the property for the test
+     * @return                          the property for the test or <tt>null</tt> if it does not exist
      */
     public DBObject getProperty(String test, String run, String propertyName)
     {
