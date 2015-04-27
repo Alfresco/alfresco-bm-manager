@@ -23,6 +23,18 @@
             </div>
         </div>
         <div class="form-group">
+            <label for="pickTestDef" class="col-lg-2 control-label">Test Definition</label>
+            <div class="col-lg-10">
+                <select class="form-control" ng-model="test.def">
+                    <option ng-repeat="item in defs" value="{{item.release}}-schema:{{item.schema}}" >
+                        {{item.release}}-schema:{{item.schema}} ({{item.count || 0}} drivers)
+                    </option>
+                </select>
+                <input type="checkbox" ng-model="showActiveTests" ng-checked="true" ng-change="showActiveTestDefs(showActiveTests)"> Active tests only
+                <span ng-show="nodefs"><i>(No active tests found)</i></span>
+            </div>
+        </div>
+        <div class="form-group">
             <div class="col-lg-offset-2 col-lg-10">
                 <button ng-disabled="!form.$valid || test.name == testname" type="submit" class="btn btn-default btn-lg" ng-click="copyTest(test)">Ok</button>
                 <a href="#/tests"  class="btn btn-dark btn-lg" id="cancelCreateTestBtn">Cancel</a>

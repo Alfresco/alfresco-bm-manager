@@ -494,8 +494,8 @@
     /*
      * Copy test form controller
      */
-    .controller('TestCopyCtrl', ['$scope', '$location', 'TestService',
-        function($scope, $location, TestService) {
+    .controller('TestCopyCtrl', ['$scope', '$location', 'TestService', 'TestDefService',
+        function($scope, $location, TestService, TestDefService) {
             $scope.testname = $location.path().split('/')[2];
             TestService.getTest({
                 id: $scope.testname
@@ -503,7 +503,51 @@
                 $scope.data = response;
             });
             $scope.master = {};
-
+            $scope.defs = {};
+            $scope.nodefs = false;
+            $scope.showActiveTests = true;
+            
+            $scope.showActiveTestDefs = function(value) {
+                if (value == true) {
+                    TestDefService.getTestDefs(function(response) {
+                    var uniqueDefs = [];    //this will contain the unique list of final custom test defs
+                    var isReleaseFound = function (releaseName) {
+                          for(var i = 0; i < uniqueDefs.length; i++){
+                            if(uniqueDefs[i]["release"]==releaseName){
+                                uniqueDefs[i]["count"] +=1;
+                                return true;
+                            }
+                          }
+                          return false;
+                    };
+                    
+                    for(var i = 0; i < response.length; i++){
+                        if (!isReleaseFound(response[i]["release"]))
+                        {
+                            response[i]["count"]= 1;
+                            uniqueDefs.push(response[i]);         
+                        }
+                    }
+                    
+                    $scope.defs = uniqueDefs;
+                    if ($scope.defs.length == 0) {
+                        $scope.nodefs = true;
+                    } else {
+                        $scope.nodefs = false;
+                    }
+                   }); 
+                } else {
+                    TestDefService.getAllTestDefs(function(response) {
+                    $scope.defs = response;
+                    if ($scope.defs.length == 0) {
+                        $scope.nodefs = true;
+                    } else {
+                        $scope.nodefs = false;
+                    }
+                   }); 
+                };
+            };
+            $scope.showActiveTestDefs(true);
 
             $scope.update = function(test) {
                 $scope.master = angular.copy(test);
@@ -530,6 +574,8 @@
                 var postData = {
                     "copyOf": $scope.data.name,
                     "version": $scope.data.version,
+                    "release": $scope.data.release,
+                    "schema": $scope.data.schema,
                     "name": test.name
                 };
 
