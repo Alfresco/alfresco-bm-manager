@@ -98,3 +98,24 @@ donut-chart {
     font-size: 24px;
     font-weight: bold;
 }
+
+* tab colors */
+.nav-tabs>li>a {
+  background-color: #ffffff; 
+  border-color: #ffffff;
+  color:#000000;
+}
+
+/* active tab color */
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+  color: #000000;
+  background-color: #d8dddf;
+  border: 1px solid #888888;
+}
+
+/* hover tab color */
+.nav-tabs>li>a:hover {
+  border-color: #000000;
+  background-color: #d9edf7;
+}
+
