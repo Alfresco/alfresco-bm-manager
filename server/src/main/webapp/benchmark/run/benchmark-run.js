@@ -130,6 +130,19 @@
             },
         })
     }).value('version', '0.1')
+    
+    /**
+     * Show all logs /api/v1/status/logs
+     */
+    .factory('TestShowLogsService', function($resource) {
+        return $resource('api/v1/status/logs', {}, {
+            getAllLogs: {
+                method: 'GET',
+                isArray: true
+            }
+        })
+    }).value('version', '0.1')
+    
     /**
      * List test runs controller
      */
@@ -470,12 +483,13 @@
     /*
      * Run summary controller
      */
-    .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService','ModalService',
-        function($scope, $location, $timeout, TestRunService, ModalService) {
+    .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'TestShowLogsService', 'ModalService',
+        function($scope, $location, $timeout, TestRunService, TestShowLogsService, ModalService) {
             var timer;
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
             $scope.summary = {};
+            $scope.logs = [];
             $scope.testname = names[0];
             $scope.runname = names[1];
             $scope.mockData = []; //Implement call to get charts
@@ -539,6 +553,27 @@
                     $scope.hasStarted = true;
                 })
             }
+            
+            $scope.errorLogs = 0;
+            // get test logs only 
+            $scope.getTestLogs = function() {
+            	TestShowLogsService.getAllLogs(function(response) {
+                    var logs = [];
+                    $scope.errorLogs = 0;
+                    for (var i = 0; i < response.length; i++) {
+                        var log = response[i];
+                        if (log.t == $scope.testname && log.tr ==  $scope.runname) {
+                            logs.push(log);
+                            if(log.level == 4 || log.level == 5) {
+                            	$scope.errorLogs = $scope.errorLogs + 1;
+                            }
+                        }
+                    }
+                    $scope.logs = logs;
+                });
+            }  
+         
+            
 
             //Get the summary now!
             $scope.getSummary();
@@ -551,7 +586,8 @@
                 }, 2500);
             };
             $scope.summaryPoll();
-
+            $scope.getTestLogs();
+            
             //Cancel timer action
             $scope.$on(
                 "$destroy",
@@ -561,7 +597,8 @@
             );
         }
     ])
-/*
+    
+    /*
      * Copy test form controller
      */
     .controller('TestRunCopyCtrl', ['$scope', '$location', 'TestRunService',
