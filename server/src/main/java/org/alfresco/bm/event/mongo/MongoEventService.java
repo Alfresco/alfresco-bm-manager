@@ -304,7 +304,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
                 .start()
                 .push("$set")
                     .add(Event.FIELD_LOCK_OWNER, serverId)
-                    .add(Event.FIELD_LOCK_TIME, now)
+                    .add(Event.FIELD_LOCK_TIME, new Date(now))
                 .pop()
                 .get();
 
