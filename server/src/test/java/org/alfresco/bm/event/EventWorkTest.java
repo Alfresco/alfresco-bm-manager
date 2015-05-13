@@ -53,7 +53,7 @@ import com.mongodb.DB;
 @RunWith(JUnit4.class)
 public class EventWorkTest
 {
-    private static final String SERVER_ID = "testserver";
+    private static final String DRIVER_ID = "testdriver";
     private static final String TEST_NAME = "EventWorkTest";
     private static final String TEST_RUN_NAME = "X";
     private static final String TEST_RUN_FQN = TEST_NAME + "." + TEST_RUN_NAME;
@@ -84,7 +84,7 @@ public class EventWorkTest
         sessionService = new MongoSessionService(db, "ss");
         sessionService.start();
         LogService mongoLogService = new MongoLogService(db, Long.MAX_VALUE, 1000, 0);
-        logService = new TestRunLogService(mongoLogService, SERVER_ID, TEST_NAME, TEST_RUN_NAME);
+        logService = new TestRunLogService(mongoLogService, DRIVER_ID, TEST_NAME, TEST_RUN_NAME);
 
         event = new Event(EVENT_NAME, "SOME_DATA");
         event.setId(eventService.putEvent(event));
@@ -92,7 +92,8 @@ public class EventWorkTest
         processor = Mockito.mock(EventProcessor.class);
         eventProducers = new EventProducerRegistry();
         work = new EventWork(
-                SERVER_ID, TEST_RUN_FQN, event,
+                DRIVER_ID, TEST_RUN_FQN, event,
+                new String[] {DRIVER_ID},
                 new TestEventProcessor(),
                 eventProducers,
                 eventService, resultService, sessionService,
@@ -130,26 +131,65 @@ public class EventWorkTest
     }
     
     @Test
+    public void emptyDriverIdList() throws Exception
+    {
+        work = new EventWork(
+                DRIVER_ID, TEST_RUN_FQN, event,
+                new String[] {},
+                new TestEventProcessor(),
+                eventProducers,
+                eventService, resultService, sessionService,
+                logService);
+        nextEvents.add(new Event(EVENT_NAME, "DATA1"));
+        nextEvents.add(new Event(EVENT_NAME, "DATA2"));
+        EventResult result = new EventResult(nextEvents);
+        Mockito.when(processor.processEvent(Mockito.any(Event.class), Mockito.any(StopWatch.class))).thenReturn(result);
+        
+        work.run();
+    }
+    
+    @Test
     public void testBasicSingleEventSuccess() throws Exception
     {
-        nextEvents.add(new Event(EVENT_NAME, "MORE_DATA"));
+        EventService anotherEventService = new MongoEventService(db, "es");
+
+        Event event1 = new Event(EVENT_NAME, "DATA1");
+        Event event2 = new Event(EVENT_NAME, "DATA2");
+        
+        nextEvents.add(event1);
+        nextEvents.add(event2);
         EventResult result = new EventResult(nextEvents);
         Mockito.when(processor.processEvent(Mockito.any(Event.class), Mockito.any(StopWatch.class))).thenReturn(result);
         
         work.run();
         
         assertEquals(1, resultService.countResultsBySuccess());
-        assertEquals(1, eventService.count());
-        assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, true));
+        assertEquals(2, eventService.count());
         
-        assertNotNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
-        // Must be locked against further retrieval
-        assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
+        // TODO: Check that a driver ID is inserted and enforced correctly
+        List<Event> events = eventService.getEvents(0, 2);
+        assertEquals(2, events.size());
+        Event event = events.get(0);
+        assertEquals(DRIVER_ID, event.getDriver());
+        
+        // The other drivers cannot see anything when respecting driver assignment
+        assertNull(anotherEventService.nextEvent("SOME_DRIVER", Long.MAX_VALUE));
+        // We cannot see anything if the time is not right
+        assertNull(eventService.nextEvent(null, 0L));
+        // We look only for things that belong to a specific driver
+        assertNotNull(eventService.nextEvent(DRIVER_ID, Long.MAX_VALUE));
+        // We look for anything
+        assertNotNull(anotherEventService.nextEvent(null, Long.MAX_VALUE));
+        // There should be no more
+        assertNull(eventService.nextEvent(null, Long.MAX_VALUE));
+        assertNull(eventService.nextEvent(null, Long.MAX_VALUE));
     }
     
     @Test
-    public void testBasicMultipleEventSuccess() throws Exception
+    public void testMultipleEventServiceAccess() throws Exception
     {
+        EventService anotherEventService = new MongoEventService(db, "es");
+
         nextEvents.add(new Event(EVENT_NAME, "MORE_DATA"));
         nextEvents.add(new Event(EVENT_NAME, "YET_MORE_DATA"));
         EventResult result = new EventResult(nextEvents);
@@ -159,8 +199,9 @@ public class EventWorkTest
         
         assertEquals(1, resultService.countResultsBySuccess());
         assertEquals(2, eventService.count());
-        assertNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, true));
-        assertNotNull(eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false));
+        // Any EventService should be able to get the transportable events
+        assertNotNull(eventService.nextEvent(null, Long.MAX_VALUE));
+        assertNotNull(anotherEventService.nextEvent(null, Long.MAX_VALUE));
     }
     
     @Test
@@ -178,8 +219,8 @@ public class EventWorkTest
         
         assertEquals(1, resultService.countResultsBySuccess());
         assertEquals(1, eventService.count());
-        assertNull("The local data should not be available for other servers.", anotherEventService.nextEvent("RANDOM_SERVER", Long.MAX_VALUE, false));
-        Event nextEvent = eventService.nextEvent(SERVER_ID, Long.MAX_VALUE, false);
+        assertNull("The local data should not be available for other drivers.", anotherEventService.nextEvent(null, Long.MAX_VALUE));
+        Event nextEvent = eventService.nextEvent(null, Long.MAX_VALUE);
         assertNotNull(nextEvent);
         
         // Check that we can get hold of the next event's data

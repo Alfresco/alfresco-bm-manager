@@ -69,10 +69,12 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 public class EventController implements LifecycleListener, ApplicationContextAware, Runnable
 {
     private static final int DEFAULT_EVENTS_PER_SECOND_PER_THREAD = 2;
+    /** How long a driver has to grab assigned events */
+    private static final long DEFAULT_ASSIGNED_EVENT_GRACE_PERIOD = 5000L;
     
     private static final Log logger = LogFactory.getLog(EventController.class);
     
-    private final String serverId;
+    private final String driverId;
     private final String testRunFqn;
     private final EventService eventService;
     private final EventProducerRegistry eventProducers;
@@ -85,7 +87,9 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
     private final int threadCount;
 
     private int eventsPerSecondPerThread = DEFAULT_EVENTS_PER_SECOND_PER_THREAD;
+    private long assignedEventGracePeriod = DEFAULT_ASSIGNED_EVENT_GRACE_PERIOD;
 
+    private volatile String[] driverIds = new String[0];
     private ApplicationContext ctx;
     private boolean running;
     private EventProcessor doNothingProcessor = new DoNothingEventProcessor();
@@ -93,8 +97,10 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
     /**
      * Construct the controller
      * 
-     * @param serverId          the server controlling the events
+     * @param driverId          the ID of the driver controlling the events
      * @param testRunFqn        the fully qualified name of the test run
+     * @param testDAO           the test DAO for accessing low level data
+     * @param testRunId         the ID of the test run being controlled
      * @param eventService      the source of events that will be pushed for execution
      * @param eventProducers    the registry of producers of events
      * @param eventProcessors   the registry of processors for events
@@ -104,7 +110,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
      * @param threadCount       the number of threads available to the processor
      */
     public EventController(
-            String serverId,
+            String driverId,
             String testRunFqn,
             EventService eventService,
             EventProducerRegistry eventProducers,
@@ -117,7 +123,7 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
         thread = new Thread(new ThreadGroup(testRunFqn), this, testRunFqn + "-Controller");
         thread.setDaemon(false);         // Requires explicit shutdown
         
-        this.serverId = serverId;
+        this.driverId = driverId;
         this.testRunFqn = testRunFqn;
         this.eventService = eventService;
         this.eventProducers = eventProducers;
@@ -156,6 +162,27 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
         this.eventsPerSecondPerThread = eventsPerSecondPerThread;
     }
 
+    /**
+     * Override the {@link #DEFAULT_ASSIGNED_EVENT_GRACE_PERIOD default} time that an event can
+     * be available on the queue for a specific driver before any other driver can pick it up.
+     */
+    public void setAssignedEventGracePeriod(int assignedEventGracePeriod)
+    {
+        this.assignedEventGracePeriod = assignedEventGracePeriod;
+    }
+
+    /**
+     * Update the list of driver IDs in use.  This list can change at run time.
+     */
+    public void setDriverIds(String[] driverIds)
+    {
+        if (driverIds == null)
+        {
+            throw new IllegalArgumentException("'driverIds' may not be null.");
+        }
+        this.driverIds = driverIds;
+    }
+    
     /**
      * Record the application context for shutdown once processing has finished
      */
@@ -257,6 +284,8 @@ public class EventController implements LifecycleListener, ApplicationContextAwa
      */
     private void runImpl()
     {
+        Set<String> staleDrivers = new HashSet<String>(3);              // Keep track of any stale drivers
+        
         int eventsPerSecond = (threadCount * eventsPerSecondPerThread);
         String msgStarted = "Event processing started: " + testRunFqn + " (" + eventsPerSecond + " events per second using " + threadCount + " threads)";
         logger.info("\t" + msgStarted);
@@ -301,13 +330,21 @@ runStateChanged:
             // We record the event search regardless of missing or hit in the queue
             eventSearchesPerformed++;
             // Grab an event
-            // First look for events specific to this server
-            Event event = eventService.nextEvent(serverId, eventProcessSearchTime, true);
+            // First look for events specific to this driver
+            Event event = eventService.nextEvent(driverId, eventProcessSearchTime);
             if (event == null)
             {
-                // Nothing found for the server.
-                // Look for something that anyone can grab
-                event = eventService.nextEvent(serverId, eventProcessSearchTime, false);
+                // Nothing found for the driver.
+                // Look for events from other drivers, giving them a grace period
+                event = eventService.nextEvent(null, eventProcessSearchTime - assignedEventGracePeriod);
+                if (event != null)
+                {
+                    String driver = event.getDriver();
+                    if (staleDrivers.add(driver))
+                    {
+                        logger.error("Driver " + driver + " is leaving stale events.  Check server load.");
+                    }
+                }
             }
             // Do we have an event to process?
             if (event == null)
@@ -348,17 +385,19 @@ runStateChanged:
             }
             // Find the processor for the event
             EventProcessor processor = getProcessor(event);
+            
             // Schedule it
             EventWork work = new EventWork(
-                    serverId, testRunFqn,
+                    driverId, testRunFqn,
                     event,
+                    driverIds,
                     processor, eventProducers,
                     eventService, resultService, sessionService,
                     logService);
             try
             {
                 // Grabbing an event automatically applies a short-lived lock to prevent
-                // any other servers from grabbing the same event before the event is locked
+                // any other drivers from grabbing the same event before the event is locked
                 // for execution.
                 executor.execute(work);
             }

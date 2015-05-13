@@ -39,6 +39,7 @@ import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.session.SessionService;
+import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
@@ -65,7 +66,7 @@ import com.mongodb.DBObject;
  * @since 1.0
  */
 @RunWith(JUnit4.class)
-public class BM000XTest extends BMTestRunnerListenerAdaptor
+public class BM000XTest extends BMTestRunnerListenerAdaptor implements TestConstants
 {
     private static Log logger = LogFactory.getLog(BM000XTest.class);
     
@@ -118,7 +119,7 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         TestRestAPI testAPI = new TestRestAPI(testDAO, testService, logService, services);
         ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
-        
+
         // Dump one of each type of event for information
         Set<String> eventNames = new TreeSet<String>(resultService.getEventNames());
         logger.info("Showing 1 of each type of event:");

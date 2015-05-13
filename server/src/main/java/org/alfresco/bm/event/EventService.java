@@ -18,6 +18,8 @@
  */
 package org.alfresco.bm.event;
 
+import java.util.List;
+
 
 /**
  * Interface for classes that handle persistence and retrieval of {@link Event events}.
@@ -53,17 +55,28 @@ public interface EventService
     Event getEvent(String id);
     
     /**
-     * Retrieve the next event in the queue.
+     * Only useful for testing: Retrieve all events with paging
+     */
+    List<Event> getEvents(int skip, int limit);
+    
+    /**
+     * Retrieve the next event in the queue.  If the driver assignment is ignored, then the
+     * scheduled time should be adjusted so that events for other drivers are only picked up
+     * after a respectable time has passed i.e. the other drivers have been given a chance to
+     * process their events but did not.
      * <p/>
      * This method must update the event queue time to the current time atomically.
      * 
-     * @param serverId              the identifier of the server taking the event (never <tt>null</tt>)
+     * @param driverId              the ID of the driver performing the search.  When supplied, only events
+     *                              that are assigned to the driver are fetched; when <tt>null</tt>) any
+     *                              other driver's events can be fetched as well.  Not that this is
+     *                              independent of data afinity, which is always respected here.
      * @param latestScheduledTime   the maximum scheduled time for events
-     * @param localDataOnly         <tt>true</tt> to limit searches to events that have server-specific
-     *                              data matching the given server ID
+     * @param respectDataAfinity    <tt>true</tt> if the fetch should only fetch events bound to the current
+     *                              test run instance.
      * @return                      Returns the next event in the queue or <tt>null</tt>
      */
-    Event nextEvent(String serverId, long latestScheduledTime, boolean localDataOnly);
+    Event nextEvent(String driverId, long latestScheduledTime);
     
     /**
      * Delete an event from the provider.  This can be done after the event has

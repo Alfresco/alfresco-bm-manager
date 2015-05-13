@@ -38,6 +38,7 @@ public class Event
     public static final String FIELD_LOCK_TIME = "lockTime";
     public static final String FIELD_DATA = "data";
     public static final String FIELD_DATA_OWNER = "dataOwner";
+    public static final String FIELD_DRIVER = "driver";
     
     /** The 'value' that is associated with the data */
     public static final String FIELD_VALUE = "value";
@@ -54,8 +55,9 @@ public class Event
     private final long scheduledTime;
     private String lockOwner;
     private long lockTime;
-    private Object data;            // DBObject, String or Numeric
-    private boolean dataInMemory;
+    private final Object data;            // DBObject, String or Numeric
+    private final boolean dataInMemory;
+    private String driver;
     
     /**
      * Construct an event with some data, scheduling it for the current time.
@@ -157,6 +159,7 @@ public class Event
                 ", lockTime=" + lockTime +
                 ", data=" + dataStr +
                 ", dataInMemory=" + dataInMemory +
+                ", driver=" + driver +
                 "]";
     }
 
@@ -246,5 +249,21 @@ public class Event
     public Object getDataObject()
     {
         return data;
+    }
+
+    /**
+     * @return              the ID of the driver that should execute the event
+     */
+    public String getDriver()
+    {
+        return driver;
+    }
+    public void setDriver(String driver)
+    {
+        if (dataInMemory)
+        {
+            throw new IllegalStateException("Events that have data bound in memory cannot be assigned a specific driver.");
+        }
+        this.driver = driver;
     }
 }

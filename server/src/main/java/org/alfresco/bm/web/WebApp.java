@@ -44,7 +44,7 @@ public class WebApp implements WebApplicationInitializer, TestConstants
     @Override
     public void onStartup(ServletContext container)
     {
-        // Grab the server capabilities, otherwise just use the java version
+        // Grab the driver capabilities, otherwise just use the java version
         String javaVersion = System.getProperty("java.version");
         String systemCapabilities = System.getProperty(PROP_SYSTEM_CAPABILITIES, javaVersion);
         

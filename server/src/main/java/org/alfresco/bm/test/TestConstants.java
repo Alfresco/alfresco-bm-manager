@@ -112,8 +112,8 @@ public interface TestConstants
     public static final String FIELD_EXPIRES = "expires";
     public static final String FIELD_TEST = "test";
     public static final String FIELD_RUN = "run";
-    public static final String FIELD_OLD_VALUE = "oldValue";
-    public static final String FIELD_NEW_VALUE = "newValue";
+    public static final String FIELD_DRIVER = "driver";
+    public static final String FIELD_DRIVERS = "drivers";
     
     /*
      * Service field names

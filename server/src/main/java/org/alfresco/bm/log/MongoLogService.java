@@ -129,7 +129,7 @@ public class MongoLogService implements LifecycleListener, LogService
         }
         collection.createIndex(idxTime, optTime);
 
-        // Select by server, order by time
+        // Select by driver, order by time
         DBObject idxDriverTime = BasicDBObjectBuilder.start()
                 .add(FIELD_DRIVER_ID, 1)
                 .add(FIELD_TIME, -1)

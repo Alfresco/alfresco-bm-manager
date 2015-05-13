@@ -145,7 +145,12 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         }
         
         String processedBy = (String) eventRecordObj.get(EventRecord.FIELD_PROCESSED_BY);
-        String serverId = (String) eventRecordObj.get(EventRecord.FIELD_SERVER_ID);
+        String driverId = (String) eventRecordObj.get(EventRecord.FIELD_DRIVER_ID);
+        if (driverId == null)
+        {
+            // For backward compatibility, check the old field name
+            driverId = (String) eventRecordObj.get("serverId");
+        }
         boolean success = eventRecordObj.containsField(EventRecord.FIELD_SUCCESS) ?
                 (Boolean) eventRecordObj.get(EventRecord.FIELD_SUCCESS) :
                 false;
@@ -173,7 +178,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         }
         Event event = convertToEvent(eventObj);
                 
-        EventRecord eventRecord = new EventRecord(serverId, success, startTime, time, data, event);
+        EventRecord eventRecord = new EventRecord(driverId, success, startTime, time, data, event);
         eventRecord.setProcessedBy(processedBy);
         eventRecord.setId(id);
         eventRecord.setWarning(warning);
@@ -247,7 +252,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 .add(EventRecord.FIELD_PROCESSED_BY, result.getProcessedBy())
                 .add(EventRecord.FIELD_CHART, result.isChart())
                 .add(EventRecord.FIELD_DATA, result.getData())
-                .add(EventRecord.FIELD_SERVER_ID, result.getServerId())
+                .add(EventRecord.FIELD_DRIVER_ID, result.getDriverId())
                 .add(EventRecord.FIELD_START_DELAY, result.getStartDelay())
                 .add(EventRecord.FIELD_START_TIME, new Date(result.getStartTime()))
                 .add(EventRecord.FIELD_SUCCESS, result.isSuccess())
@@ -346,6 +351,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
             EventRecord eventRecord = convertToEventRecord(obj);
             results.add(eventRecord);
         }
+        cursor.close();
         
         // Done
         if (logger.isDebugEnabled())
@@ -395,6 +401,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
             EventRecord eventRecord = convertToEventRecord(obj);
             results.add(eventRecord);
         }
+        cursor.close();
         
         // Done
         if (logger.isDebugEnabled())

@@ -74,7 +74,7 @@ public class Test implements
     private InetAddress inetAddress;
     private Set<String> systemCapabilities;
     
-    /** The task that keeps the server details fresh in the database */
+    /** The task that keeps the driver details fresh in the database */
     private final TestDriverPingTask refreshRegistrationTask;
     private volatile String driverId;
     
@@ -334,7 +334,7 @@ public class Test implements
     {
         initNetworkDetails();
         
-        // The core BM Server application does NOT driver anything
+        // The core BM Server application does NOT drive anything
         boolean isDriver = !release.toLowerCase().startsWith("alfresco-benchmark-server-");
         if (isDriver)
         {
@@ -344,7 +344,7 @@ public class Test implements
             // Register this driver
             registerDriver();
             
-            // Store server details
+            // Store driver details
             refreshRegistrationTask.run();
             // Make sure we keep it refreshed
             Timer timer = new Timer("TestDriverPing-" + release + "-" + schema, true);
