@@ -54,15 +54,14 @@ public class LifecycleController
     private final StringBuilder log = new StringBuilder(1024);
     
     /**
-     * 
-     * @param bmServerService           provides methods to manage the server
+     * @param lifecycleListeners                listeners that will be notified of app state changes
      */
     public LifecycleController(LifecycleListener ... lifecycleListeners)
     {
         this.lifecycleListeners = new ArrayList<LifecycleListener>(5);
-        for (LifecycleListener bmServerLifecycleListener : lifecycleListeners)
+        for (LifecycleListener lifecycleListener : lifecycleListeners)
         {
-            this.lifecycleListeners.add(bmServerLifecycleListener);
+            this.lifecycleListeners.add(lifecycleListener);
         }
         this.forceStart = false;
     }

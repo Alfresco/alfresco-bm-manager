@@ -994,6 +994,32 @@ public class MongoTestDAOTest implements TestConstants
     }
     
     @Test
+    public void testAddAndRemoveTestRunDrivers()
+    {
+        String test = createTest(null);
+        String run = createTestRun(test, null);
+        DBObject runObj = dao.getTestRun(test, run, false);
+        ObjectId runId = (ObjectId) runObj.get(FIELD_ID);
+        
+        assertNotNull("Drivers array not present in run object.", runObj.get(FIELD_DRIVERS));
+        BasicDBList drivers = (BasicDBList) runObj.get(FIELD_DRIVERS);
+        assertEquals("Expected driver entries incorrect", 0, drivers.size());
+        
+        dao.addTestRunDriver(runId, "driver0");
+        dao.addTestRunDriver(runId, "driver1");
+        dao.removeTestRunDriver(runId, "driver1");
+        dao.removeTestRunDriver(runId, "NOT_THERE");
+
+        // Check
+        runObj = dao.getTestRun(test, run, false);
+        assertNotNull("Drivers array not present in run object.", runObj.get(FIELD_DRIVERS));
+        drivers = (BasicDBList) runObj.get(FIELD_DRIVERS);
+        assertEquals("Expected driver entries incorrect", 1, drivers.size());
+        String driver0 = (String) drivers.get(0);
+        assertEquals("driver0", driver0);
+    }
+    
+    @Test
     public void testCopyTest()
     {
         String testA = createTest(null);

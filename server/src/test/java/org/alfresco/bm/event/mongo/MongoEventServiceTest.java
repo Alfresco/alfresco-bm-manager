@@ -93,7 +93,8 @@ public class MongoEventServiceTest
     public void empty()
     {
         assertEquals(0, eventService.count());
-        assertNull(eventService.nextEvent("SERVER01", Long.MAX_VALUE, false));
+        assertNull(eventService.nextEvent(null, Long.MAX_VALUE));
+        assertNull(eventService.nextEvent("D01", Long.MAX_VALUE));
     }
     
     /**
@@ -154,6 +155,9 @@ public class MongoEventServiceTest
         for (int i = 0; i < n; i++)
         {
             Event event = createEvent();
+            // Assign the event to a driver based on the event number
+            event.setDriver("DRIVER-" + i);
+            // Persist it
             eventService.putEvent(event);
         }
     }
@@ -166,7 +170,7 @@ public class MongoEventServiceTest
     }
     
     @Test
-    public void nextEvent()
+    public void nextEventAnyDriver()
     {
         pumpEvents(100);
         
@@ -174,8 +178,9 @@ public class MongoEventServiceTest
         for (int i = 0; i < 100; i++)
         {
             long now = System.currentTimeMillis();
-            Event event = eventService.nextEvent("SERVER01", now, false);
+            Event event = eventService.nextEvent(null, now);
             assertNotNull("Did not get a next event.", event);
+            assertNotNull("Lock owner should be supplied. ", event.getLockOwner());
             assertTrue("Scheduled time must be increasing. ", event.getScheduledTime() >= lastScheduledTime);
             lastScheduledTime = event.getScheduledTime();
             assertNotNull("Event must have an ID", event.getId());
@@ -187,6 +192,30 @@ public class MongoEventServiceTest
         }
         // There should be exactly zero, now
         assertEquals(0, eventService.count());
+    }
+    
+    @Test
+    public void nextEventSpecificDriver()
+    {
+        pumpEvents(100);
+        long now = System.currentTimeMillis();
+        assertEquals(100L, eventService.count());
+
+        Event event66 = eventService.nextEvent("DRIVER-66", now);
+        assertNotNull(event66);
+        event66 = eventService.nextEvent("DRIVER-66", now);
+        assertNull(event66);
+    }
+    
+    @Test
+    public void nextEventUnassignedEvent()
+    {
+        Event eventIn = new Event("t1", "DATA");
+        eventService.putEvent(eventIn);
+        long now = System.currentTimeMillis();
+
+        Event eventAny = eventService.nextEvent("DRIVER-66", now);
+        assertNotNull(eventAny);
     }
     
     @Test
@@ -244,6 +273,7 @@ public class MongoEventServiceTest
     public synchronized void lockEventAutomatic() throws Exception
     {
         Event event = createEvent();
+        event.setDriver("lockEventAutomatic");
         String eventId = eventService.putEvent(event);
         event = eventService.getEvent(eventId);
         // Check that the event is not locked
@@ -260,18 +290,18 @@ public class MongoEventServiceTest
         @SuppressWarnings("unused")
         String futureEventId = eventService.putEvent(futureEvent);
         
-        // Get 'next' event with incorrect server ID
-        assertNull("Next event not filtered out by invalid server ID", eventService.nextEvent("FROG", now, true));
+        // Get 'next' event with incorrect driver ID
+        assertNull("Next event not filtered out by invalid driver ID", eventService.nextEvent("FROG", now));
         
         // Get 'next' event with incorrect scheduled time
-        assertNull("Next event not filtered out by scheduled time", eventService.nextEvent("FROG", now - 20000L, false));
+        assertNull("Next event not filtered out by scheduled time", eventService.nextEvent("lockEventAutomatic", now - 20000L));
         
         // Get the 'next' event, which should NOT be the future event
-        Event nextEvent = eventService.nextEvent("FROG", now, false);
+        Event nextEvent = eventService.nextEvent("lockEventAutomatic", now);
         assertNotNull("Next event was not fetched for non-local data with correct time.");
         assertEquals("Incorrect event found", eventId, nextEvent.getId());
         
         // Exactly the same search should give nothing
-        assertNull("Should not be able to get the same event twice", eventService.nextEvent("FROG", now, false));
+        assertNull("Should not be able to get the same event twice", eventService.nextEvent("lockEventAutomatic", now));
     }
 }

@@ -55,12 +55,12 @@ public class EventRecordTest
     }
     
     @Test
-    public void nullServerId()
+    public void nullDriverId()
     {
         try
         {
             new EventRecord(null, true, 0L, 0L, "BOB", event);
-            fail("Expected null server ID to be caught.");
+            fail("Expected null driver ID to be caught.");
         }
         catch (IllegalArgumentException e)
         {
@@ -73,7 +73,7 @@ public class EventRecordTest
     {
         long now = System.currentTimeMillis();
         
-        EventRecord eventRecord = new EventRecord("Server01", true, now, 20L, "BOB", event);
+        EventRecord eventRecord = new EventRecord("Driver01", true, now, 20L, "BOB", event);
         eventRecord.setChart(false);
         eventRecord.setId("ID1");
         eventRecord.setStartDelay(25L);
@@ -82,7 +82,7 @@ public class EventRecordTest
         assertEquals("BOB", eventRecord.getData());
         assertEquals(event, eventRecord.getEvent());
         assertEquals("ID1", eventRecord.getId());
-        assertEquals("Server01", eventRecord.getServerId());
+        assertEquals("Driver01", eventRecord.getDriverId());
         assertEquals(25L, eventRecord.getStartDelay());
         assertEquals(now, eventRecord.getStartTime());
         assertEquals(20L, eventRecord.getTime());

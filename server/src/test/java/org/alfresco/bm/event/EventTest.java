@@ -167,7 +167,18 @@ public class EventTest
     public void stringDataInMem()
     {
         Event event = new Event("A", 0L, "BOB", true);
+        assertTrue(event.getDataInMemory());
         assertEquals("BOB", event.getData());
+        // We cannot set the driver ID
+        try
+        {
+            event.setDriver("D01");
+            fail("Event should prevent a driver from being set when data is in memory.");
+        }
+        catch (IllegalStateException e)
+        {
+            // Expected
+        }
     }
     
     @Test

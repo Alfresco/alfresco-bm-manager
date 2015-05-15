@@ -48,9 +48,10 @@ public class EventWork implements Runnable
 {
     private static final Log logger = LogFactory.getLog(EventService.class);
     
-    private final String serverId;
+    private final String driverId;
     private final String testRunFqn;
     private final Event event;
+    private final String[] driverIds;
     private final EventProcessor processor;
     private final EventProducerRegistry eventProducers;
     private final EventService eventService;
@@ -61,9 +62,10 @@ public class EventWork implements Runnable
     /**
      * Construct work to be executed by a thread
      * 
-     * @param serverId          the identifier of the server process handling the event
+     * @param driverId          the identifier of the driver process handling the event
      * @param testRunFqn        the fully qualified name of the test run initiating the work
      * @param event             the event to be processed
+     * @param driverIds         the current list of driver IDs operating on this test run
      * @param processor         the component that will do the actual processing
      * @param eventProducers    the registry to convert events before persistence
      * @param eventService      the queue events that will be updated with new events
@@ -72,15 +74,17 @@ public class EventWork implements Runnable
      * @param logService        the service to report any issues
      */
     public EventWork(
-            String serverId, String testRunFqn,
+            String driverId, String testRunFqn,
             Event event,
+            String[] driverIds,
             EventProcessor processor, EventProducerRegistry eventProducers,
             EventService eventService, ResultService resultService, SessionService sessionService,
             TestRunLogService logService)
     {
-        this.serverId = serverId;
+        this.driverId = driverId;
         this.testRunFqn = testRunFqn;
         this.event = event;
+        this.driverIds = driverIds;
         this.processor = processor;
         this.eventProducers = eventProducers;
         this.eventService = eventService;
@@ -133,7 +137,7 @@ public class EventWork implements Runnable
         // Was it successful?
         boolean wasSuccess = result.isSuccess();
         // Construct the recorded event
-        EventRecord recordedEvent = new EventRecord(serverId, wasSuccess, before, time, data, event);
+        EventRecord recordedEvent = new EventRecord(driverId, wasSuccess, before, time, data, event);
         recordedEvent.setChart(chart);
         recordedEvent.setProcessedBy(processor.getName());
         
@@ -148,7 +152,7 @@ public class EventWork implements Runnable
         {
             logger.debug("\n" +
                     "Event processing completed: \n" +
-                    "   Owner:     " + serverId + "\n" +
+                    "   Driver:    " + driverId + "\n" +
                     "   Test Run:  " + testRunFqn + "\n" +
                     "   Event:     " + event + "\n" +
                     "   Time:      " + time + "\n" +
@@ -182,6 +186,13 @@ public class EventWork implements Runnable
             propagateSessionId = false;
         }
         
+        // Use weightings (https://github.com/AlfrescoBenchmark/alfresco-benchmark/issues/54)
+        RandomWeightedSelector<String> driverSelector = new RandomWeightedSelector<String>();
+        for (String driverId : driverIds)
+        {
+            driverSelector.add(100, driverId);
+        }
+
         // Publish the next events
         for (Event nextEvent : nextEvents)
         {
@@ -190,7 +201,7 @@ public class EventWork implements Runnable
                 // Ignore it but log the error
                 String msg =
                         "Null event in list of next events: \n" +
-                        "   Owner:     " + serverId + "\n" +
+                        "   Driver:    " + driverId + "\n" +
                         "   Test Run:  " + testRunFqn + "\n" +
                         "   Event:     " + event + "\n" +
                         "   Time:      " + time + "\n" +
@@ -203,6 +214,15 @@ public class EventWork implements Runnable
             if (propagateSessionId)
             {
                 nextEvent.setSessionId(sessionId);
+            }
+            
+            // Randomly distribute the event execution across the drivers, unless there is implied
+            // data afinity, in which case use this driver instance
+            if (!nextEvent.getDataInMemory())
+            {
+                // The data is not held in memory, so we can assign the event to any server
+                String driverIdForNextEvent = driverSelector.next();
+                nextEvent.setDriver(driverIdForNextEvent);
             }
             
             // Persist the event

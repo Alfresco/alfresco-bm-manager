@@ -148,7 +148,7 @@ public class MongoResultServiceTest
     {
         Event event = MongoEventServiceTest.createEvent();
 
-        String server = "SERVER" + (int)(Math.random() * 10);
+        String driver = "DRIVER" + (int)(Math.random() * 10);
         boolean success = Math.random() >= 0.5;
         long startTime = eventStartTime;
         long time = (long)(Math.random() * 1000.0);
@@ -163,7 +163,7 @@ public class MongoResultServiceTest
             Integer dataValue = i;
             data.put(dataKey, dataValue);
         }
-        EventRecord eventRecord = new EventRecord(server, success, startTime, time, data, event);
+        EventRecord eventRecord = new EventRecord(driver, success, startTime, time, data, event);
         eventRecord.setChart(chart);
         eventRecord.setStartDelay(startDelay);
         if (warn)
@@ -180,7 +180,7 @@ public class MongoResultServiceTest
     public synchronized void persistenceAndSearchOfNonSerializableEventData() throws Exception
     {
         Event event = new Event("eventX", this);
-        EventRecord eventRecord = new EventRecord("SERVERID", true, 0L, 50L, "{data:x}", event);
+        EventRecord eventRecord = new EventRecord("DRIVERID", true, 0L, 50L, "{data:x}", event);
         resultService.recordResult(eventRecord);
         
         List<EventRecord> results = resultService.getResults("eventX", 0, 1);

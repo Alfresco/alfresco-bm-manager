@@ -173,14 +173,14 @@ public class LogServiceTest
     }
     
     @Test
-    public void filterByServerId()
+    public void filterByDriverId()
     {
-        logService.log("S1", null, null, LogLevel.INFO, "INFO 1");
-        logService.log("S1", null, null, LogLevel.INFO, "INFO 2");
-        logService.log("S2", null, null, LogLevel.WARN, "WARN 1");
-        logService.log("S2", null, null, LogLevel.ERROR, "ERROR 1");
+        logService.log("D1", null, null, LogLevel.INFO, "INFO 1");
+        logService.log("D1", null, null, LogLevel.INFO, "INFO 2");
+        logService.log("D2", null, null, LogLevel.WARN, "WARN 1");
+        logService.log("D2", null, null, LogLevel.ERROR, "ERROR 1");
         
-        assertEquals(2, logService.getLogs("S1", null, null, null, null, null, 0, 5).size());
-        assertEquals(1, logService.getLogs("S2", null, null, null, null, null, 1, 5).size());
+        assertEquals(2, logService.getLogs("D1", null, null, null, null, null, 0, 5).size());
+        assertEquals(1, logService.getLogs("D2", null, null, null, null, null, 1, 5).size());
     }
 }

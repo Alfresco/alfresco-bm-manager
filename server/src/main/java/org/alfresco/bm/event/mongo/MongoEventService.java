@@ -18,9 +18,11 @@
  */
 package org.alfresco.bm.event.mongo;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,9 +37,9 @@ import org.bson.types.ObjectId;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
-import com.mongodb.QueryBuilder;
 import com.mongodb.WriteResult;
 
 /**
@@ -72,16 +74,17 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
     public void start() throws Exception
     {
         // Initialize indexes
-        DBObject idx_NEXT_AVAILABLE_EVENT = BasicDBObjectBuilder
+        DBObject idx_NEXT_AVAILABLE_EVENT_V2 = BasicDBObjectBuilder
                 .start(Event.FIELD_SCHEDULED_TIME, Integer.valueOf(-1))
                 .add(Event.FIELD_LOCK_OWNER, Integer.valueOf(1))
                 .add(Event.FIELD_DATA_OWNER, Integer.valueOf(1))
+                .add(Event.FIELD_DRIVER, Integer.valueOf(1))
                 .get();
-        DBObject opt_NEXT_AVAILABLE_EVENT = BasicDBObjectBuilder
-                .start("name", "IDX_NEXT_AVAILABLE_EVENT")
+        DBObject opt_NEXT_AVAILABLE_EVENT_V2 = BasicDBObjectBuilder
+                .start("name", "IDX_NEXT_AVAILABLE_EVENT_V2")
                 .add("unique", Boolean.FALSE)
                 .get();
-        collection.createIndex(idx_NEXT_AVAILABLE_EVENT, opt_NEXT_AVAILABLE_EVENT);
+        collection.createIndex(idx_NEXT_AVAILABLE_EVENT_V2, opt_NEXT_AVAILABLE_EVENT_V2);
         
         DBObject idx_NAME = BasicDBObjectBuilder
                 .start(Event.FIELD_NAME, Integer.valueOf(1))
@@ -110,25 +113,16 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
     }
 
     /**
-     * Determine if the data can be written out to MongoDB
-     * 
-     * @param data                      the data to store (in memory or persisted)
-     */
-    public static boolean canPersistDataObject(Object data)
-    {
-        boolean canPersistData =
-                data == null ||
-                data instanceof String ||
-                data instanceof DBObject ||
-                data instanceof Number;
-        return canPersistData;
-    }
-
-    /**
      * Helper method to convert an {@link Event} into a {@link DBObject persistable object}
      */
     public static DBObject convertEvent(Event event)
     {
+        // Check the event
+        if (event.getDataInMemory() && event.getDriver() != null)
+        {
+            throw new IllegalStateException("Events cannot be assigned a specific driver when they have their data bound in memory: " + event);
+        }
+        
         BasicDBObjectBuilder insertObjBuilder = BasicDBObjectBuilder
                 .start();
         // Handle the data-key-data-owner link i.e. we store either the object or the key and owner of the key
@@ -138,7 +132,8 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
                 .add(Event.FIELD_LOCK_TIME, new Date(event.getLockTime()))
                 .add(Event.FIELD_NAME, event.getName())
                 .add(Event.FIELD_SCHEDULED_TIME, new Date(event.getScheduledTime()))
-                .add(Event.FIELD_SESSION_ID, event.getSessionId());
+                .add(Event.FIELD_SESSION_ID, event.getSessionId())
+                .add(Event.FIELD_DRIVER, event.getDriver());
         DBObject insertObj = insertObjBuilder.get();
         // Handle explicit setting of the ID
         if (event.getId() != null)
@@ -165,6 +160,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
                 ((Date) obj.get(Event.FIELD_SCHEDULED_TIME)).getTime() :
                 Long.valueOf(0L);
         String sessionId = (String) obj.get(Event.FIELD_SESSION_ID);
+        String driver = (String) obj.get(Event.FIELD_DRIVER);
         
         // Check to see if we should be getting the data from memory
         if (dataOwner != null)
@@ -186,6 +182,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         event.setLockOwner(lockOwner);
         event.setLockTime(lockTime);
         event.setSessionId(sessionId);
+        event.setDriver(driver);
         
         // Done
         return event;
@@ -212,7 +209,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         
         // Replace the data with a key, if necessary
         Object data = event.getData();
-        boolean storeInMem = (!canPersistDataObject(data) || event.getDataInMemory());
+        boolean storeInMem = event.getDataInMemory();
         if (storeInMem && data != null)
         {
             // We will only store the data if the insertion works
@@ -266,31 +263,47 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         return event;
     }
 
+    @Override
+    public List<Event> getEvents(int skip, int limit)
+    {
+        DBCursor cursor = collection.find().skip(skip).limit(limit);
+        List<Event> events = new ArrayList<Event>(limit);
+        while (cursor.hasNext())
+        {
+            DBObject eventObj = cursor.next();
+            Event event = convertDBObject(eventObj);
+            events.add(event);
+        }
+        cursor.close();
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Fetched " + events.size() + "events.");
+        }
+        return events;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public Event nextEvent(String serverId, long latestScheduledTime, boolean localDataOnly)
+    public Event nextEvent(String driverId, long latestScheduledTime)
     {
-        if (serverId == null)
-        {
-            throw new IllegalArgumentException("'serverId' must be supplied.");
-        }
-        
         // Build query
-        QueryBuilder qb = QueryBuilder
+        BasicDBObjectBuilder qb = BasicDBObjectBuilder
                 .start()
-                .and(Event.FIELD_SCHEDULED_TIME).lessThanEquals(new Date(latestScheduledTime))
-                .and(Event.FIELD_LOCK_OWNER).is(null);
-        if (localDataOnly)
+                .push(Event.FIELD_SCHEDULED_TIME)                   // Must be scheduled to execute
+                    .add("$lte", new Date(latestScheduledTime))
+                    .pop()
+                .add(Event.FIELD_LOCK_OWNER, null)                  // Must not be locked
+                .push(Event.FIELD_DATA_OWNER)                       // We must own the data it or it must be unowned
+                    .add("$in", new String[] {dataOwner, null})
+                    .pop();
+        if (driverId != null)
         {
-            qb.and(Event.FIELD_DATA_OWNER).is(dataOwner);
-        }
-        else
-        {
-            qb.or(
-                    BasicDBObjectBuilder.start().add(Event.FIELD_DATA_OWNER, dataOwner).get(),
-                    BasicDBObjectBuilder.start().add(Event.FIELD_DATA_OWNER, null).get());
+            qb.push(Event.FIELD_DRIVER)                             // Must be assigned to the given driver or must be unassigned
+                .add("$in", new String[] {driverId, null})
+                .pop();
         }
         DBObject queryObj = qb.get();
         // Build sort
@@ -303,7 +316,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .push("$set")
-                    .add(Event.FIELD_LOCK_OWNER, serverId)
+                    .add(Event.FIELD_LOCK_OWNER, dataOwner)
                     .add(Event.FIELD_LOCK_TIME, new Date(now))
                 .pop()
                 .get();
@@ -314,7 +327,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         if (oldObj != null)
         {
             event = convertDBObject(oldObj);
-            event.setLockOwner(serverId);
+            event.setLockOwner(dataOwner);
             event.setLockTime(now);
         }
         
@@ -324,7 +337,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
             logger.debug("\n" +
                     "Fetched next event (no lock present): \n" +
                     "   Latest scheduled time:  " + latestScheduledTime + "\n" +
-                    "   Server ID:              " + serverId + "\n" +
+                    "   Driver ID:              " + driverId + "\n" +
                     "   Event: " + event);
         }
         return event;

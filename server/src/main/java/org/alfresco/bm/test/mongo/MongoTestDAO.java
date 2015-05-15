@@ -329,7 +329,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
      */
     public void unregisterDriver(String id)
     {
-        // Find the server test name and IP address
+        // Find the driver by ID
         DBObject queryObj = BasicDBObjectBuilder
                 .start()
                 .add(FIELD_ID, new ObjectId(id))
@@ -385,6 +385,46 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                     "   Results: " + cursor.count());
         }
         return cursor;
+    }
+    
+    /**
+     * Count registered drivers
+     * 
+     * @param release                   the release name of the test or <tt>null</tt> for all releases
+     * @param schema                    the schema number of the driver or <tt>null</tt> for all schemas
+     * @param liveOnly                  <tt>true</tt> to retrieve only live instances
+     * @return                          a count of the number of drivers matching the criteria
+     */
+    public long countDrivers(String release, Integer schema, boolean active)
+    {
+        QueryBuilder queryBuilder = QueryBuilder.start();
+        if (release != null)
+        {
+            queryBuilder.and(FIELD_RELEASE).is(release);
+        }
+        if (schema != null)
+        {
+            queryBuilder.and(FIELD_SCHEMA).is(schema);
+        }
+        if (active)
+        {
+            queryBuilder.and(FIELD_PING + "." + FIELD_EXPIRES).greaterThan(new Date());
+        }
+        DBObject queryObj = queryBuilder.get();
+        
+        long count = testDrivers.count(queryObj);
+
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "Retrieved test driver: \n" +
+                    "   Release: " + release + "\n" +
+                    "   Schema:  " + schema + "\n" +
+                    "   active:  " + active + "\n" +
+                    "   Results: " + count);
+        }
+        return count;
     }
     
     /**
@@ -1280,7 +1320,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RESULTS_SUCCESS, true)
                 .add(FIELD_RESULTS_FAIL, true)
                 .add(FIELD_RESULTS_TOTAL, true)
-                .add(FIELD_SUCCESS_RATE, true);
+                .add(FIELD_SUCCESS_RATE, true)
+                .add(FIELD_DRIVERS, true);
         DBObject fieldsObj = fieldsObjBuilder.get();
         
         DBObject runObj = testRuns.findOne(queryObj, fieldsObj);
@@ -1505,6 +1546,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RESULTS_FAIL, Long.valueOf(0L))
                 .add(FIELD_RESULTS_TOTAL, Long.valueOf(0L))
                 .add(FIELD_SUCCESS_RATE, Double.valueOf(1.0))
+                .add(FIELD_DRIVERS, new BasicDBList())              // Ensure we have an empty list to start
                 .get();
         
         try
@@ -1754,6 +1796,68 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             }
         }
         return written;
+    }
+    
+    /**
+     * Register a driver with a test run
+     * 
+     * @param runObjId              the ID of the test run
+     * @param driverId              the ID of the driver to include
+     */
+    public void addTestRunDriver(ObjectId runObjId, String driverId)
+    {
+        // Find the test run
+        DBObject queryObj = QueryBuilder
+                .start()
+                .and(FIELD_ID).is(runObjId)
+                .get();
+        DBObject updateObj = BasicDBObjectBuilder.start()
+                .push("$addToSet")
+                    .add(FIELD_DRIVERS, driverId)
+                    .pop()
+                .get();
+        DBObject runObj = testRuns.findAndModify(queryObj, null, null, false, updateObj, true, false);
+        
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "Added driver ID to run drivers: \n" +
+                    "   Run ID:     " + runObjId + "\n" +
+                    "   Driver:     " + driverId + "\n" +
+                    "   Drivers:    " + runObj.get(FIELD_DRIVERS));
+        }
+    }
+    
+    /**
+     * Derigister a driver from a test run
+     * 
+     * @param runObjId              the ID of the test run
+     * @param driverId              the ID of the driver to remove
+     */
+    public void removeTestRunDriver(ObjectId runObjId, String driverId)
+    {
+        // Find the test run
+        DBObject queryObj = QueryBuilder
+                .start()
+                .and(FIELD_ID).is(runObjId)
+                .get();
+        DBObject updateObj = BasicDBObjectBuilder.start()
+                .push("$pull")
+                    .add(FIELD_DRIVERS, driverId)
+                    .pop()
+                .get();
+        DBObject runObj = testRuns.findAndModify(queryObj, null, null, false, updateObj, true, false);
+        
+        // Done
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "Removed driver ID from run drivers: \n" +
+                    "   Run ID:     " + runObjId + "\n" +
+                    "   Driver:     " + driverId + "\n" +
+                    "   Drivers:    " + runObj.get(FIELD_DRIVERS));
+        }
     }
     
     /**

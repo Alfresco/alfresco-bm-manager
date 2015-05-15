@@ -26,6 +26,7 @@ import java.util.Set;
 import org.alfresco.bm.event.EventProcessor;
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogService.LogLevel;
+import org.alfresco.bm.server.EventController;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
@@ -38,6 +39,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 
 import com.mongodb.BasicDBList;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
@@ -59,6 +61,8 @@ public class TestRun implements TestConstants
     private AbstractXmlApplicationContext testRunCtx;       // This will be created when the test run actually starts
     private String test;                                    // Only populated once the test run starts
     private String run;                                     // Only populated once the test run starts
+    private String release;                                 // Only populated once the test run starts
+    private Integer schema;                                 // Only populated once the test run starts
 
     /**
      * @param testDAO               data persistence
@@ -229,6 +233,9 @@ public class TestRun implements TestConstants
 
                     testDAO.lockProperties(testObjId, id);
 
+                    // Give the EventController the updated list of drivers
+                    updateDriverIds();
+
                     if (logger.isInfoEnabled())
                     {
                         logger.info("Transitioned test run to " + TestRunState.STARTED + ": " + id);
@@ -261,6 +268,8 @@ public class TestRun implements TestConstants
                                 id, version,
                                 null, null, null, null, null, duration, progress,
                                 resultsSuccess, resultsFail);
+                        // Give the EventController the updated list of drivers
+                        updateDriverIds();
                     }
                     // There is nothing to do, the context is already available
                     return;
@@ -273,6 +282,27 @@ public class TestRun implements TestConstants
                 stop();
                 return;
         }
+    }
+    
+    /**
+     * Helper method to inject the current list of driver IDs into the EventController.
+     * The test run must already have started for this to work.
+     */
+    private synchronized void updateDriverIds()
+    {
+        // Give the EventController the updated list of drivers
+        DBCursor cursor = testDAO.getDrivers(release, schema, true);
+        String[] driverIds = new String[cursor.size()];
+        int index = 0;
+        while (cursor.hasNext())
+        {
+            ObjectId driverIdObj = (ObjectId) cursor.next().get(FIELD_ID);
+            driverIds[index++] = driverIdObj.toString();
+        }
+        cursor.close();
+        // Pass the driver IDs to the event controller
+        EventController eventController = testRunCtx.getBean(EventController.class);
+        eventController.setDriverIds(driverIds);
     }
     
     /**
@@ -304,6 +334,7 @@ public class TestRun implements TestConstants
         }
 
         ObjectId testObjId = (ObjectId) runObj.get(FIELD_TEST);
+        ObjectId runObjId = (ObjectId) runObj.get(FIELD_ID);
         String run = (String) runObj.get(FIELD_NAME);
         // We need to build the test run FQN out of the test run details
         DBObject testObj = testDAO.getTest(testObjId, false);
@@ -418,12 +449,17 @@ public class TestRun implements TestConstants
             testRunCtx.start();
             this.test = test;
             this.run = run;
+            this.release = release;
+            this.schema = schema;
             // Make sure that the required components are present and of the correct type
             // There may be multiple beans of the type, so we have to use the specific bean name.
             @SuppressWarnings("unused")
             CompletionEstimator estimator = (CompletionEstimator) testRunCtx.getBean("completionEstimator");
             @SuppressWarnings("unused")
             EventProcessor startEventProcessor = (EventProcessor) testRunCtx.getBean("event.start");
+            
+            // Register the driver with the test run
+            testDAO.addTestRunDriver(runObjId, driverId);
             
             // Log the successful startup
             logService.log(driverId, test, run, LogLevel.INFO, "Successful startup of test run '" + testRunFqn + "'.");
@@ -472,6 +508,14 @@ public class TestRun implements TestConstants
 
         try
         {
+            DBObject runObj = getRunObj(false);
+            if (runObj != null)
+            {
+                ObjectId runObjId = (ObjectId) runObj.get(FIELD_ID);
+                // Unregister the driver from the test run
+                testDAO.removeTestRunDriver(runObjId, driverId);
+            }
+            
             boolean active = testRunCtx.isActive();
             // Stop the context
             try

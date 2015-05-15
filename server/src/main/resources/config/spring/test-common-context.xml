@@ -94,7 +94,7 @@
     <!--                  -->
 
     <bean id="eventController" class="org.alfresco.bm.server.EventController" >
-        <constructor-arg name="serverId" value="${driverId}" />
+        <constructor-arg name="driverId" value="${driverId}" />
         <constructor-arg name="testRunFqn" value="${testRunFqn}" />
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="eventProcessors" ref="eventProcessors" />

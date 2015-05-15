@@ -31,7 +31,7 @@ import com.mongodb.DBObject;
 public class EventRecord
 {
     public static final String FIELD_ID = "_id";
-    public static final String FIELD_SERVER_ID = "serverId";
+    public static final String FIELD_DRIVER_ID = "driverId";
     public static final String FIELD_SUCCESS = "success";
     public static final String FIELD_START_TIME = "startTime";
     public static final String FIELD_START_DELAY = "startDelay";
@@ -52,7 +52,7 @@ public class EventRecord
     public static final String FIELD_EVENT_SCHEDULED_TIME = "event." + Event.FIELD_SCHEDULED_TIME;
     public static final String FIELD_EVENT_SESSION_ID = "event." + Event.FIELD_SESSION_ID;
 
-    private final String serverId;
+    private final String driverId;
     private String id;
     private final boolean success;
     private final long startTime;
@@ -65,7 +65,7 @@ public class EventRecord
     private String processedBy = "unknown";
 
     /**
-     * @param serverId          the server identifier
+     * @param driverId          the driver ID
      * @param success           <tt>true</tt> if this represents a successful event
      *                          otherwise <tt>false</tt>
      * @param startTime         the time when processing started
@@ -73,18 +73,18 @@ public class EventRecord
      * @param data              any additional data that should be recorded with this event
      * @param event             the event that was processed
      */
-    public EventRecord(String serverId, boolean success, long startTime, long time, Object data, Event event)
+    public EventRecord(String driverId, boolean success, long startTime, long time, Object data, Event event)
     {
-        if (serverId == null)
+        if (driverId == null)
         {
-            throw new IllegalArgumentException("A server ID is mandatory");
+            throw new IllegalArgumentException("A driver ID is mandatory");
         }
         if (event == null)
         {
             throw new IllegalArgumentException("An Event is mandatory");
         }
         
-        this.serverId = serverId;
+        this.driverId = driverId;
         this.success = success;
         this.startTime = startTime;
         this.startDelay = (event.getScheduledTime() == 0) ? 0L : (startTime - event.getScheduledTime());
@@ -113,7 +113,7 @@ public class EventRecord
     {
         StringBuilder builder = new StringBuilder();
         builder.append("EventRecord ");
-        builder.append("[ serverId=").append(serverId);
+        builder.append("[ driverId=").append(driverId);
         builder.append(", processedBy=").append(processedBy);
         builder.append(", success=").append(success);
         builder.append(", startTime=").append(new Date(startTime));
@@ -125,9 +125,9 @@ public class EventRecord
         return builder.toString();
     }
 
-    public String getServerId()
+    public String getDriverId()
     {
-        return serverId;
+        return driverId;
     }
 
     public String getId()

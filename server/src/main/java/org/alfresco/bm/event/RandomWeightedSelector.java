@@ -42,8 +42,8 @@ public class RandomWeightedSelector<T>
     /**
      * Add an object to the list.
      * 
-     * @param weight
-     * @param result
+     * @param weight        any relative weight that will give a larger or smaller chance of selection
+     * @param result        the result to return, if chosen
      */
     public void add(double weight, T result)
     {
