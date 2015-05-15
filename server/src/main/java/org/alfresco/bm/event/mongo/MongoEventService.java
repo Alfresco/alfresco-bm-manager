@@ -34,7 +34,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bson.types.ObjectId;
 
-import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -111,21 +110,6 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
     public long count()
     {
         return collection.count();
-    }
-
-    /**
-     * Determine if the data can be written out to MongoDB
-     * 
-     * @param data                      the data to store (in memory or persisted)
-     */
-    public static boolean canPersistDataObject(Object data)
-    {
-        boolean canPersistData =
-                data == null ||
-                data instanceof String ||
-                data instanceof DBObject ||
-                data instanceof Number;
-        return canPersistData;
     }
 
     /**
@@ -225,7 +209,7 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         
         // Replace the data with a key, if necessary
         Object data = event.getData();
-        boolean storeInMem = (!canPersistDataObject(data) || event.getDataInMemory());
+        boolean storeInMem = event.getDataInMemory();
         if (storeInMem && data != null)
         {
             // We will only store the data if the insertion works
@@ -308,30 +292,17 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
         // Build query
         BasicDBObjectBuilder qb = BasicDBObjectBuilder
                 .start()
-                .push(Event.FIELD_SCHEDULED_TIME).add("$lte", new Date(latestScheduledTime)).pop()
-                .add(Event.FIELD_LOCK_OWNER, null);
+                .push(Event.FIELD_SCHEDULED_TIME)                   // Must be scheduled to execute
+                    .add("$lte", new Date(latestScheduledTime))
+                    .pop()
+                .add(Event.FIELD_LOCK_OWNER, null)                  // Must not be locked
+                .push(Event.FIELD_DATA_OWNER)                       // We must own the data it or it must be unowned
+                    .add("$in", new String[] {dataOwner, null})
+                    .pop();
         if (driverId != null)
         {
-            // The common case: Find events with data afinity or that this driver can pick up
-            BasicDBList orQuery = new BasicDBList();
-            orQuery.add(BasicDBObjectBuilder
-                    .start()
-                    .add(Event.FIELD_DATA_OWNER, dataOwner)
-                    .get());
-            orQuery.add(BasicDBObjectBuilder
-                    .start()
-                    .push(Event.FIELD_DRIVER)
-                        .add("$in", new String[] {driverId, null})
-                        .pop()
-                    .get());
-            qb.add("$or", orQuery);
-        }
-        else if (driverId == null)
-        {
-            // The driver is not important, so either we get events with data bound to this instance
-            // or else not bound; either way we don't worry about the driver ID
-            qb.push(Event.FIELD_DATA_OWNER)
-                .add("$in", new String[] {dataOwner, null})
+            qb.push(Event.FIELD_DRIVER)                             // Must be assigned to the given driver or must be unassigned
+                .add("$in", new String[] {driverId, null})
                 .pop();
         }
         DBObject queryObj = qb.get();

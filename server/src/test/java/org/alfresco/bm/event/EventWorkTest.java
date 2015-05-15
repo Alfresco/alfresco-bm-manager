@@ -219,6 +219,11 @@ public class EventWorkTest
         
         assertEquals(1, resultService.countResultsBySuccess());
         assertEquals(1, eventService.count());
+        // Check that we have memory-stored data and no assigned driver
+        Event checkEvent = eventService.getEvents(0, 1).get(0);
+        assertTrue("Data should be stored in memory automatically", checkEvent.getDataInMemory());
+        assertNull("No driver should be assigned.", checkEvent.getDriver());
+        
         assertNull("The local data should not be available for other drivers.", anotherEventService.nextEvent(null, Long.MAX_VALUE));
         Event nextEvent = eventService.nextEvent(null, Long.MAX_VALUE);
         assertNotNull(nextEvent);

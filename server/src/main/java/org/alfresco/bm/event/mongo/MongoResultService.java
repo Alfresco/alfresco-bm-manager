@@ -149,6 +149,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         if (driverId == null)
         {
             // For backward compatibility, check the old field name
+            // TODO: Remove after August 2015
             driverId = (String) eventRecordObj.get("serverId");
         }
         boolean success = eventRecordObj.containsField(EventRecord.FIELD_SUCCESS) ?
@@ -236,7 +237,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         
         DBObject eventObj = MongoEventService.convertEvent(event);
         // Remove the event data if it is not persistable
-        if (!MongoEventService.canPersistDataObject(event.getData()))
+        if (event.getDataInMemory())
         {
             eventObj.removeField(Event.FIELD_DATA);
         }
@@ -253,6 +254,9 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 .add(EventRecord.FIELD_CHART, result.isChart())
                 .add(EventRecord.FIELD_DATA, result.getData())
                 .add(EventRecord.FIELD_DRIVER_ID, result.getDriverId())
+                // Write the old 'serverId' field so that older servers can access the results
+                // TODO: Remove after August 2015
+                .add("serverId", result.getDriverId())
                 .add(EventRecord.FIELD_START_DELAY, result.getStartDelay())
                 .add(EventRecord.FIELD_START_TIME, new Date(result.getStartTime()))
                 .add(EventRecord.FIELD_SUCCESS, result.isSuccess())

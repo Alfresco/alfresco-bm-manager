@@ -133,13 +133,28 @@ public class Event
         this.sessionId = null;
         // Record if the object should be forced to stay in memory
         this.data = data;
-        this.dataInMemory = dataInMemory;
+        this.dataInMemory = dataInMemory ? true : !Event.canPersistDataObject(data);
         
         // Certain event have to be unique within the context of the processing
         if (name.equals(Event.EVENT_NAME_START))
         {
             this.id = Event.EVENT_ID_START;
         }
+    }
+
+    /**
+     * Determine if the data can be written out to MongoDB
+     * 
+     * @param data                      the data to store (in memory or persisted)
+     */
+    public static boolean canPersistDataObject(Object data)
+    {
+        boolean canPersistData =
+                data == null ||
+                data instanceof String ||
+                data instanceof DBObject ||
+                data instanceof Number;
+        return canPersistData;
     }
 
     @Override
@@ -260,7 +275,7 @@ public class Event
     }
     public void setDriver(String driver)
     {
-        if (dataInMemory)
+        if (dataInMemory && driver != null)
         {
             throw new IllegalStateException("Events that have data bound in memory cannot be assigned a specific driver.");
         }
