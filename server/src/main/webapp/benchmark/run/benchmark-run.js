@@ -573,7 +573,8 @@
                 });
             }  
          
-            
+            // for column sorting by level value
+            $scope.columnSort = { sortColumn: 'level', reverse: false };   
 
             //Get the summary now!
             $scope.getSummary();
