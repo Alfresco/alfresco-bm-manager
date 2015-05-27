@@ -10,12 +10,12 @@ More information on the <a href="https://wiki.alfresco.com/wiki/Benchmark_Framew
 
 Git:
 
-    git clone https://github.com/derekhulley/alfresco-benchmark.git
+    git clone https://github.com/AlfrescoBenchmark/alfresco-benchmark.git
     cd alfresco-benchmark
 
 Subversion:
 
-    svn checkout https://github.com/derekhulley/alfresco-benchmark.git
+    svn checkout https://github.com/AlfrescoBenchmark/alfresco-benchmark.git
     cd alfresco-benchmark
 
 ### Use Maven
