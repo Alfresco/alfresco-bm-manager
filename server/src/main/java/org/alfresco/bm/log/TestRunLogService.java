@@ -21,9 +21,9 @@ package org.alfresco.bm.log;
 import org.alfresco.bm.log.LogService.LogLevel;
 
 /**
- * Concrete implementation of a log service that always logs data specific to a given
- * drive-test-testrun combination.  Typically, this instance will not be shared or
- * used generically and should be discarded along with any test or test run context.
+ * Concrete implementation of a log service that always logs data specific to a given drive-test-testrun combination.
+ * Typically, this instance will not be shared or used generically and should be discarded along with any test or test
+ * run context.
  * <p/>
  * This API only provides the ability to write data to the log.
  * 
@@ -32,16 +32,27 @@ import org.alfresco.bm.log.LogService.LogLevel;
  */
 public class TestRunLogService
 {
+    /** Stores the log service to use */
     private final LogService logService;
-    private final String driverId;
-    private final String test;
-    private final String testRun;
     
+    /** Driver ID that triggers the log message */
+    private final String driverId;
+    
+    /** Test instance name */
+    private final String test;
+
+    /** Test run to log message for */
+    private final String testRun;
+
     /**
-     * @param logService            the service that actually does the work
-     * @param driverId              the ID of the driver that message will be logged against (may be <tt>null</tt>)
-     * @param test                  the name of the test that messages will be logged against (may be <tt>null</tt>)
-     * @param testRun               the name of the test run that messages will be logged against (may be <tt>null</tt>)
+     * @param logService
+     *            the service that actually does the work
+     * @param driverId
+     *            the ID of the driver that message will be logged against (may be <tt>null</tt>)
+     * @param test
+     *            the name of the test that messages will be logged against (may be <tt>null</tt>)
+     * @param testRun
+     *            the name of the test run that messages will be logged against (may be <tt>null</tt>)
      */
     public TestRunLogService(LogService logService, String driverId, String test, String testRun)
     {
@@ -50,15 +61,98 @@ public class TestRunLogService
         this.test = test;
         this.testRun = testRun;
     }
-    
+
     /**
      * Log a message specific to this instance
      * 
-     * @param level                 the severity of the message
-     * @param msg                   the log message
+     * @param level
+     *            the severity of the message
+     * @param msg
+     *            the log message
      */
     public void log(LogLevel level, String msg)
     {
-        logService.log(driverId, test, testRun, level, msg);
+        if (null != msg && !msg.isEmpty())
+        {
+            logService.log(driverId, test, testRun, level, msg);
+        }
+    }
+
+    /**
+     * Logs a TRACE message.
+     * 
+     * @param msg_p
+     *            (String) message to log.
+     * 
+     * @since 2.10
+     */
+    public void logTrace(String msg_p)
+    {
+        log(LogLevel.TRACE, msg_p);
+    }
+
+    /**
+     * Logs a DEBUG message.
+     * 
+     * @param msg_p
+     *            (String) message to log.
+     * 
+     * @since 2.10
+     */
+    public void logDebug(String msg_p)
+    {
+        log(LogLevel.DEBUG, msg_p);
+    }
+
+    /**
+     * Logs an INFO message.
+     * 
+     * @param msg_p
+     *            (String) message to log.
+     * 
+     * @since 2.10
+     */
+    public void logInfo(String msg_p)
+    {
+        log(LogLevel.INFO, msg_p);
+    }
+
+    /**
+     * Logs a WARN message.
+     * 
+     * @param msg_p
+     *            (String) message to log.
+     * 
+     * @since 2.10
+     */
+    public void logWarn(String msg_p)
+    {
+        log(LogLevel.WARN, msg_p);
+    }
+
+    /**
+     * Logs an ERROR message.
+     * 
+     * @param msg_p
+     *            (String) message to log.
+     * 
+     * @since 2.10
+     */
+    public void logError(String msg_p)
+    {
+        log(LogLevel.ERROR, msg_p);
+    }
+
+    /**
+     * Logs a FATAL message.
+     * 
+     * @param msg_p
+     *            (String) message to log.
+     * 
+     * @since 2.10
+     */
+    public void logFatal(String msg_p)
+    {
+        log(LogLevel.FATAL, msg_p);
     }
 }

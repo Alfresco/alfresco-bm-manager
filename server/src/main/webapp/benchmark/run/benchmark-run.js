@@ -12,30 +12,41 @@
     /**
      * Test run properties service.
      */
-    .factory('TestRunPropertyService', function($resource) {
-        return $resource('api/v1/tests/:id/runs/:runname/props/:propertyname', {
-            id: '@id',
-            propertyname: '@propertyname'
-        }, {
-            update: {
-                method: 'PUT',
-                params: {
-                    id: 'id',
-                    runname: 'runname',
-                    propertyname: 'propertyname'
-                }
-            },
-            delete: {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                params: {
-                    id: 'id',
-                    propertyname: 'propertyname'
+    .factory('TestRunPropertyService', function($resource) 
+    {
+        return $resource
+        (
+            'api/v1/tests/:id/runs/:runname/props/:propertyname', 
+            {
+                id: '@id',
+                propertyname: '@propertyname'
+            }, 
+            {
+                update: 
+                {
+                    method: 'PUT',
+                    params: 
+                    {
+                        id: 'id',
+                        runname: 'runname',
+                        propertyname: 'propertyname'
+                    }
+                }, 
+                delete: 
+                {
+                    method: 'DELETE',
+                    headers: 
+                    {
+                        'Content-Type': 'application/json'
+                    },
+                    params: 
+                    {
+                        id: 'id',
+                        propertyname: 'propertyname'
+                    }
                 }
             }
-        })
+        )
     }).value('version', '0.1')
 
     /**
@@ -234,7 +245,7 @@
                         $scope.data.runs = response;
                     });
                 })
-            }
+            };
             //call back to start run
             $scope.startRun = function(testname, index) {
                 var run = $scope.data.runs[index];
@@ -254,7 +265,7 @@
                     $scope.data.runs[index] = run;
                     $scope.poll();
                 })
-            }
+            };
             //call back to stop run
             $scope.stopRun = function(runname, testname, index) {
                 TestRunService.stopTestRun({
@@ -262,7 +273,7 @@
                     runname: runname
                 }, {}, function(response) {
                     $location.path("/tests/" + testname);
-                })
+                });
             }
         }
 
@@ -323,7 +334,7 @@
                         } else {
                             $scope.errorMsg = error.data.error;
                         }
-                    })
+                    });
             }
         }
     ])
@@ -535,7 +546,7 @@
                 }, function(response) {
                     $location.path("/tests/" + $scope.testname);                    
                 })
-            }
+            };
             //call back to start run
             $scope.startRun = function() {
 
@@ -552,7 +563,7 @@
                 }, json, function(response) {
                     $scope.hasStarted = true;
                 })
-            }
+            };
             
             $scope.errorLogs = 0;
             // get test logs only 
