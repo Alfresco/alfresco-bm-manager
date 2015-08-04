@@ -445,12 +445,15 @@ public class TestRun implements TestConstants
         try
         {
             this.testRunCtx = testRunCtx;
-            testRunCtx.refresh();
-            testRunCtx.start();
+            // 2015-08-04 fkbecker: store definitions first - for refresh() or start() may fail, too. 
             this.test = test;
             this.run = run;
             this.release = release;
             this.schema = schema;
+            
+            testRunCtx.refresh();
+            testRunCtx.start();
+
             // Make sure that the required components are present and of the correct type
             // There may be multiple beans of the type, so we have to use the specific bean name.
             @SuppressWarnings("unused")
@@ -469,6 +472,9 @@ public class TestRun implements TestConstants
             Throwable root = ExceptionUtils.getRootCause(e);
             if (root != null && (root instanceof MongoException || root instanceof IOException))
             {
+                // 2015-08-04 fkbecker IOException also thrown by FTP file service if host not reachable ...
+                // FIXME 
+                
                 String msg1 = "Failed to start test run application '" + testRunFqn + "': " + e.getCause().getMessage();
                 String msg2 = "Set the test run property '" + PROP_MONGO_TEST_HOST + "' (<server>:<port>) as required.";
                 // We deal with this specifically as it's a simple case of not finding the MongoDB
