@@ -1,6 +1,6 @@
 'use strict';
     /**
-     * The benchmark-test.js is a AngularJS lib that contains
+     * The benchmark-test.js is a AngularJS library that contains
      * the controllers, services, filters of benchmark test module.
      */
 
@@ -17,7 +17,7 @@
             name: '@name',
             schema: '@schema'
         }, {
-            //Returns list of active test defs
+            //Returns list of active test definitions
             getTestDef: {
                 method: 'GET',
                 params: {
@@ -191,7 +191,7 @@
                 //check default value if missing create one from default.
                 $scope.data.test.properties.forEach(function(item){
                     if(item.value == undefined){
-                        item.value = item.default;
+                        item.value = item['default'];
                     }
                 });
                 var result = UtilService.groupBy($scope.data.test.properties, function(item) {
@@ -288,10 +288,10 @@
                 item.newvalue = "";
                 var restData = {
                     "version": item.version,
-                    "value": item.default
+                    "value": item['default']
                 };
                 $scope.updateTestProperty(testname, item, restData);
-                item.value = item.default;
+                item.value = item['default'];
             }
 
             $scope.updateTestProperty = function(testname, item, propData) {
@@ -301,7 +301,7 @@
                     }, propData,
                     function(res) {
                         var redirect = "/tests/" + testname + "/properties";
-                        //update modal with latest from backend
+                        //update modal with latest from back-end
                         TestService.getTest({
                             id: testname
                         }, function(response) {

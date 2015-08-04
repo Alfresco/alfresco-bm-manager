@@ -371,7 +371,7 @@
                 $scope.data = response;
                 $scope.data.properties.forEach(function(item){
                     if(item.value == "undefined"){
-                        item.value = item.default;
+                        item.value = item['default'];
                     }
                 });
                 var result = UtilService.groupBy($scope.data.properties, function(item) {
@@ -439,7 +439,7 @@
                     "version": item.version
                 };
                 $scope.updateTestRunProperty(testname, runname, item.name, restData);
-                item.value = item.default;
+                item.value = item['default'];
             }
 
             $scope.updateTestRunProperty = function(testname, runname, propertyName, propData) {
@@ -474,7 +474,7 @@
 
             $scope.attentionReq = function(item) {
                 //for the case when we don't have a value and default '--' one exists
-                if (angular.isUndefined(item.value) && item.default.indexOf('--') > -1)
+                if (angular.isUndefined(item.value) && item['default'].indexOf('--') > -1)
                 {
                     $scope.attentionRequired = true;
                     $scope.attentionMessage = "* {" + item.group + " / " +item.name + "}: A value must be set.";
