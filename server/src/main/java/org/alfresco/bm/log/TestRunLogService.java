@@ -81,78 +81,78 @@ public class TestRunLogService
     /**
      * Logs a TRACE message.
      * 
-     * @param msg_p
+     * @param msg
      *            (String) message to log.
      * 
      * @since 2.10
      */
-    public void logTrace(String msg_p)
+    public void logTrace(String msg)
     {
-        log(LogLevel.TRACE, msg_p);
+        log(LogLevel.TRACE, msg);
     }
 
     /**
      * Logs a DEBUG message.
      * 
-     * @param msg_p
+     * @param msg
      *            (String) message to log.
      * 
      * @since 2.10
      */
-    public void logDebug(String msg_p)
+    public void logDebug(String msg)
     {
-        log(LogLevel.DEBUG, msg_p);
+        log(LogLevel.DEBUG, msg);
     }
 
     /**
      * Logs an INFO message.
      * 
-     * @param msg_p
+     * @param msg
      *            (String) message to log.
      * 
      * @since 2.10
      */
-    public void logInfo(String msg_p)
+    public void logInfo(String msg)
     {
-        log(LogLevel.INFO, msg_p);
+        log(LogLevel.INFO, msg);
     }
 
     /**
      * Logs a WARN message.
      * 
-     * @param msg_p
+     * @param msg
      *            (String) message to log.
      * 
      * @since 2.10
      */
-    public void logWarn(String msg_p)
+    public void logWarn(String msg)
     {
-        log(LogLevel.WARN, msg_p);
+        log(LogLevel.WARN, msg);
     }
 
     /**
      * Logs an ERROR message.
      * 
-     * @param msg_p
+     * @param msg
      *            (String) message to log.
      * 
      * @since 2.10
      */
-    public void logError(String msg_p)
+    public void logError(String msg)
     {
-        log(LogLevel.ERROR, msg_p);
+        log(LogLevel.ERROR, msg);
     }
 
     /**
      * Logs a FATAL message.
      * 
-     * @param msg_p
+     * @param msg
      *            (String) message to log.
      * 
      * @since 2.10
      */
-    public void logFatal(String msg_p)
+    public void logFatal(String msg)
     {
-        log(LogLevel.FATAL, msg_p);
+        log(LogLevel.FATAL, msg);
     }
 }
