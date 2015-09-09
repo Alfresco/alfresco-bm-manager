@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.report.DataReportService;
 import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -45,7 +46,6 @@ import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 import com.mongodb.MongoSocketException;
 
-
 /**
  * Helper class for instantiating and holding service instances for specific test runs.
  * 
@@ -56,36 +56,36 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
 {
     /** The time to hold a context open since last access */
     private static final long CONTEXT_ACCESS_TIMEOUT = 120000L;
-    
+
     private static final Log logger = LogFactory.getLog(TestRunServicesCache.class);
-    
+
     private final MongoTestDAO dao;
     private final TestService testService;
     private final Map<String, ClassPathXmlApplicationContext> contexts;
     private final Map<String, Long> contextAccessTimes;
     private final ContextCleanerTask contextCleanerTask;
     private final ReentrantReadWriteLock lock;
-    
+
     /**
-     * @param dao               provides access to the state of a specific test run
+     * @param dao
+     *            provides access to the state of a specific test run
      */
     public TestRunServicesCache(MongoTestDAO dao)
     {
         this.dao = dao;
         this.testService = new TestServiceImpl(dao);
-        
+
         this.contexts = new HashMap<String, ClassPathXmlApplicationContext>(13);
         this.contextAccessTimes = Collections.synchronizedMap(new HashMap<String, Long>(13));
         this.contextCleanerTask = new ContextCleanerTask();
         this.lock = new ReentrantReadWriteLock();
     }
-    
+
     @Override
     public void start() throws Exception
     {
         Timer timer = new Timer("TestServicesCache", true);
         timer.schedule(contextCleanerTask, 0L, CONTEXT_ACCESS_TIMEOUT);
-
     }
 
     @Override
@@ -130,15 +130,13 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
             }
         }
         // Construct the properties
-        ClassPathXmlApplicationContext testRunCtx = new ClassPathXmlApplicationContext(new String[] {PATH_TEST_SERVICES_CONTEXT}, false);
+        ClassPathXmlApplicationContext testRunCtx = new ClassPathXmlApplicationContext(
+                new String[] { PATH_TEST_SERVICES_CONTEXT }, false);
         ConfigurableEnvironment ctxEnv = testRunCtx.getEnvironment();
-        ctxEnv.getPropertySources().addFirst(
-                new PropertiesPropertySource(
-                        "run-props",
-                        testRunProps));
+        ctxEnv.getPropertySources().addFirst(new PropertiesPropertySource("run-props", testRunProps));
         // Bind to shutdown
         testRunCtx.registerShutdownHook();
-        
+
         // Attempt to start the context
         try
         {
@@ -155,13 +153,15 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
             if (root != null && root instanceof MongoSocketException)
             {
                 // We deal with this specifically as it's a simple case of not finding the MongoDB
-                logger.error("Failed to start test run services context '" + testRunFqn + "': " + e.getCause().getMessage());
+                logger.error("Failed to start test run services context '" + testRunFqn + "': "
+                        + e.getCause().getMessage());
                 logger.error("Set the test run property '" + PROP_MONGO_TEST_HOST + "' (<server>:<port>) as required.");
             }
             else if (root != null && root instanceof UnknownHostException)
             {
                 // We deal with this specifically as it's a simple case of not finding the MongoDB
-                logger.error("Failed to start test run services context '" + testRunFqn + "': " + e.getCause().getCause().getMessage());
+                logger.error("Failed to start test run services context '" + testRunFqn + "': "
+                        + e.getCause().getCause().getMessage());
                 logger.error("Set the test run property '" + PROP_MONGO_TEST_HOST + "' (<server>:<port>) as required.");
             }
             else
@@ -181,19 +181,21 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
         }
         return testRunCtx;
     }
-    
+
     /**
      * Get the {@link ResultService} for the given test run
      * 
-     * @param test              the name of the test
-     * @param run               the name of the run
-     * @return                  the service to access the results or <tt>null</tt> if not available
+     * @param test
+     *            the name of the test
+     * @param run
+     *            the name of the run
+     * @return the service to access the results or <tt>null</tt> if not available
      */
     private ClassPathXmlApplicationContext getContext(String test, String run)
     {
         String testRunFqn = test + "." + run;
         Long now = System.currentTimeMillis();
-        
+
         lock.readLock().lock();
         try
         {
@@ -231,31 +233,31 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
             lock.writeLock().unlock();
         }
     }
-    
+
     /**
      * Get the {@link MongoTestDAO} for the given test run
      * 
-     * @return                  the DAO for accessing the low-level test config data
+     * @return the DAO for accessing the low-level test config data
      */
     public MongoTestDAO getTestDAO()
     {
         return dao;
     }
-    
+
     /**
      * Get the {@link TestService} for the given test run
      * 
-     * @return                  the service for accessing test data
+     * @return the service for accessing test data
      */
     public TestService getTestService()
     {
         return testService;
     }
-    
+
     /**
      * Get the {@link ResultService} for the given test run
      * 
-     * @return                  the service or <tt>null</tt> if it could not be created or accessed
+     * @return the service or <tt>null</tt> if it could not be created or accessed
      */
     public ResultService getResultService(String test, String run)
     {
@@ -266,11 +268,11 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
         }
         return ctx.getBean(ResultService.class);
     }
-    
+
     /**
      * Get the {@link EventService} for the given test run
      * 
-     * @return                  the service or <tt>null</tt> if it could not be created or accessed
+     * @return the service or <tt>null</tt> if it could not be created or accessed
      */
     public EventService getEventService(String test, String run)
     {
@@ -281,11 +283,11 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
         }
         return ctx.getBean(EventService.class);
     }
-    
+
     /**
      * Get the {@link SessionService} for the given test run
      * 
-     * @return                  the service or <tt>null</tt> if it could not be created or accessed
+     * @return the service or <tt>null</tt> if it could not be created or accessed
      */
     public SessionService getSessionService(String test, String run)
     {
@@ -296,10 +298,36 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
         }
         return ctx.getBean(SessionService.class);
     }
-    
+
     /**
-     * Checks the access times for all contexts and shuts down and removes any that have not been accessed
-     * since it last checked.
+     * Returns the data report service or null if no data report service is configured.
+     * 
+     * @param test
+     *            (String) test name
+     * @param run
+     *            (String) test run name
+     * @return (DataReportService or null)
+     */
+    public DataReportService getDataReportService(String test, String run)
+    {
+        try
+        {
+            ApplicationContext ctx = getContext(test, run);
+            if (null != ctx)
+            {
+                return ctx.getBean(DataReportService.class);
+            }
+        }
+        catch (Exception e)
+        {
+            logger.debug("No data report service available!", e);
+        }
+        return null;
+    }
+
+    /**
+     * Checks the access times for all contexts and shuts down and removes any that have not been accessed since it last
+     * checked.
      * 
      * @see TestServicesCache#CONTEXT_ACCESS_TIMEOUT
      * 
@@ -333,7 +361,8 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
                     ClassPathXmlApplicationContext ctx = contexts.get(testRunFqn);
                     if (ctx == null)
                     {
-                        logger.error("Expected to remove unused test services context but didn't find the context: " + testRunFqn);
+                        logger.error("Expected to remove unused test services context but didn't find the context: "
+                                + testRunFqn);
                         continue;
                     }
                     // First remove it

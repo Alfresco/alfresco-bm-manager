@@ -116,8 +116,18 @@ public class XLSXReporter extends AbstractEventReporter
         createSummarySheet(workbook);
         createPropertiesSheet(workbook);
         createEventSheets(workbook);
+        createExtraDataSheet(workbook);
     }
     
+    /**
+     * Creates the sheet(s) with extra data from the {@see org.alfresco.bm.report.DataReportService}
+     * @param workbook
+     */
+    private void createExtraDataSheet(XSSFWorkbook workbook)
+    {
+        // TODO
+    }
+
     private void writeMetadata(XSSFWorkbook workbook) throws IOException, NotFoundException
     {
         TestService testService = getTestService();

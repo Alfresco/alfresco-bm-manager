@@ -22,13 +22,13 @@ import com.mongodb.DBObject;
  * Allows one or more extra data sheets for Excel results export.
  * 
  * @author Frank Becker
- * @since 2.10
+ * @since 2.0.10
  */
 public class DataReportServiceImpl implements LifecycleListener, DataReportService
 {
     /** Stores the collection name */
     public static final String COLLECTION_EXTRA_DATA = "test.extraData";
-    public static final String COLLECTION_EXTRA_DATA_DESCRIPTION = "test.extraDataDescrition";
+    public static final String COLLECTION_EXTRA_DATA_DESCRIPTION = "test.extraDataDescription";
 
     /** static field names */
     public static final String FIELD_ID = "_id";

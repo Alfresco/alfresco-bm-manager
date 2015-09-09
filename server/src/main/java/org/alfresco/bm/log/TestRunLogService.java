@@ -84,7 +84,7 @@ public class TestRunLogService
      * @param msg
      *            (String) message to log.
      * 
-     * @since 2.10
+     * @since 2.0.10
      */
     public void logTrace(String msg)
     {
@@ -97,7 +97,7 @@ public class TestRunLogService
      * @param msg
      *            (String) message to log.
      * 
-     * @since 2.10
+     * @since 2.0.10
      */
     public void logDebug(String msg)
     {
@@ -110,7 +110,7 @@ public class TestRunLogService
      * @param msg
      *            (String) message to log.
      * 
-     * @since 2.10
+     * @since 2.0.10
      */
     public void logInfo(String msg)
     {
@@ -123,7 +123,7 @@ public class TestRunLogService
      * @param msg
      *            (String) message to log.
      * 
-     * @since 2.10
+     * @since 2.0.10
      */
     public void logWarn(String msg)
     {
@@ -136,7 +136,7 @@ public class TestRunLogService
      * @param msg
      *            (String) message to log.
      * 
-     * @since 2.10
+     * @since 2.0.10
      */
     public void logError(String msg)
     {
@@ -149,10 +149,40 @@ public class TestRunLogService
      * @param msg
      *            (String) message to log.
      * 
-     * @since 2.10
+     * @since 2.0.10
      */
     public void logFatal(String msg)
     {
         log(LogLevel.FATAL, msg);
+    }
+    
+    /**
+     * @return (String) test name
+     * 
+     * @since 2.0.10
+     */
+    public String getTestName()
+    {
+        return this.test;
+    }
+    
+    /**
+     * @return (String) test run name
+     * 
+     * @since 2.0.10
+     */
+    public String getTestRunName()
+    {
+        return this.testRun;
+    }
+    
+    /**
+     * @return (String) driver ID
+     * 
+     * @since 2.0.10
+     */
+    public String getDriverId()
+    {
+        return this.driverId;
     }
 }

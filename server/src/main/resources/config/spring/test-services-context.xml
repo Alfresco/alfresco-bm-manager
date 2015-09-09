@@ -52,6 +52,10 @@
         <constructor-arg name="collection" value="${testRunFqn}.sessions" />
     </bean>
     
+    <bean id="testDataReportService" class="org.alfresco.bm.report.DataReportServiceImpl">
+        <constructor-arg name="db" ref="testMongoDB" />
+    </bean>
+    
     <!--           -->
     <!-- Lifecycle -->
     <!--           -->
@@ -62,12 +66,18 @@
                 <ref bean="testMongoEventService" />
                 <ref bean="testMongoResultService" />
                 <ref bean="testMongoSessionService" />
+                <ref bean="testDataReportService" />
             </array>
         </constructor-arg>
     </bean>
     
+    <!--             -->
+    <!-- Alias Names -->
+    <!--             -->
+    
     <alias name="testMongoEventService" alias="eventService"/>
     <alias name="testMongoResultService" alias="resultService"/>
     <alias name="testMongoSessionService" alias="sessionService"/>
+    <alias name="testDataReportService" alias="dataReportService" />
     
 </beans>
