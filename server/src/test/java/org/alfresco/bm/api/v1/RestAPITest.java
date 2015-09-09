@@ -1006,7 +1006,7 @@ public class RestAPITest implements TestConstants
         executeTestRun("T08", "A test for scenario 08.", "01", "Scenario 08 - Run 01");
         
         testRunCollections = testMongoDB.getCollectionNames();
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 4, testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 6, testRunCollections.size());
         Assert.assertTrue(testRunCollections.contains("T08.01.events"));
         Assert.assertTrue(testRunCollections.contains("T08.01.results"));
         Assert.assertTrue(testRunCollections.contains("T08.01.sessions"));
@@ -1014,7 +1014,7 @@ public class RestAPITest implements TestConstants
         // Delete the test run
         api.deleteTestRun("T08", "01", true);
         testRunCollections = testMongoDB.getCollectionNames();
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 1, testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 3, testRunCollections.size());
     }
 
     /**
@@ -1032,7 +1032,7 @@ public class RestAPITest implements TestConstants
         executeTestRun("T09", "A test for scenario 09.", "02", "Scenario 09 - Run 02");
 
         testRunCollections = testMongoDB.getCollectionNames();
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 7, testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 9, testRunCollections.size());
         Assert.assertTrue(testRunCollections.contains("T09.01.events"));
         Assert.assertTrue(testRunCollections.contains("T09.01.results"));
         Assert.assertTrue(testRunCollections.contains("T09.01.sessions"));
@@ -1043,7 +1043,7 @@ public class RestAPITest implements TestConstants
         // Delete the test run
         api.deleteTest("T09", true);
         testRunCollections = testMongoDB.getCollectionNames();
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 1, testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 3, testRunCollections.size());
     }
     
     @Test
