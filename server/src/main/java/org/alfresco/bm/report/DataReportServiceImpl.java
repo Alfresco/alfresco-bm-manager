@@ -84,7 +84,10 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
     private void checkMandatoryString(String paramValue, String paramName)
     {
         // self-check
-        checkMandatoryString(paramName, "paramName");
+        if (null == paramName || paramName.isEmpty())
+        {
+            throw new IllegalArgumentException("'paramName' is mandatory!");
+        }
 
         // check value
         if (null == paramValue || paramValue.isEmpty())
