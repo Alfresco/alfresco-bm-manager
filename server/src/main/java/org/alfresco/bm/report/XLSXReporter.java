@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,6 +68,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.mongodb.BasicDBList;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
 /**
@@ -78,22 +80,22 @@ import com.mongodb.DBObject;
 public class XLSXReporter extends AbstractEventReporter
 {
     private static Log logger = LogFactory.getLog(XLSXReporter.class);
-    
+
     private final String title;
-    
+
     public XLSXReporter(TestRunServicesCache services, String test, String run)
     {
         super(services, test, run);
         title = test + "." + run;
     }
-    
+
     @Override
     public void export(OutputStream os)
     {
         XSSFWorkbook workbook = new XSSFWorkbook();
         // Set defaults
         workbook.setMissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
-        
+
         // Write to the workbook
         try
         {
@@ -106,10 +108,16 @@ public class XLSXReporter extends AbstractEventReporter
         }
         finally
         {
-            try { os.close(); } catch (Throwable e) {}
+            try
+            {
+                os.close();
+            }
+            catch (Throwable e)
+            {
+            }
         }
     }
-    
+
     private void writeToWorkbook(XSSFWorkbook workbook) throws IOException, NotFoundException
     {
         writeMetadata(workbook);
@@ -118,25 +126,180 @@ public class XLSXReporter extends AbstractEventReporter
         createEventSheets(workbook);
         createExtraDataSheet(workbook);
     }
-    
+
     /**
      * Creates the sheet(s) with extra data from the {@see org.alfresco.bm.report.DataReportService}
+     * 
      * @param workbook
+     *            (XSSFWorkbook) Excel workbook
+     * 
+     * @since 2.0.10
      */
     private void createExtraDataSheet(XSSFWorkbook workbook)
     {
-        // TODO
+        // get the service
+        DataReportService dataReportService = this.services.getDataReportService(this.test, this.run);
+        if (null == dataReportService)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("No 'DataReportService' available - quitting ...");
+            }
+            return;
+        }
+
+        // get the sheet names from the report service
+        String[] sheets = dataReportService.getSheetNames(null, this.test, this.run);
+        if (null == sheets || 0 == sheets.length)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("No sheets to write - quitting ...");
+            }
+            return;
+        }
+
+        // create the sheets
+        for (String sheet : sheets)
+        {
+            if (null != sheet && !sheet.isEmpty())
+            {
+                createExtraDataSheet(workbook, dataReportService, sheet);
+            }
+            else
+            {
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("Skipping sheet with no name - check data written to MongoDB!");
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates a new named sheet and inserts the data for it.
+     * 
+     * @param workbook
+     *            (XSSFWorkbook) Excel workbook to create the sheet in
+     * @param dataReportService
+     *            (DataReportService) provides the extra data to write to the sheet
+     * @param sheetName
+     *            (String) name of the new sheet
+     * 
+     * @since 2.0.10
+     */
+    private void createExtraDataSheet(XSSFWorkbook workbook, DataReportService dataReportService, String sheetName)
+    {
+        XSSFSheetRow sheet = new XSSFSheetRow();
+        int columnCount = 0;
+        
+        // get description - if not empty write to sheet
+        List<String> descriptionRow = dataReportService.getDescription(null, this.test, this.run, sheetName);
+        if (null != descriptionRow && descriptionRow.size() > 0)
+        {
+            createSheetRow(workbook, sheet, sheetName, descriptionRow, true);
+        }
+
+        // get the data for the sheet
+        DBCursor cursor = dataReportService.getData(null, this.test, this.run, sheetName);
+        if (null != cursor)
+        {
+            // for each row create entry in the sheet
+            while (cursor.hasNext())
+            {
+                List<String> values = dataReportService.getNextValueRow(cursor);
+                createSheetRow(workbook, sheet, sheetName, values, false);
+                
+                // set number of columns
+                if (null != values && values.size() > columnCount)
+                {
+                    columnCount = values.size();
+                }
+            }
+        }
+        
+        // auto-size the columns
+        if (null != sheet.sheet)
+        {
+         // Auto-size the columns
+            for (int i = 0; i < columnCount; i++)
+            {
+                sheet.sheet.autoSizeColumn(i);
+            }
+        }
+    }
+
+    /**
+     * Helper class to create rows in a XLSX sheet
+     * 
+     * @since 2.0.10
+     */
+    private class XSSFSheetRow
+    {
+        public XSSFSheet sheet = null;
+        public int rowCount = 0;
+    }
+
+    /**
+     * Creates a new line with values in the sheet.
+     * 
+     * @param workbook
+     *            (XSSFWorkbook, required) workbook to create the row in
+     * @param sheetRow
+     *            (XSSFSheetRow, required) sheet to create the data row in
+     * @param sheetName
+     *            (String, required) name of the sheet
+     * @param values
+     *            (String [], optional) if null or empty no work will be done, else the values written to the next line
+     * @param bold
+     *            (boolean) true: the values will be set in bold font face, else normal
+     * 
+     * @since 2.0.10
+     */
+    private void createSheetRow(XSSFWorkbook workbook, XSSFSheetRow sheetRow, String sheetName, List<String> values,
+            boolean bold)
+    {
+        if (null != values && values.size() > 0)
+        {
+            // check if sheet exists and create if not
+            if (null == sheetRow.sheet)
+            {
+                sheetRow.sheet = workbook.createSheet(sheetName);
+            }
+
+            // create cell style
+            XSSFCellStyle cellStyle = workbook.createCellStyle();
+            cellStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            if (bold)
+            {
+                // Create bold font
+                Font fontBold = workbook.createFont();
+                fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
+                cellStyle.setFont(fontBold);
+            }
+
+            // create row
+            XSSFRow row = sheetRow.sheet.createRow(sheetRow.rowCount++);
+
+            // set values
+            for (int i = 0; i < values.size(); i++)
+            {
+                row.getCell(i).setCellValue(values.get(i));
+                row.getCell(i).setCellStyle(cellStyle);
+            }
+        }
     }
 
     private void writeMetadata(XSSFWorkbook workbook) throws IOException, NotFoundException
     {
         TestService testService = getTestService();
-        
+
         CoreProperties workbookCoreProperties = workbook.getProperties().getCoreProperties();
-        
+
         // Title
         workbookCoreProperties.setTitle(title);
-        
+
         // Description
         StringBuilder description = new StringBuilder(128);
         DBObject testObj = testService.getTestMetadata(test);
@@ -152,7 +315,7 @@ public class XLSXReporter extends AbstractEventReporter
             description.append(testRunDescription);
         }
         workbookCoreProperties.setDescription(description.toString().trim());
-        
+
         // Created
         Long time = (Long) testRunObj.get(FIELD_STARTED);
         if (time > 0)
@@ -160,7 +323,7 @@ public class XLSXReporter extends AbstractEventReporter
             workbookCoreProperties.setCreated(new Nullable<Date>(new Date(time)));
         }
     }
-    
+
     /**
      * Create a 'Summary' sheet containing the table of averages
      */
@@ -170,18 +333,18 @@ public class XLSXReporter extends AbstractEventReporter
 
         // Create the sheet
         XSSFSheet sheet = workbook.createSheet("Summary");
-        
+
         // Create the fonts we need
         Font fontBold = workbook.createFont();
         fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
-        
+
         // Create the styles we need
         XSSFCellStyle summaryDataStyle = sheet.getWorkbook().createCellStyle();
         summaryDataStyle.setAlignment(HorizontalAlignment.RIGHT);
         XSSFCellStyle headerStyle = sheet.getWorkbook().createCellStyle();
         headerStyle.setAlignment(HorizontalAlignment.RIGHT);
         headerStyle.setFont(fontBold);
-        
+
         XSSFRow row = null;
         int rowCount = 0;
         row = sheet.createRow(rowCount++);
@@ -228,7 +391,8 @@ public class XLSXReporter extends AbstractEventReporter
             Long time = (Long) testRunObj.get(FIELD_STARTED);
             if (time > 0)
             {
-                row.getCell(1).setCellValue(FastDateFormat.getDateTimeInstance(FastDateFormat.MEDIUM, FastDateFormat.MEDIUM).format(time));
+                row.getCell(1).setCellValue(
+                        FastDateFormat.getDateTimeInstance(FastDateFormat.MEDIUM, FastDateFormat.MEDIUM).format(time));
                 row.getCell(1).setCellStyle(summaryDataStyle);
             }
         }
@@ -239,7 +403,8 @@ public class XLSXReporter extends AbstractEventReporter
             Long time = (Long) testRunObj.get(FIELD_COMPLETED);
             if (time > 0)
             {
-                row.getCell(1).setCellValue(FastDateFormat.getDateTimeInstance(FastDateFormat.MEDIUM, FastDateFormat.MEDIUM).format(time));
+                row.getCell(1).setCellValue(
+                        FastDateFormat.getDateTimeInstance(FastDateFormat.MEDIUM, FastDateFormat.MEDIUM).format(time));
                 row.getCell(1).setCellStyle(summaryDataStyle);
             }
         }
@@ -254,15 +419,13 @@ public class XLSXReporter extends AbstractEventReporter
                 row.getCell(1).setCellStyle(summaryDataStyle);
             }
         }
-        
+
         rowCount++;
         rowCount++;
         // Create a header row
-        row = sheet.createRow(rowCount++);          // Header row
-        String[] headers = new String[]
-                {
-                    "Event Name", "Total Count", "Success Count", "Failure Count", "Success Rate (%)", "Min (ms)", "Max (ms)", "Arithmetic Mean (ms)", "Standard Deviation (ms)"
-                };
+        row = sheet.createRow(rowCount++); // Header row
+        String[] headers = new String[] { "Event Name", "Total Count", "Success Count", "Failure Count",
+                "Success Rate (%)", "Min (ms)", "Max (ms)", "Arithmetic Mean (ms)", "Standard Deviation (ms)" };
         int columnCount = 0;
         for (String header : headers)
         {
@@ -294,32 +457,32 @@ public class XLSXReporter extends AbstractEventReporter
             // Success Rate (%)
             row.getCell(columnCount++).setCellValue(summary.getSuccessPercentage());
             // Min (ms)
-            row.getCell(columnCount++).setCellValue((long)statsSuccess.getMin());
+            row.getCell(columnCount++).setCellValue((long) statsSuccess.getMin());
             // Max (ms)
-            row.getCell(columnCount++).setCellValue((long)statsSuccess.getMax());
+            row.getCell(columnCount++).setCellValue((long) statsSuccess.getMax());
             // Arithmetic Mean (ms)
-            row.getCell(columnCount++).setCellValue((long)statsSuccess.getMean());
+            row.getCell(columnCount++).setCellValue((long) statsSuccess.getMean());
             // Standard Deviation (ms)
-            row.getCell(columnCount++).setCellValue((long)statsSuccess.getStandardDeviation());
+            row.getCell(columnCount++).setCellValue((long) statsSuccess.getStandardDeviation());
         }
-        
+
         // Auto-size the columns
         for (int i = 0; i < 10; i++)
         {
             sheet.autoSizeColumn(i);
         }
         sheet.setColumnWidth(1, 5120);
-        
+
         // Printing
         PrintSetup ps = sheet.getPrintSetup();
         sheet.setAutobreaks(true);
-        ps.setFitWidth((short)1);
+        ps.setFitWidth((short) 1);
         ps.setLandscape(true);
 
         // Header and footer
         sheet.getHeader().setCenter(title);
     }
-    
+
     private void createPropertiesSheet(XSSFWorkbook workbook) throws IOException, NotFoundException
     {
         DBObject testRunObj = services.getTestDAO().getTestRun(test, run, true);
@@ -329,7 +492,7 @@ public class XLSXReporter extends AbstractEventReporter
         }
         // Ensure we don't leak passwords
         testRunObj = AbstractRestResource.maskValues(testRunObj);
-        
+
         BasicDBList propertiesList = (BasicDBList) testRunObj.get(FIELD_PROPERTIES);
         if (propertiesList == null)
         {
@@ -343,13 +506,13 @@ public class XLSXReporter extends AbstractEventReporter
             String key = (String) property.get(FIELD_NAME);
             properties.put(key, property);
         }
-        
+
         XSSFSheet sheet = workbook.createSheet("Properties");
-        
+
         // Create the fonts we need
         Font fontBold = workbook.createFont();
         fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
-        
+
         // Create the styles we need
         XSSFCellStyle propertyStyle = sheet.getWorkbook().createCellStyle();
         propertyStyle.setAlignment(HorizontalAlignment.RIGHT);
@@ -379,7 +542,7 @@ public class XLSXReporter extends AbstractEventReporter
             cell.setCellStyle(headerStyle);
         }
         cellCount = 0;
-        
+
         // Iterate all the properties for the test run
         for (Map.Entry<String, DBObject> entry : properties.entrySet())
         {
@@ -387,7 +550,7 @@ public class XLSXReporter extends AbstractEventReporter
             String key = (String) property.get(FIELD_NAME);
             String value = (String) property.get(FIELD_VALUE);
             String origin = (String) property.get(FIELD_ORIGIN);
-            
+
             row = sheet.createRow(rowCount++);
             cell = row.createCell(cellCount++);
             {
@@ -407,7 +570,7 @@ public class XLSXReporter extends AbstractEventReporter
             // Back to first column
             cellCount = 0;
         }
-        
+
         // Size the columns
         sheet.autoSizeColumn(0);
         sheet.setColumnWidth(1, 15360);
@@ -416,19 +579,19 @@ public class XLSXReporter extends AbstractEventReporter
         // Printing
         PrintSetup ps = sheet.getPrintSetup();
         sheet.setAutobreaks(true);
-        ps.setFitWidth((short)1);
+        ps.setFitWidth((short) 1);
         ps.setLandscape(true);
 
         // Header and footer
         sheet.getHeader().setCenter(title);
     }
-    
+
     private void createEventSheets(final XSSFWorkbook workbook)
     {
         // Create the fonts we need
         Font fontBold = workbook.createFont();
         fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
-        
+
         // Create the styles we need
         CreationHelper helper = workbook.getCreationHelper();
         final XSSFCellStyle dataStyle = workbook.createCellStyle();
@@ -438,7 +601,7 @@ public class XLSXReporter extends AbstractEventReporter
         headerStyle.setFont(fontBold);
         final XSSFCellStyle dateStyle = workbook.createCellStyle();
         dateStyle.setDataFormat(helper.createDataFormat().getFormat("HH:mm:ss"));
-        
+
         // Calculate a good window size
         ResultService resultService = getResultService();
         EventRecord firstResult = resultService.getFirstResult();
@@ -449,20 +612,19 @@ public class XLSXReporter extends AbstractEventReporter
         }
         long start = firstResult.getStartTime();
         long end = lastResult.getStartTime();
-        long windowSize = AbstractEventReporter.getWindowSize(start, end, 100);         // Well-known window sizes
-        
-        // Keep track of sheets by event name.  Note that XLSX truncates sheets to 31 chars, so use 28 chars and ~01, ~02
+        long windowSize = AbstractEventReporter.getWindowSize(start, end, 100); // Well-known window sizes
+
+        // Keep track of sheets by event name. Note that XLSX truncates sheets to 31 chars, so use 28 chars and ~01, ~02
         final Map<String, String> sheetNames = new HashMap<String, String>(31);
         final Map<String, XSSFSheet> sheets = new HashMap<String, XSSFSheet>(31);
         final Map<String, AtomicInteger> rowNums = new HashMap<String, AtomicInteger>(31);
-        
+
         ResultHandler handler = new ResultHandler()
         {
             @Override
-            public boolean processResult(
-                    long fromTime, long toTime,
-                    Map<String, DescriptiveStatistics> statsByEventName,
-                    Map<String, Integer> failuresByEventName) throws Throwable
+            public boolean processResult(long fromTime, long toTime,
+                    Map<String, DescriptiveStatistics> statsByEventName, Map<String, Integer> failuresByEventName)
+                    throws Throwable
             {
                 // Get or create a sheet for each event
                 for (String eventName : statsByEventName.keySet())
@@ -503,7 +665,7 @@ public class XLSXReporter extends AbstractEventReporter
                             sheet = workbook.createSheet(sheetName);
                             sheets.put(sheetName, sheet);
                             sheet.getHeader().setCenter(title + " - " + eventName);
-                            sheet.getPrintSetup().setFitWidth((short)1);
+                            sheet.getPrintSetup().setFitWidth((short) 1);
                             sheet.getPrintSetup().setLandscape(true);
                         }
                         catch (Exception e)
@@ -561,13 +723,13 @@ public class XLSXReporter extends AbstractEventReporter
                         rowNum = new AtomicInteger(2);
                         rowNums.put(eventName, rowNum);
                     }
-                    
+
                     DescriptiveStatistics stats = statsByEventName.get(eventName);
                     Integer failures = failuresByEventName.get(eventName);
-                    
-                    double numPerSec = (double) stats.getN() / ( (double) (toTime-fromTime) / 1000.0);
-                    double failuresPerSec = (double) failures / ( (double) (toTime-fromTime) / 1000.0);
-                    
+
+                    double numPerSec = (double) stats.getN() / ((double) (toTime - fromTime) / 1000.0);
+                    double failuresPerSec = (double) failures / ((double) (toTime - fromTime) / 1000.0);
+
                     XSSFRow row = sheet.createRow(rowNum.getAndIncrement());
                     XSSFCell cell;
                     cell = row.createCell(0, Cell.CELL_TYPE_NUMERIC);
@@ -599,7 +761,7 @@ public class XLSXReporter extends AbstractEventReporter
             }
         };
         resultService.getResults(handler, start, windowSize, windowSize, false);
-        
+
         // Create charts in the sheets
         for (String eventName : sheetNames.keySet())
         {
@@ -624,9 +786,10 @@ public class XLSXReporter extends AbstractEventReporter
                 logger.error("Did not find row number for event: " + sheetName);
                 continue;
             }
-            
+
             // This axis is common to both charts
-            ChartDataSource<Number> xTime = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 0, 0));
+            ChartDataSource<Number> xTime = DataSources.fromNumericCellRange(sheet,
+                    new CellRangeAddress(1, rowNum.intValue() - 1, 0, 0));
 
             // Graph of event times
             XSSFDrawing drawingTimes = sheet.createDrawingPatriarch();
@@ -634,48 +797,52 @@ public class XLSXReporter extends AbstractEventReporter
             Chart chartTimes = drawingTimes.createChart(anchorTimes);
             ChartLegend legendTimes = chartTimes.getOrCreateLegend();
             legendTimes.setPosition(LegendPosition.BOTTOM);
-            
+
             LineChartData chartDataTimes = chartTimes.getChartDataFactory().createLineChartData();
-            
+
             ChartAxis bottomAxisTimes = chartTimes.getChartAxisFactory().createCategoryAxis(AxisPosition.BOTTOM);
             bottomAxisTimes.setNumberFormat("#,##0;-#,##0");
             ValueAxis leftAxisTimes = chartTimes.getChartAxisFactory().createValueAxis(AxisPosition.LEFT);
-            
+
             // Mean
-            ChartDataSource<Number> yMean = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 1, 1));
+            ChartDataSource<Number> yMean = DataSources.fromNumericCellRange(sheet,
+                    new CellRangeAddress(1, rowNum.intValue() - 1, 1, 1));
             LineChartSerie yMeanSerie = chartDataTimes.addSerie(xTime, yMean);
             yMeanSerie.setTitle(title + " - " + eventName + ": Mean (ms)");
-            
+
             // Std Dev
-            ChartDataSource<Number> yStdDev = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 4, 4));
+            ChartDataSource<Number> yStdDev = DataSources.fromNumericCellRange(sheet,
+                    new CellRangeAddress(1, rowNum.intValue() - 1, 4, 4));
             LineChartSerie yStdDevSerie = chartDataTimes.addSerie(xTime, yStdDev);
             yStdDevSerie.setTitle(title + " - " + eventName + ": Standard Deviation (ms)");
 
             // Plot event times
             chartTimes.plot(chartDataTimes, bottomAxisTimes, leftAxisTimes);
-            
+
             // Graph of event volumes
-            
+
             // Graph of event times
             XSSFDrawing drawingVolumes = sheet.createDrawingPatriarch();
             ClientAnchor anchorVolumes = drawingVolumes.createAnchor(0, 0, 0, 0, 0, 25, 15, 35);
             Chart chartVolumes = drawingVolumes.createChart(anchorVolumes);
             ChartLegend legendVolumes = chartVolumes.getOrCreateLegend();
             legendVolumes.setPosition(LegendPosition.BOTTOM);
-            
+
             LineChartData chartDataVolumes = chartVolumes.getChartDataFactory().createLineChartData();
-            
+
             ChartAxis bottomAxisVolumes = chartVolumes.getChartAxisFactory().createCategoryAxis(AxisPosition.BOTTOM);
             bottomAxisVolumes.setNumberFormat("#,##0;-#,##0");
             ValueAxis leftAxisVolumes = chartVolumes.getChartAxisFactory().createValueAxis(AxisPosition.LEFT);
-            
+
             // Number per second
-            ChartDataSource<Number> yNumPerSec = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 6, 6));
+            ChartDataSource<Number> yNumPerSec = DataSources.fromNumericCellRange(sheet,
+                    new CellRangeAddress(1, rowNum.intValue() - 1, 6, 6));
             LineChartSerie yNumPerSecSerie = chartDataVolumes.addSerie(xTime, yNumPerSec);
             yNumPerSecSerie.setTitle(title + " - " + eventName + ": Events per Second");
-            
+
             // Failures per second
-            ChartDataSource<Number> yFailPerSec = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1, rowNum.intValue()-1, 8, 8));
+            ChartDataSource<Number> yFailPerSec = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1,
+                    rowNum.intValue() - 1, 8, 8));
             LineChartSerie yFailPerSecSerie = chartDataVolumes.addSerie(xTime, yFailPerSec);
             yFailPerSecSerie.setTitle(title + " - " + eventName + ": Failures per Second");
 

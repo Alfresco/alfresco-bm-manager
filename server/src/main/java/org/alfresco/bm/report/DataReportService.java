@@ -1,5 +1,7 @@
 package org.alfresco.bm.report;
 
+import java.util.List;
+
 import com.mongodb.DBCursor;
 
 /**
@@ -57,7 +59,7 @@ public interface DataReportService
      * Gets the column headers / description for a test.run data sheet
      * 
      * @param driverId
-     *            (String, required) test driver ID
+     *            (String, optional) test driver ID
      * @param test
      *            (String, required) name of the test
      * @param run
@@ -67,13 +69,13 @@ public interface DataReportService
      * 
      * @return (String []) - may be null if no description was set
      */
-    String[] getDescription(String driverId, String test, String run, String sheetName);
+    List<String> getDescription(String driverId, String test, String run, String sheetName);
 
     /**
      * Gets the extra data sheet names for a specific test.run
      * 
      * @param driverId
-     *            (String, required) test driver ID
+     *            (String, optional) test driver ID
      * @param test
      *            (String, required) name of the test
      * @param run
@@ -87,7 +89,7 @@ public interface DataReportService
      * Returns a DB cursor for a test.run extra data sheet
      * 
      * @param driverId
-     *            (String, required) test driver ID
+     *            (String, optional) test driver ID
      * @param test
      *            (String, required) name of the test
      * @param run
@@ -117,5 +119,5 @@ public interface DataReportService
      *            
      * @return (String []) or null
      */
-    String[] getNextValueRow(DBCursor cursor);
+    List<String> getNextValueRow(DBCursor cursor);
 }

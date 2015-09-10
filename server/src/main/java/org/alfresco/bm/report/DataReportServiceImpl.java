@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Date;
 
 import org.alfresco.bm.test.LifecycleListener;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.CommandFailureException;
@@ -26,6 +28,9 @@ import com.mongodb.DBObject;
  */
 public class DataReportServiceImpl implements LifecycleListener, DataReportService
 {
+    /** Log4J */
+    private static Log logger = LogFactory.getLog(DataReportServiceImpl.class);
+    
     /** Stores the collection name */
     public static final String COLLECTION_EXTRA_DATA = "test.extraData";
     public static final String COLLECTION_EXTRA_DATA_DESCRIPTION = "test.extraDataDescription";
@@ -220,18 +225,20 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
      * java.lang.String)
      */
     @Override
-    public String[] getDescription(String driverId, String test, String testRun, String sheetName)
+    public List<String> getDescription(String driverId, String test, String testRun, String sheetName)
     {
         // check params
-        checkMandatoryString(driverId, "driverId");
         checkMandatoryString(test, "test");
         checkMandatoryString(testRun, "testRun");
         checkMandatoryString(sheetName, "sheetName");
 
         // create query
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start();
-        queryObjBuilder.add(FIELD_DRIVER_ID, driverId).add(FIELD_TEST, test).add(FIELD_TEST_RUN, testRun)
-                .add(FIELD_SHEET_NAME, sheetName);
+        if (null != driverId && !driverId.isEmpty())
+        {
+            queryObjBuilder.add(FIELD_DRIVER_ID, driverId);
+        }
+        queryObjBuilder.add(FIELD_TEST, test).add(FIELD_TEST_RUN, testRun).add(FIELD_SHEET_NAME, sheetName);
 
         DBObject queryObj = queryObjBuilder.get();
 
@@ -248,7 +255,7 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
                     retList.add((String) row.get(key));
                 }
             }
-            return (String[]) retList.toArray();
+            return retList;
         }
 
         // no description available
@@ -290,13 +297,15 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
     @Override
     public String[] getSheetNames(String driverId, String test, String testRun)
     {
-        checkMandatoryString(driverId, "driverId");
         checkMandatoryString(test, "test");
         checkMandatoryString(testRun, "testRun");
 
         // create query
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start();
-        queryObjBuilder.add(FIELD_DRIVER_ID, driverId);
+        if (null != driverId && !driverId.isEmpty())
+        {
+            queryObjBuilder.add(FIELD_DRIVER_ID, driverId);
+        }
         queryObjBuilder.add(FIELD_TEST, test);
         queryObjBuilder.add(FIELD_TEST_RUN, testRun);
         DBObject queryObj = queryObjBuilder.get();
@@ -306,7 +315,24 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
 
         @SuppressWarnings("rawtypes")
         List valuesList = this.collectionExtraData.find(queryObj, fieldsObj).getCollection().distinct(FIELD_SHEET_NAME);
-        return (String[]) valuesList.toArray();
+        if (null != valuesList)
+        {
+            String[] sheetNames = new String[valuesList.size()];
+            for (int i = 0; i < valuesList.size(); i++)
+            {
+                Object valueObject = valuesList.get(i);
+                if (null != valueObject)
+                {
+                    sheetNames[i] = valueObject.toString();
+                    if (logger.isDebugEnabled())
+                    {
+                        logger.debug("Found XLSX sheet name '" + sheetNames[i]+ "'." );
+                    }
+                }
+            }
+            return sheetNames;
+        }
+        return null;
     }
 
     /*
@@ -318,15 +344,17 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
     public DBCursor getData(String driverId, String test, String testRun, String sheetName)
     {
         // check params
-        checkMandatoryString(driverId, "driverId");
         checkMandatoryString(test, "test");
         checkMandatoryString(testRun, "testRun");
         checkMandatoryString(sheetName, "sheetName");
 
         // create query
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start();
-        queryObjBuilder.add(FIELD_DRIVER_ID, driverId).add(FIELD_TEST, test).add(FIELD_TEST_RUN, testRun)
-                .add(FIELD_SHEET_NAME, sheetName);
+        if (null != driverId && !driverId.isEmpty())
+        {
+            queryObjBuilder.add(FIELD_DRIVER_ID, driverId);
+        }
+        queryObjBuilder.add(FIELD_TEST, test).add(FIELD_TEST_RUN, testRun).add(FIELD_SHEET_NAME, sheetName);
         DBObject queryObj = queryObjBuilder.get();
 
         // return cursor
@@ -381,7 +409,7 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
     }
 
     @Override
-    public String[] getNextValueRow(DBCursor cursor)
+    public List<String> getNextValueRow(DBCursor cursor)
     {
         if (null != cursor && cursor.hasNext())
         {
@@ -394,7 +422,7 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
                     retList.add((String) row.get(key));
                 }
             }
-            return (String[]) retList.toArray();
+            return retList;
         }
         return null;
     }
