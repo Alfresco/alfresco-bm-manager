@@ -19,6 +19,7 @@
 package org.alfresco.bm.process;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 
 import org.alfresco.bm.data.DataCreationState;
@@ -147,11 +148,12 @@ public class ExecuteProcess extends AbstractEventProcessor
         resumeTimer();
         
         // Simulate some process delay
-        synchronized (processName)
+        Object sync = new ArrayList<Object>(0);
+        synchronized (sync)
         {
             try
             {
-                processName.wait((long)(Math.random()* 50.0) + 10L);
+                sync.wait((long)(Math.random()* 50.0) + 10L);
             }
             catch (InterruptedException e)
             {

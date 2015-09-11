@@ -121,7 +121,10 @@ public class CSVReporter extends AbstractEventReporter
         }
         finally
         {
-            try { writer.close(); } catch (Throwable e) {}
+            if (writer != null)
+            {
+                try { writer.close(); } catch (Throwable e) {}
+            }
         }
     }
     

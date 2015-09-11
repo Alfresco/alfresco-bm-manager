@@ -156,7 +156,10 @@ public class StatusAPI extends AbstractRestResource
         }
         finally
         {
-            try { cursor.close(); } catch (Exception e) {}
+            if (cursor != null)
+            {
+                try { cursor.close(); } catch (Exception e) {}
+            }
         }
     }
 }
