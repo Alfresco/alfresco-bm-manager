@@ -30,7 +30,7 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
 {
     /** Log4J */
     private static Log logger = LogFactory.getLog(DataReportServiceImpl.class);
-    
+
     /** Stores the collection name */
     public static final String COLLECTION_EXTRA_DATA = "test.extraData";
     public static final String COLLECTION_EXTRA_DATA_DESCRIPTION = "test.extraDataDescription";
@@ -144,12 +144,6 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.alfresco.bm.report.DataReportService#appendData(java.lang.String, java.lang.String, java.lang.String,
-     * java.lang.String[])
-     */
     @Override
     public void appendData(String driverId, String test, String run, String sheetName, String[] fieldNames,
             String[] values)
@@ -181,12 +175,6 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         collectionExtraData.insert(insertObj);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.alfresco.bm.report.DataReportService#setDescription(java.lang.String, java.lang.String,
-     * java.lang.String, java.lang.String[])
-     */
     @Override
     public void setDescription(String driverId, String test, String run, String sheetName, String[] fieldNames,
             String[] description)
@@ -218,12 +206,6 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         this.collectionDescription.insert(insertObj);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.alfresco.bm.report.DataReportService#getDescription(java.lang.String, java.lang.String,
-     * java.lang.String)
-     */
     @Override
     public List<String> getDescription(String driverId, String test, String testRun, String sheetName)
     {
@@ -289,11 +271,6 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.alfresco.bm.report.DataReportService#getSheetNames(java.lang.String, java.lang.String)
-     */
     @Override
     public String[] getSheetNames(String driverId, String test, String testRun)
     {
@@ -326,7 +303,7 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
                     sheetNames[i] = valueObject.toString();
                     if (logger.isDebugEnabled())
                     {
-                        logger.debug("Found XLSX sheet name '" + sheetNames[i]+ "'." );
+                        logger.debug("Found XLSX sheet name '" + sheetNames[i] + "'.");
                     }
                 }
             }
@@ -335,11 +312,6 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         return null;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.alfresco.bm.report.DataReportService#getData(java.lang.String, java.lang.String, java.lang.String)
-     */
     @Override
     public DBCursor getData(String driverId, String test, String testRun, String sheetName)
     {
