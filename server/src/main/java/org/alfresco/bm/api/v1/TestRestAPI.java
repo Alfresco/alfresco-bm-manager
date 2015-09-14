@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogService.LogLevel;
+import org.alfresco.bm.report.DataReportService;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.TestService;
@@ -1026,6 +1027,17 @@ public class TestRestAPI extends AbstractRestResource
                 MongoClient mongoClient = null;
                 try
                 {
+                    // remove extra data (first always)
+                    if (null != this.testRunServices)
+                    {
+                        DataReportService dataReportService = this.testRunServices.getDataReportService(test, run);
+                        if (null != dataReportService)
+                        {
+                            dataReportService.remove(null, test, run);
+                        }
+                    }
+                    
+                    // clean up test run
                     mongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoTestHost), mongoTestUsername, mongoTestPassword).getObject();
                     DB mongoDB = new MongoDBFactory(mongoClient, mongoTestDB).getObject();
                     Set<String> testRunCollections = mongoDB.getCollectionNames();
@@ -1061,6 +1073,7 @@ public class TestRestAPI extends AbstractRestResource
                         try {mongoClient.close(); } catch (Exception e) { logger.error(e); }
                     }
                 }
+                
             }
             // Delete the test run and all associated configuration
             boolean deleted = testDAO.deleteTestRun(test, run);

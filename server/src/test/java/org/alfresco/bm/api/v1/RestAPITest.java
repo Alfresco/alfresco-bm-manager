@@ -33,6 +33,7 @@ import java.io.FileOutputStream;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
@@ -45,6 +46,7 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogWatcher;
+import org.alfresco.bm.report.DataReportService;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRun;
 import org.alfresco.bm.test.TestRunServicesCache;
@@ -72,6 +74,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 
 import com.google.gson.Gson;
 import com.mongodb.DB;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -97,6 +100,7 @@ public class RestAPITest implements TestConstants
     
     private MongoTestDAO dao;
     private TestRestAPI api;
+    private TestRunServicesCache testRunServicesCache;
     private DB appDB;
     private String mongoHost;
 
@@ -149,8 +153,8 @@ public class RestAPITest implements TestConstants
         appDB = dao.getDb();
         TestServiceImpl testService = ctx.getBean(TestServiceImpl.class);
         LogService logService = ctx.getBean(LogService.class);
-        TestRunServicesCache testRunServices = ctx.getBean(TestRunServicesCache.class);
-        api = new TestRestAPI(dao, testService, logService, testRunServices);
+        this.testRunServicesCache = ctx.getBean(TestRunServicesCache.class);
+        api = new TestRestAPI(dao, testService, logService, testRunServicesCache);
     }
     
     @After
@@ -1054,5 +1058,99 @@ public class RestAPITest implements TestConstants
         // Now get the registered drivers
         String json = api.getTestDrivers("T10", true);
         assertTrue("Driver not found for test: " + json, json.contains("\"expires\" : { \"$date\" : \"20"));
+    }
+    
+    /**
+     * Extra data creation and export of XSLX Workbook
+     * 
+     * @throws Exception
+     */
+    @Test
+    public synchronized void testScenario11() throws Exception
+    {
+        // test definitions and extra data sheets
+        String test = "T11";
+        String run = "01";
+        String driver = UUID.randomUUID().toString();
+        String sheet1 = "extra.data.sheet1";
+        String sheet2 = "extra.data.sheet2";
+        String sheet3 = "extra.data.sheet3";
+        String [] fieldNames = {"tf1", "tf2", "tf3", "tf4", "tf5"};
+        String [] descriptions = {"Test Field 1", "Test Field 2", "Test Field 3", "Test Field 4", "Test Field 5"};
+        String [] values = new String[5];
+        
+        executeTestRun(test, "A test for scenario 11.", run, "Scenario 11 - Run 01");
+        
+        // get the extra data report service
+        DataReportService reportService = this.testRunServicesCache.getDataReportService(test, run);
+        assertNotNull(reportService);
+        
+        // create a random value array
+        for(int i=0;i<5;i++)
+        {
+            values[i]= UUID.randomUUID().toString();
+        }
+        
+        // append some extra data and a description
+        reportService.appendData(driver, test, run, sheet1, fieldNames, values);
+        reportService.appendData(driver, test, run, sheet2, fieldNames, values);
+        reportService.appendData(driver, test, run, sheet2, fieldNames, values);
+        reportService.appendData(driver, test, run, sheet3, fieldNames, values);
+        reportService.appendData(driver, test, run, sheet3, fieldNames, values);
+        reportService.appendData(driver, test, run, sheet3, fieldNames, values);
+        reportService.setDescription(driver, test, run, sheet3, fieldNames, descriptions);
+        
+        // create and download an XSLX
+        ResultsRestAPI resultsAPI = api.getTestRunResultsAPI(test, run);
+        StreamingOutput xlsxOutput = resultsAPI.getReportXLSX();
+        ByteArrayOutputStream xlsxBos = new ByteArrayOutputStream();
+        xlsxOutput.write(xlsxBos);
+        xlsxBos.close();
+        ByteArrayInputStream xlsxBis = new ByteArrayInputStream(xlsxBos.toByteArray());
+        XSSFWorkbook xlsxWorkbook = new XSSFWorkbook(xlsxBis);
+        xlsxBis.close();
+        File xlsxFile = File.createTempFile(UUID.randomUUID().toString(), ".xlsx");
+        FileOutputStream xlsxFos = new FileOutputStream(xlsxFile);
+        xlsxWorkbook.write(xlsxFos);
+        xlsxFos.close();
+        
+        // validate data in DB
+       assertNull("Expected no description row for sheet 1, but found one?", reportService.getDescription(null, test, run, sheet1));
+       assertNull("Expected no description row for sheet 2, but found one?", reportService.getDescription(null, test, run, sheet2));
+       List<String>descList = reportService.getDescription(null, test, run, sheet3);
+       assertNotNull("Expected a description row for sheet 3, but can't find any ...", descList);
+       int count = 0;
+       for(String desc : descList)
+       {
+           assertEquals("Description of sheet 3 mismatch. Expected '" + descriptions[count] + "' found '" + desc + "'.", descriptions[count++], desc);
+       }
+       
+       // validate number of sheets
+       String [] sheetNames = reportService.getSheetNames(null, test, run);
+       assertEquals("Expected 3 sheets of extra data, found: " + sheetNames.length, 3, sheetNames.length);
+       
+       // validate number of entries for each extra data
+       int countTestEntries = 0;
+        for (int j = 0; j < 3; j++)
+        {
+            DBCursor dbCursor = reportService.getData(null, test, run, sheetNames[j]);
+            while (null != dbCursor && dbCursor.hasNext())
+            {
+                List<String>valuesFromMongo = reportService.getNextValueRow(dbCursor);
+                countTestEntries++;
+                assertEquals("Expected 5 columns in extra data, found: " +valuesFromMongo.size() , 5, valuesFromMongo.size());
+            }
+        }
+        assertEquals("Expected 6 lines of extra data ... found: " + countTestEntries , 6, countTestEntries);
+        
+        // delete test
+        api.deleteTest(test, true);
+        
+        // validate 
+        assertNull("Sheet names expected to be empty.", reportService.getSheetNames(null, test, run));
+        assertNull("Description of sheet 3 expected to be empty.", reportService.getDescription(null, test, run, sheet3));
+        
+        // clean-up: delete XLSX file
+        xlsxFile.delete();
     }
 }

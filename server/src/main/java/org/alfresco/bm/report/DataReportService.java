@@ -35,6 +35,18 @@ public interface DataReportService
     void appendData(String driverId, String test, String run, String sheetName, String[] fieldNames, String[] values);
 
     /**
+     * Removes all data from the tables affecting to driver (if provided), test and test run (if provided).
+     * 
+     * @param driverId
+     *            (String, optional) Driver ID
+     * @param test
+     *            (String, required) test name
+     * @param testRun
+     *            (String, optional) test run name
+     */
+    void remove(String driverId, String test, String testRun);
+
+    /**
      * Updates the column names for the extra data for a test.run named sheet.
      * 
      * @param driverId
@@ -116,7 +128,7 @@ public interface DataReportService
      * 
      * @param cursor
      *            (DBCursor) cursor
-     *            
+     * 
      * @return (String []) or null
      */
     List<String> getNextValueRow(DBCursor cursor);

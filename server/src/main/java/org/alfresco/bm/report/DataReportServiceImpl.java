@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 
+import org.alfresco.bm.log.TestRunLogService;
 import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -292,7 +293,7 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
 
         @SuppressWarnings("rawtypes")
         List valuesList = this.collectionExtraData.find(queryObj, fieldsObj).getCollection().distinct(FIELD_SHEET_NAME);
-        if (null != valuesList)
+        if (null != valuesList && !valuesList.isEmpty())
         {
             String[] sheetNames = new String[valuesList.size()];
             for (int i = 0; i < valuesList.size(); i++)
@@ -397,5 +398,38 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
             return retList;
         }
         return null;
+    }
+
+    @Override
+    public void remove(String driverId, String test, String testRun)
+    {
+        checkMandatoryString(test, "test");
+        
+        // create query
+        BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder.start();
+        
+        // Driver ID (optional)
+        if (null != driverId && !driverId.isEmpty())
+        {
+            queryObjBuilder.add(FIELD_DRIVER_ID, driverId);
+        }
+        
+        // TestRunLogService name
+        queryObjBuilder.add(FIELD_TEST, test);
+        
+        // test run name (optional)
+        if (null != testRun && ! testRun.isEmpty())
+        {
+            queryObjBuilder.add(FIELD_TEST_RUN, testRun);
+        }
+        DBObject queryObj = queryObjBuilder.get();
+        
+        this.collectionExtraData.remove(queryObj);
+        this.collectionDescription.remove(queryObj);
+        
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Successfully removed test '" + test + "' run '" + testRun + "' extra data from MongoDB.");
+        }
     }
 }
