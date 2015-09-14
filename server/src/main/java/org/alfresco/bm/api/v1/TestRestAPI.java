@@ -143,7 +143,10 @@ public class TestRestAPI extends AbstractRestResource
         }
         finally
         {
-            try { cursor.close(); } catch (Exception e) {}
+            if (cursor != null)
+            {
+                try { cursor.close(); } catch (Exception e) {}
+            }
         }
     }
 
@@ -502,7 +505,10 @@ public class TestRestAPI extends AbstractRestResource
         }
         finally
         {
-            try { cursor.close(); } catch (Exception e) {}
+            if (cursor != null)
+            {
+                try { cursor.close(); } catch (Exception e) {}
+            }
         }
     }
     
@@ -745,7 +751,10 @@ public class TestRestAPI extends AbstractRestResource
         }
         finally
         {
-            try { cursor.close(); } catch (Exception e) {}
+            if (cursor != null)
+            {
+                try { cursor.close(); } catch (Exception e) {}
+            }
         }
     }
 

@@ -200,13 +200,14 @@ public class FtpTestFileService extends AbstractTestFileService
     {
         String remoteName = ftpPath + "/" + fileData.getRemoteName();
         FTPClient ftp = null;
-        OutputStream os = null;
+        FileOutputStream fos = new FileOutputStream(localFile);
+        OutputStream bos = null;
         try
         {
-            os = new BufferedOutputStream(new FileOutputStream(localFile));
+            bos = new BufferedOutputStream(fos);
             // It does not exist locally, so go and retrieve it
             ftp = getFTPClient();
-            boolean success = ftp.retrieveFile(remoteName, os);
+            boolean success = ftp.retrieveFile(remoteName, bos);
             if (!success)
             {
                 throw new IOException("Failed to complete download of file: " + fileData + " by " + this);
@@ -214,9 +215,13 @@ public class FtpTestFileService extends AbstractTestFileService
         }
         finally
         {
-            if (os != null)
+            if (bos != null)
             {
-                try { os.close(); } catch (Throwable e) {}
+                try { bos.close(); } catch (Throwable e) {}
+            }
+            if (fos != null)
+            {
+                try { fos.close(); } catch (Throwable e) {}
             }
             try
             {
