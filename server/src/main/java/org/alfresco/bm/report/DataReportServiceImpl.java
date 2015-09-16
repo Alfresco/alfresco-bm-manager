@@ -12,6 +12,7 @@ import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.CommandFailureException;
 import com.mongodb.DB;
@@ -330,8 +331,15 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         queryObjBuilder.add(FIELD_TEST, test).add(FIELD_TEST_RUN, testRun).add(FIELD_SHEET_NAME, sheetName);
         DBObject queryObj = queryObjBuilder.get();
 
-        // return cursor
-        return this.collectionExtraData.find(queryObj);
+        
+        // sort and return cursor
+        DBCursor dbCursor = this.collectionExtraData.find(queryObj);
+        /** should not be necessary because index was changed to be ASC 
+         * TODO test!
+        dbCursor.sort(new BasicDBObject(FIELD_TIME, 1));        
+        */
+        
+        return dbCursor;
     }
 
     @Override
@@ -353,22 +361,22 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         // COLLECTION_EXTRA_DATA
 
         // Ensure ordering
-        DBObject idxTime = BasicDBObjectBuilder.start().add(FIELD_TIME, -1).get();
+        DBObject idxTime = BasicDBObjectBuilder.start().add(FIELD_TIME, 1).get();
         DBObject optTime = BasicDBObjectBuilder.start().add("unique", Boolean.FALSE).get();
         this.collectionExtraData.createIndex(idxTime, optTime);
 
         // Select by driver, order by time
-        DBObject idxDriverTime = BasicDBObjectBuilder.start().add(FIELD_DRIVER_ID, 1).add(FIELD_TIME, -1).get();
+        DBObject idxDriverTime = BasicDBObjectBuilder.start().add(FIELD_DRIVER_ID, 1).add(FIELD_TIME, 1).get();
         DBObject optDriverTime = BasicDBObjectBuilder.start().add("unique", Boolean.FALSE).get();
         this.collectionExtraData.createIndex(idxDriverTime, optDriverTime);
 
         // Select by test, order by time
-        DBObject idxTestTime = BasicDBObjectBuilder.start().add(FIELD_TEST, 1).add(FIELD_TIME, -1).get();
+        DBObject idxTestTime = BasicDBObjectBuilder.start().add(FIELD_TEST, 1).add(FIELD_TIME, 1).get();
         DBObject optTestTime = BasicDBObjectBuilder.start().add("unique", Boolean.FALSE).get();
         this.collectionExtraData.createIndex(idxTestTime, optTestTime);
 
         // Select by test run, order by time
-        DBObject idxTestRunTime = BasicDBObjectBuilder.start().add(FIELD_TEST_RUN, 1).add(FIELD_TIME, -1).get();
+        DBObject idxTestRunTime = BasicDBObjectBuilder.start().add(FIELD_TEST_RUN, 1).add(FIELD_TIME, 1).get();
         DBObject optTestRunTime = BasicDBObjectBuilder.start().add("unique", Boolean.FALSE).get();
         this.collectionExtraData.createIndex(idxTestRunTime, optTestRunTime);
 
