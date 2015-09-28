@@ -585,7 +585,7 @@
             }  
          
             // for column sorting by level value
-            $scope.columnSort = { sortColumn: 'level', reverse: false };   
+            $scope.columnSort = { sortColumn: 'time.$date', reverse: true };   
 
             //Get the summary now!
             $scope.getSummary();
