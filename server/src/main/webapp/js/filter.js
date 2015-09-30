@@ -1,5 +1,5 @@
 /* 
-Filter rows marked as "filterable" based on filter-value data searched in "filtre" input
+Filter rows marked as "filterable" based on filter-value data searched in "filter" input
 This will also expand and collapse the "test list-groups" in order to view all the filtered values
 */ 
 
@@ -18,7 +18,7 @@ function TestProperties($scope) {
         }
         var filterValue = document.getElementById('filter_value');
         document.getElementById('filter').addEventListener('input', function() {
-            //this will get all property groups that are hiddend
+            //this will get all property groups that are hidden
             if (!this.value) {
                 filterValue.innerHTML = "";
                 properties.showAll(" ng-hide");
