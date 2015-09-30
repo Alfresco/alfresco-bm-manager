@@ -18,16 +18,27 @@
 	   	<!-- Nav tabs -->
 		<ul class="nav nav-tabs" id="summary-tabs">
 			<li class="active">
-			<a href="#/tests/{{testname}}/{{summary.name}}/#summary"
-				data-toggle="tab" onclick="return false;"><b>Summary</b></a></li>
-			<li><a href="#/tests/{{testname}}/{{summary.name}}/#logs" data-toggle="tab" onclick="return false;"><b>Logs</b> 
-				<span ng-if="errorLogs > 0" class="badge" style="background-color: red">{{errorLogs}}</span></a>
+			     <a href="#/tests/{{testname}}/{{summary.name}}/#summary"
+				    data-toggle="tab" onclick="return false;">
+                <b>Summary</b></a>
+            </li>
+            <li>
+                <a href="#/tests/{{testname}}/{{summary.name}}/#events"  data-toggle="tab" onclick="return false;">
+                    <b>Events</b>
+                    <!-- TODO if events failed, mark tab as Log in red -->
+                </a>    
+            </li>
+			<li>
+                <a href="#/tests/{{testname}}/{{summary.name}}/#logs" data-toggle="tab" onclick="return false;">
+                    <b>Logs</b> 
+				    <span ng-if="errorLogs > 0" class="badge" style="background-color: red">{{errorLogs}}</span>
+                </a>
 			</li>
 		</ul>
 		<!-- Tab panes -->
 		<div class="tab-content">
 			<div class="tab-pane fade in active" id="summary">
-				</br>
+				<br />
 		        <div class="panel panel-default">
 		            <div class="panel-body">
 		                <h3>
@@ -76,7 +87,7 @@
 		        </div>
 		       </div>
 		       <div class="tab-pane fade" id="logs">
-				</br>
+				<br />
 				<div class="panel panel-info">
 					<div class="panel-heading">
 						<div class="row">
@@ -97,15 +108,15 @@
 							<thead>
 								<tr>
 									<th>
-                                        <a ng-click="columnSort.sortColumn='time.$date';columnSort.reverse=!columnSort.reverse">
+                                        <a ng-click="setSortColumn('time.$date')">
                                             Time
                                             <span ng-show="columnSort.sortColumn == 'time.$date'">
                                                 <i alt="Sort" class="fa fa-caret-square-o-{{columnSort.reverse == false ? 'down' : 'up'}}"></i>
                                             </span>
                                         </a>
                                     </th>
-									<th data-align="center" width="8%">
-										<a ng-click="columnSort.sortColumn='level';columnSort.reverse=!columnSort.reverse">
+									<th data-align="center">
+										<a ng-click="setSortColumn('level')">
                                             Level
                                             <span ng-show="columnSort.sortColumn == 'level'">
 											     <i alt="Sort" class="fa fa-caret-square-o-{{columnSort.reverse == false ? 'down' : 'up'}}"></i>
@@ -113,7 +124,7 @@
 										</a>
                                     </th>
 									<th data-align="left">
-                                        <a ng-click="columnSort.sortColumn='msg';columnSort.reverse=!columnSort.reverse">
+                                        <a ng-click="setSortColumn('msg')">
                                             Message
                                             <span ng-show="columnSort.sortColumn == 'msg'">
                                                 <i alt="Sort" class="fa fa-caret-square-o-{{columnSort.reverse == false ? 'down' : 'up'}}"></i>
@@ -124,12 +135,12 @@
 							</thead>
 							<tr ng-repeat="log in logs | orderBy:columnSort.sortColumn:columnSort.reverse | filter:messageLogs">
 								<td style="width: 10em;">{{log.time.$date | date:'yyyy-MM-dd HH:mm:ss Z' }}</td>
-								<td ng-if="log.level==0">TRACE</td>
-								<td ng-if="log.level==1">DEBUG</td>
-								<td ng-if="log.level==2">INFO</td>
-								<td ng-if="log.level==3">WARN</td>
-								<td ng-if="log.level==4">ERROR</td>
-								<td ng-if="log.level==5">FATAL</td>
+								<td style="width: 5em;" ng-if="log.level==0">TRACE</td>
+								<td style="width: 5em;" ng-if="log.level==1">DEBUG</td>
+								<td style="width: 5em;" ng-if="log.level==2">INFO</td>
+								<td style="width: 5em;" ng-if="log.level==3">WARN</td>
+								<td style="width: 5em;" ng-if="log.level==4">ERROR</td>
+								<td style="width: 5em;" ng-if="log.level==5">FATAL</td>
 								<td ng-style="log.level === 4 && {'color': 'red'}">{{log.msg }}</td>	
 							</tr>
 						</table>
@@ -141,18 +152,23 @@
 						 </div>
 					</div>
 				</div>
+                <div class="tab-pane fade" id="events">
+                <br />
+                <!-- TODO -->
+                Soon ...
+                </div>
 			</div>
 	      </div>
     </div>
-    <!-- donut (refresh issue, click )
+    <!-- donut (refresh issue, click ) 
     <div class="col-md-6 col-sm-12 col-xs-12">
         <div class="panel panel-default" ng-show="summary.started > 0">
             <div class="text-center">
                 <donut-chart data="summary.result"></donut-chart>
             </div>
         </div>
-    </div>
-    -->
+    </div> -->
+    
 </div>
  
 <!-- line chart

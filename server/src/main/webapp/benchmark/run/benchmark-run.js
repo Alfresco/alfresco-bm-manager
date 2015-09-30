@@ -166,7 +166,7 @@
             var names = path.replace("/tests/", "").split("/");
             $scope.data.testname = names[0];
             /**
-             * Get data gets test run collection from backend.
+             * Get data gets test run collection from back-end.
              */
             $scope.getData = function() {
 
@@ -319,7 +319,7 @@
                     function success(res) {
                         if (res.name === postData.name) {
                             var url = "#/tests/" + $scope.testname
-                            //If the url are same do a reload on the page
+                            //If the URL are same do a reload on the page
                             if ($window.location.hash === url) {
                                 $window.location.reload();
                             } else {
@@ -389,7 +389,7 @@
                 $scope.data = angular.copy($scope.master);
             }
 
-            //-------------- Test run properties crud ----------
+            //-------------- Test run properties CRUD ----------
             //call back for update run
             $scope.updateRunName = function(name) {
                 var json = {
@@ -506,7 +506,7 @@
             $scope.mockData = []; //Implement call to get charts
             
             $scope.getSummary = function() {
-                //inital chart display.
+                //initial chart display.
                 $scope.summary.result = [0, 100];
                 $scope.summary.total = 0;
                 TestRunService.getTestRunSummary({
@@ -584,9 +584,25 @@
                 });
             }  
          
-            // for column sorting by level value
+            // column sorting 
             $scope.columnSort = { sortColumn: 'time.$date', reverse: true };   
 
+            // set new sort column or reverse order if clicked on the same column
+            $scope.setSortColumn = function(sortColumnName)
+            {
+                if (sortColumnName)
+                {
+                    if ($scope.columnSort.sortColumn == sortColumnName)
+                    {
+                        $scope.columnSort.reverse = !$scope.columnSort.reverse;
+                    }
+                    else
+                    {
+                        $scope.columnSort.sortColumn = sortColumnName;
+                    }
+                }
+            };
+            
             //Get the summary now!
             $scope.getSummary();
 
