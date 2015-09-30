@@ -4,9 +4,8 @@ var d3Benchmark = angular.module('d3benchmark', []);
 
 /**
  * Directive that displays the donutChart.
- * Sample useage:
+ * Sample usage:
  * <donut-chart data="[50,50]"></donut-chart>
- * </di>
  * @return {[type]} [description]
  */
 d3Benchmark.directive('donutChart', function() {
