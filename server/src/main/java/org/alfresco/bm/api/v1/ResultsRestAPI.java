@@ -375,6 +375,8 @@ public class ResultsRestAPI extends AbstractRestResource
         EventResultFilter filter = getFilter(filterSuccess);
         final ResultService resultService = getResultService();
         String nameFilterString = filterEventName.equals(ALL_EVENT_NAMES) ? "" : filterEventName;
+        
+        // get event details
         List<EventDetails> details = resultService.getEventDetails(filter, nameFilterString, skipResults, numberOfResults);
         
         // serialize back ....

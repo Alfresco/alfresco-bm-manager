@@ -572,9 +572,10 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         }
         
         DBObject queryObj = queryBuilder.get();
+        // sort descending to get the newest values first
         DBObject sortObj = BasicDBObjectBuilder
                 .start()
-                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(-1))
                 .get();
         DBCursor cursor = collection.find(queryObj);
         cursor.sort(sortObj);
