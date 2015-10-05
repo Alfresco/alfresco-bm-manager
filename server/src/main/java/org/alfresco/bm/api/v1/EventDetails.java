@@ -5,7 +5,10 @@ import java.util.Date;
 
 import org.alfresco.bm.util.ArgumentCheck;
 
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
+import com.sun.jersey.json.impl.JSONHelper;
 
 /**
  * Event details to show in the BM UI
@@ -170,6 +173,33 @@ public class EventDetails implements Serializable
     @Override
     public String toString()
     {
-        return JSON.serialize(this);
+        StringBuilder builder = new StringBuilder();
+        builder.append("EventDetails ");
+        builder.append("[ eventTime=").append(eventTime);
+        builder.append(", eventName=").append(eventName);
+        builder.append(", eventSuccess=").append(eventSuccess);
+        builder.append(", eventInputData=").append(eventInputData);
+        builder.append(", eventResultData=").append(eventResultData);
+        builder.append("]");
+        return builder.toString();
+    }
+    
+    /**
+     * Conversion to DBObject
+     *  
+     * @return DBObject
+     */
+    public DBObject toDBObject()
+    {
+        DBObject eventObj = BasicDBObjectBuilder
+                .start()
+                .add("eventTime", eventTime)
+                .add("eventName", eventName)
+                .add("eventSuccess", eventSuccess)
+                .add("eventInputData", eventInputData)
+                .add("eventResultData", eventResultData)
+                .get();
+                
+        return eventObj;
     }
 }

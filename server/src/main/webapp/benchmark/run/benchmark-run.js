@@ -56,9 +56,12 @@
      * Copy test run /api/v1/tests/SAMPLE1/runs
      */
     .factory('TestRunService', function($resource) {
-        return $resource('api/v1/tests/:id/runs/:runname/:more', {
+        return $resource('api/v1/tests/:id/runs/:runname/:param1/:param2', {
             id: '@id',
-            runname: '@runname'
+            runname: '@runname',
+            filterEventName: '@filterEventName',
+            filterSuccess: '@filterSuccess',
+            numberOfResults: '@numberOfResults'
         }, {
             getTestRuns: {
                 method: 'GET',
@@ -79,7 +82,7 @@
                 params: {
                     id: 'id',
                     runname: 'runname',
-                    more: 'summary'
+                    param1: 'summary'
                 }
             },
             saveTestRun: {
@@ -100,7 +103,7 @@
                 params: {
                     id: 'id',
                     runname: 'runname',
-                    more: 'schedule'
+                    param1: 'schedule'
                 }
             },
             stopTestRun: {
@@ -108,7 +111,7 @@
                 params: {
                     id: 'id',
                     runname: 'runname',
-                    more: 'terminate'
+                    param1: 'terminate'
                 }
             },
             updateTestRun: {
@@ -122,7 +125,7 @@
                 params: {
                     id: 'id',
                     runname: 'runname',
-                    more: 'state'
+                    param1: 'state'
                 }
             },
             copyTest: {
@@ -136,9 +139,42 @@
                 params: {
                     id: 'id',
                     runname: 'runname',
-                    more: 'results/ts'
-                }
+                    param1: 'results',
+                    param2: 'ts'
+                },
+                isArray: true
             },
+            getResultEventNames: {
+                method: 'GET',
+                params: {
+                    id: 'id',
+                    runname: 'runname',
+                    param1: 'results',
+                    param2: 'eventNames'
+                },
+                isArray: true
+            },
+            getAllEventsFilterName: {
+                method: 'GET',
+                params: {
+                    id: 'id',
+                    runname: 'runname',
+                    param1: 'results',
+                    param2: 'allEventsFilterName'
+                },
+                isArray: true
+            }
+            ,
+            getEventDetails: {
+                method: 'GET',
+                params: {
+                    id: 'id',
+                    runname: 'runname',
+                    param1: 'results',
+                    param2: 'eventResults'
+                },
+                isArray: true
+            }
         })
     }).value('version', '0.1')
     
@@ -199,7 +235,7 @@
                     $scope.data.runs = runs;
                 });
             };
-            //Prepare data for inital page load.
+            //Prepare data for initial page load.
             $scope.getData();
 
             //Refresh data every 2.5 seconds.
@@ -583,10 +619,9 @@
                     $scope.logs = logs;
                 });
             }  
-         
-            // column sorting 
+           
+            // column sorting for logs
             $scope.columnSort = { sortColumn: 'time.$date', reverse: true };   
-
             // set new sort column or reverse order if clicked on the same column
             $scope.setSortColumn = function(sortColumnName)
             {
@@ -603,9 +638,134 @@
                 }
             };
             
+            // column sorting for event details
+            $scope.eventColumnSort = { sortColumn: 'time.$date', reverse: true };
+            // set new sort column or reverse order if clicked on the same column
+            $scope.setEventSortColumn = function(sortColumnName)
+            {
+                if (sortColumnName)
+                {
+                    if ($scope.eventColumnSort.sortColumn == sortColumnName)
+                    {
+                        $scope.eventColumnSort.reverse = !$scope.eventColumnSort.reverse;
+                    }
+                    else
+                    {
+                        $scope.eventColumnSort.sortColumn = sortColumnName;
+                    }
+                }
+            };
+            
+            // stores the number of events to get from the server
+            $scope.numEvents = 25;
+            
+            // possible number of events to retrieve
+            $scope.numEventValues = [5, 10, 15, 20, 25, 50, 100];
+            
+            // selects number of events and updates 
+            $scope.selectNumEvents = function(num){
+                $scope.numEvents = num;
+                $scope.getEvents();
+            };
+            
+            // checks if the number is selected or not
+            $scope.isSelectedNumEvents = function(num){
+                if (num){
+                    if ($scope.numEvents == num){
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // event filter
+            $scope.eventFilters = ["All", "Success", "Failed"];
+            $scope.selectedEventFilter = "All";
+            $scope.selectEventFilter = function(filterName){
+                $scope.selectedEventFilter = filterName;
+                $scope.getEvents();
+            }
+            $scope.isSelectedFilter = function(filterName){
+                if (filterName){
+                    if ($scope.selectedEventFilter == filterName){
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // filter by event names 
+            $scope.eventNames = [];
+            $scope.selectedEventName = "Event names ...";
+            $scope.selectEventName = function(eventName){
+                $scope.selectedEventName = eventName;
+                $scope.getEvents();
+            };
+            
+            // gets available event names for the test - run
+            $scope.getEventNames = function(){   
+                TestRunService.getResultEventNames({
+                    id: $scope.testname,
+                    runname: $scope.runname
+                }, function(response) {
+                    var evn = [];
+                    for (var i = 0; i < response.length; i++) {
+                        var ev = response[i];
+                        evn.push(ev);
+                    }
+                    // store the event names
+                    $scope.eventNames = evn;
+                    
+                    // inital set the (All Events) text
+                    TestRunService.getAllEventsFilterName({
+                        id: $scope.testname,
+                        runname: $scope.runname
+                    }, function(response) {
+                        if (response.length == 1){
+                            $scope.selectedEventName = response[0];
+                        }
+                    });
+                });
+            };
+            
+            // checks if the given event name is selected
+            $scope.isSelectedEvent = function(eventName){
+              if (eventName){
+                  if ($scope.selectedEventName == eventName){
+                      return true;
+                  }
+              }
+              return false;
+            };
+            
+            // stores the events 
+            $scope.events = [];
+            
+            // get events from server
+            $scope.getEvents = function(){
+                TestRunService.getEventDetails({
+                    id: $scope.testname,
+                    runname: $scope.runname,
+                    filterEventName: $scope.selectedEventName,
+                    filterSuccess: $scope.selectedEventFilter,
+                    numberOfResults: $scope.numEvents
+                }, function(response) {
+                    var evn = [];
+                    for (var i = 0; i < response.length; i++) {
+                        var ev = response[i];
+                        evn.push(ev);
+                    }
+                    // store the event names
+                    $scope.events = evn;
+                });
+            };
+            
+            // get event names from result service
+            $scope.getEventNames();
+            
             //Get the summary now!
             $scope.getSummary();
-
+            
             //Refresh data every 2.5 seconds.
             $scope.summaryPoll = function() {
                 timer = $timeout(function() {
@@ -615,6 +775,7 @@
             };
             $scope.summaryPoll();
             $scope.getTestLogs();
+            $scope.getEvents();
             
             //Cancel timer action
             $scope.$on(

@@ -103,7 +103,7 @@
 						  </div>
 						</div>
 					</div>
-					<div style="overflow: scroll; height: 400px;" border: 10px>
+					<div style="overflow: scroll; height: 400px; border: 10px">
 						<table ng-if="logs.length > 0" class="table table-striped table-hover">
 							<thead>
 								<tr>
@@ -154,9 +154,133 @@
 				</div>
                 <div class="tab-pane fade" id="events">
                 <br />
-                <!-- TODO -->
-                Soon ...
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="row">
+                          <!-- div class="col-lg-1" -->
+                            <div class="input-group">
+                                <div class="dropdown">
+                                    <button class="btn btn-default dropdown-toggle" 
+                                            type="button" 
+                                            id="dropdownEventNames" 
+                                            data-toggle="dropdown" 
+                                            aria-haspopup="true" 
+                                            aria-expanded="true">
+                                            Filter by: {{selectedEventFilter}}
+                                            <i class="fa fa-angle-down"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownEventNames">
+                                        <div ng-repeat="filter in eventFilters" ng-click="selectEventFilter(filter)"">
+                                            {{filter}} 
+                                            <span ng-show="isSelectedFilter(filter)">
+                                                <i alt="check" class="fa fa-check"></i>
+                                            </span>
+                                        </div>
+                                    </ul>
+                                 </div>
+                                 
+                                <div class="dropdown">
+                                    <button class="btn btn-default dropdown-toggle" 
+                                            type="button" 
+                                            id="dropdownEventNames" 
+                                            data-toggle="dropdown" 
+                                            aria-haspopup="true" 
+                                            aria-expanded="true">
+                                            Event Name: {{selectedEventName}}
+                                            <i class="fa fa-angle-down"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownEventNames">
+                                        <div ng-repeat="item in eventNames" ng-click="selectEventName(item)"">
+                                            {{item}} 
+                                            <span ng-show="isSelectedEvent(item)">
+                                                <i alt="check" class="fa fa-check"></i>
+                                            </span>
+                                        </div>
+                                    </ul>
+                                 </div>
+                                  
+                                 <div class="dropdown">
+                                    <button class="btn btn-default dropdown-toggle" 
+                                            type="button" 
+                                            id="dropdownEventNumber" 
+                                            data-toggle="dropdown" 
+                                            aria-haspopup="true" 
+                                            aria-expanded="true">
+                                            Show: {{numEvents}} events
+                                            <i class="fa fa-angle-down"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownEventNumber">
+                                        <div ng-repeat="item in numEventValues" ng-click="selectNumEvents(item)"">
+                                            {{item}} events
+                                            <span ng-show="isSelectedNumEvents(item)">
+                                                <i alt="check" class="fa fa-check"></i>
+                                            </span>
+                                        </div>
+                                    </ul>
+                                 </div> 
+                                <a ng-click="getEvents()" class="btn btn-default" id="getEvents">
+                                    Refresh <i alt="Refresh Events" class="fa fa-refresh"></i>
+                                </a> 
+                        </div>
+                        </div>
+                    </div>
                 </div>
+
+                <div style="overflow: scroll; height: 400px; border: 10px">
+                        <table ng-if="logs.length > 0" class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <a ng-click="setEventSortColumn('eventTime.$date')">
+                                            Time
+                                            <span ng-show="eventColumnSort.sortColumn == 'eventTime.$date'">
+                                                <i alt="Sort" class="fa fa-caret-square-o-{{eventColumnSort.reverse == false ? 'down' : 'up'}}"></i>
+                                            </span>
+                                        </a>
+                                    </th>
+                                    <th data-align="center">
+                                        <a ng-click="setEventSortColumn('eventName')">
+                                            Event Name
+                                            <span ng-show="eventColumnSort.sortColumn == 'eventName'">
+                                                 <i alt="Sort" class="fa fa-caret-square-o-{{eventColumnSort.reverse == false ? 'down' : 'up'}}"></i>
+                                            </span>
+                                        </a>
+                                    </th>
+                                    <th data-align="center">
+                                        <a ng-click="setEventSortColumn('eventSuccess')">
+                                            Success
+                                            <span ng-show="eventColumnSort.sortColumn == 'eventSuccess'">
+                                                <i alt="Sort" class="fa fa-caret-square-o-{{eventColumnSort.reverse == false ? 'down' : 'up'}}"></i>
+                                            </span>
+                                        </a>
+                                    </th>
+                                    <th data-align="left">
+                                        <a ng-click="setEventSortColumn('eventInputData')">
+                                            Input Data
+                                            <span ng-show="eventColumnSort.sortColumn == 'eventInputData'">
+                                                <i alt="Sort" class="fa fa-caret-square-o-{{eventColumnSort.reverse == false ? 'down' : 'up'}}"></i>
+                                            </span>
+                                        </a>
+                                    </th>
+                                    <th data-align="left">
+                                        <a ng-click="setEventSortColumn('eventResultData')">
+                                            Result Data
+                                            <span ng-show="eventColumnSort.sortColumn == 'eventResultData'">
+                                                <i alt="Sort" class="fa fa-caret-square-o-{{eventColumnSort.reverse == false ? 'down' : 'up'}}"></i>
+                                            </span>
+                                        </a>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tr ng-repeat="detail in events | orderBy:eventColumnSort.sortColumn:eventColumnSort.reverse">
+                                <td style="width: 10em;">{{detail.eventTime.$date | date:'yyyy-MM-dd HH:mm:ss Z' }}</td>
+                                <td>{{detail.eventName}}</td>
+                                <td>{{detail.eventSuccess}}</td>
+                                <td>{{detail.eventInputData}}</td>
+                                <td>{{detail.eventResultData}}</td>
+                            </tr>
+                         </table>
+                    </div>
 			</div>
 	      </div>
     </div>

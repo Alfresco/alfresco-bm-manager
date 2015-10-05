@@ -22,9 +22,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.alfresco.bm.api.v1.EventDetails;
+import org.alfresco.bm.api.v1.EventResultFilter;
 import org.alfresco.bm.event.AbstractResultService;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
+import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.report.DataReportService;
 import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -134,6 +138,45 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
     {
     }
 
+    /**
+     * Creates an {@see EventDetails} object from the MongoDB record
+     * 
+     * @param eventDetailsObj (DBObject)
+     * 
+     * @return EventDetails
+     */
+    private EventDetails convertToEventDetails(DBObject eventDetailsObj)
+    {
+        // get event date
+        Date startTime = eventDetailsObj.containsField(EventRecord.FIELD_START_TIME) ?
+                (Date) eventDetailsObj.get(EventRecord.FIELD_START_TIME) :
+                new Date(0L);
+
+        // get event success 
+        boolean success = eventDetailsObj.containsField(EventRecord.FIELD_SUCCESS) ?
+                (Boolean) eventDetailsObj.get(EventRecord.FIELD_SUCCESS) :
+                false;
+                
+        // get inputData
+        Object inputData = eventDetailsObj.get(EventRecord.FIELD_DATA);       
+        
+        // get Event
+        DBObject eventObj = (DBObject) eventDetailsObj.get(EventRecord.FIELD_EVENT);
+        if (eventObj == null)
+        {
+            throw new IllegalArgumentException("DBObject for EventDetails does not contain Event data: " + eventDetailsObj);
+        }
+        Event event = convertToEvent(eventObj);        
+        
+        // get event name
+        String name = event.getName();
+        
+        // get Event.Data
+        Object eventData = event.getData();
+        
+        return new EventDetails(startTime, name, success, inputData, eventData);
+    }
+    
     /**
      * Helper to convert Mongo-persisted object to a client-visible {@link EventRecord}
      */
@@ -501,5 +544,54 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
             logger.debug("Counted " + count + " results for success: " + false);
         }
         return count;
+    }
+
+    @Override
+    public List<EventDetails> getEventDetails(EventResultFilter filter, String filterEventName, int skip, int limit)
+    {
+        QueryBuilder queryBuilder = QueryBuilder.start();
+        
+        // apply filter
+        switch (filter)
+        {
+            case Failed:
+                queryBuilder.and(EventRecord.FIELD_SUCCESS).is(false);
+                break;
+            
+            case Success:
+                queryBuilder.and(EventRecord.FIELD_SUCCESS).is(true);
+                break;
+            default:
+                break;
+        }
+        
+        //apply event name filter
+        if (null != filterEventName && !filterEventName.isEmpty())
+        {
+            queryBuilder.and(EventRecord.FIELD_EVENT_NAME).is(filterEventName);
+        }
+        
+        DBObject queryObj = queryBuilder.get();
+        DBObject sortObj = BasicDBObjectBuilder
+                .start()
+                .add(EventRecord.FIELD_START_TIME, Integer.valueOf(1))
+                .get();
+        DBCursor cursor = collection.find(queryObj);
+        cursor.sort(sortObj);
+        cursor.skip(skip);
+        cursor.limit(limit);
+        
+        // Get all the results and convert them
+        int size = cursor.size();
+        List<EventDetails> results = new ArrayList<EventDetails>(size);
+        while (cursor.hasNext())
+        {
+            DBObject obj = cursor.next();
+            EventDetails eventDetails = convertToEventDetails(obj);
+            results.add(eventDetails);
+        }
+        cursor.close();
+        
+        return results;
     }
 }

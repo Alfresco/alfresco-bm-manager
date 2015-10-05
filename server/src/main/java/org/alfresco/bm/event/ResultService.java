@@ -21,6 +21,8 @@ package org.alfresco.bm.event;
 import java.util.List;
 import java.util.Map;
 
+import org.alfresco.bm.api.v1.EventDetails;
+import org.alfresco.bm.api.v1.EventResultFilter;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 /**
@@ -128,6 +130,27 @@ public interface ResultService
             long reportPeriod,
             boolean chartOnly);
 
+    /**
+     * Query and returns event result details as requested.
+     * 
+     * @param filter
+     *            (EventResultFilter) filter by fail / success / none
+     * @param filterEventName
+     *            (String, optional) if set only the results for the given event will be returned
+     * @param skip
+     *            (int) useful for paging
+     * @param limit
+     *            (int) max number of results to return
+     * 
+     * @return List of event details 
+     */
+    List<EventDetails> getEventDetails(
+            EventResultFilter filter,
+            String filterEventName,
+            int skip,
+            int limit
+            );
+    
     /**
      * Get a discrete list of event names from across all the results
      */

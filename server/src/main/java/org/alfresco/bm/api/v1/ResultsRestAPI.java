@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -46,6 +47,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 
 /**
  * <b>REST API V1</b><br/>
@@ -64,6 +66,9 @@ import com.mongodb.DBObject;
  */
 public class ResultsRestAPI extends AbstractRestResource
 {
+    /** states not to filter by event names when query event results */
+    public static final String ALL_EVENT_NAMES = "(All Events)"; 
+    
     private final TestRunServicesCache services;
     private final String test;
     private final String run;
@@ -96,8 +101,8 @@ public class ResultsRestAPI extends AbstractRestResource
         return resultService;
     }
     
-    @Path("/csv")
     @GET
+    @Path("/csv")
     @Produces("text/csv")
     public StreamingOutput getReportCSV()
     {
@@ -139,8 +144,8 @@ public class ResultsRestAPI extends AbstractRestResource
     }
     
     
-    @Path("/xlsx")
     @GET
+    @Path("/xlsx")
     @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public StreamingOutput getReportXLSX()
     {
@@ -185,6 +190,36 @@ public class ResultsRestAPI extends AbstractRestResource
         }
     }
     
+    @GET
+    @Path("/eventNames")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getEventResultEventNames()
+    {
+        final BasicDBList events = new BasicDBList();
+        
+        // always add the "all events" name in the first position
+        events.add(ALL_EVENT_NAMES);
+
+        // distinct get all recorded event names from Mongo
+        List<String> eventNames = getResultService().getEventNames();
+        for (String eventName : eventNames)
+        {
+            events.add(eventName);
+        }
+
+        return JSON.serialize(events);
+    }
+    
+    @GET
+    @Path("/allEventsFilterName")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAllEventsFilterName()
+    {
+        final BasicDBList events = new BasicDBList();
+        events.add(ALL_EVENT_NAMES);
+        return JSON.serialize(events);
+    }
+    
     /**
      * Retrieve an approximate number of results, allowing for a smoothing factor
      * (<a href=http://en.wikipedia.org/wiki/Moving_average#Simple_moving_average>Simple Moving Average</a>) -
@@ -199,8 +234,8 @@ public class ResultsRestAPI extends AbstractRestResource
      * @return                      JSON representing the event start time (x-axis) and the smoothed average execution time
      *                              along with data such as the events per second, failures per second, etc.
      */
-    @Path("/ts")
     @GET
+    @Path("/ts")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTimeSeriesResults(
             @DefaultValue("0") @QueryParam("fromTime") long fromTime,
@@ -324,4 +359,52 @@ public class ResultsRestAPI extends AbstractRestResource
             return null;
         }
     }
+    
+
+    
+    @GET
+    @Path("/eventResults")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getEventResults(
+            @DefaultValue(ALL_EVENT_NAMES) @QueryParam("filterEventName") String filterEventName,
+            @DefaultValue("All") @QueryParam("filterSuccess") String filterSuccess,
+            @DefaultValue("0") @QueryParam("skipResults")int skipResults,
+            @DefaultValue("10") @QueryParam("numberOfResults") int numberOfResults)
+    {
+        
+        EventResultFilter filter = getFilter(filterSuccess);
+        final ResultService resultService = getResultService();
+        String nameFilterString = filterEventName.equals(ALL_EVENT_NAMES) ? "" : filterEventName;
+        List<EventDetails> details = resultService.getEventDetails(filter, nameFilterString, skipResults, numberOfResults);
+        
+        // serialize back ....
+        BasicDBList retList = new BasicDBList();
+        for(EventDetails detail : details)
+        {
+            retList.add(detail.toDBObject());
+        }
+        return JSON.serialize( retList );
+    } 
+    
+    /**
+     * Returns the enum for a given string or the default value.
+     * 
+     * @param filterEvents (String) one of the string values of EventResultFilter
+     * 
+     * @return (EventResultFilter) - "all" as default, or success / fail 
+     */
+    private EventResultFilter getFilter(String filterEvents)
+    {
+        try
+        {
+            return EventResultFilter.valueOf( filterEvents);
+        }
+        catch(Exception e)
+        {
+            logger.error("Error converting " + filterEvents + " to EventResultFilter.", e);
+        }
+        
+        return EventResultFilter.All;
+    }
+    
 }
