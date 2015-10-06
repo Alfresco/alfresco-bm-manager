@@ -696,7 +696,7 @@
             
             // filter by event names 
             $scope.eventNames = [];
-            $scope.selectedEventName = "Event names ...";
+            $scope.selectedEventName = "(All Events)";
             $scope.selectEventName = function(eventName){
                 $scope.selectedEventName = eventName;
                 $scope.getEvents();
