@@ -376,14 +376,16 @@
     ])
 
     /**
-     * Test run detail controller
+     * Test run property controller
      */
     .controller('TestRunPropertyCtrl', ['$scope',
+        '$document',                                
         '$location',
         'TestRunService',
         'TestRunPropertyService',
         'UtilService',
         function($scope,
+            $document,
             $location,
             TestRunService,
             TestRunPropertyService,
@@ -438,7 +440,8 @@
             }
 
             $scope.cancelEdit = function(item) {
-                // item.newvalue = item.value;
+             // restore
+                item.value = item['cancelValue'];
             }
 
             //call back for updating run description
@@ -476,6 +479,47 @@
                 };
                 $scope.updateTestRunProperty(testname, runname, item.name, restData);
                 item.value = item['default'];
+            }
+            
+            // checks whether value is empty or not
+            $scope.isEmpty = function(value){
+                if (typeof value == undefined){
+                    return true;
+                }
+                if (value == null){
+                    return true;
+                }
+                var testString = "" + value; 
+                if (testString == ""){
+                    return true;
+                }
+                return false;
+            }
+            
+            // copy the value from default if value is empty
+            $scope.setInitialValue = function(item){
+                if ($scope.isEmpty(item.value)){
+                    item.value = item['default'];
+                }
+
+                // store for cancel
+                item['cancelValue'] = item.value;
+            }
+            
+            // called for each key press - returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doClick = function(event, item){
+                if (event.keyCode == 13){
+                    // ENTER
+                    $scope.updateProperty(item);
+                    return false;
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.cancelEdit(item);
+                    return false;
+                }
+                return true;
             }
 
             $scope.updateTestRunProperty = function(testname, runname, propertyName, propData) {

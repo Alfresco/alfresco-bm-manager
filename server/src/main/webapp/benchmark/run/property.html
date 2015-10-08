@@ -99,27 +99,27 @@
                         <span ng-show="readOnly">{{item.value}}</span>                                             
                         <span ng-show="!readOnly"> 
                             <div ng-hide="propertyEditorEnabled">
-                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="!item.value">
+                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled;setInitialValue(item)" ng-show="!isEmpty(item.value)">
                                     <div ng-hide="item.mask">
                                     <b ng-show="item.default != item.value">{{item.value}}</b>
-                                    <span ng-show="item.value == item.default"> {{item.value}} </span>
+                                    <span ng-show="item.value == item.default">{{item.value}}</span>
                                     </div>
                                     <div ng-show="item.mask" type="password">*******</div>
                                 </a>
-                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">
-                                {{item.default}} 
-                                <div ng-show="item.default == ''">(Empty)</div>
+                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled;setInitialValue(item)" ng-show="isEmpty(item.value)">
+                                {{item.default}}
+                                <div ng-show="isEmpty(item.default)">(Empty)</div>
                                 </a>
                             </div>
                         </span> 
                         <div ng-show="propertyEditorEnabled"> 
                             <div>
                                 <div class="input-group">
-                                    <span class="input-group-btn" ng-hide="!item.value">
+                                    <span class="input-group-btn" ng-hide="isEmpty(item.value)">
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset </button>
                                     </span>
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" ng-hide="item.mask">
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" type="password" ng-show="item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doClick($event, item)" ng-hide="item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doClick($event, item)" ng-show="item.mask">
                                     <span class="input-group-btn">
                                         <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
                                             <span class="glyphicon glyphicon-remove" />
