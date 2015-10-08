@@ -601,6 +601,16 @@
                 })
             };
             
+          //call back to stop run
+            $scope.stopRun = function() {
+                TestRunService.stopTestRun({
+                    id: $scope.testname,
+                    runname: $scope.runname
+                }, {}, function(response) {
+                    $scope.hasStarted = false;
+                });
+            }
+            
             $scope.errorLogs = 0;
             // get test logs only 
             $scope.getTestLogs = function() {
