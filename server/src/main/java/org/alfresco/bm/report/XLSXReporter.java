@@ -57,7 +57,7 @@ import org.apache.poi.ss.usermodel.charts.ChartLegend;
 import org.apache.poi.ss.usermodel.charts.DataSources;
 import org.apache.poi.ss.usermodel.charts.LegendPosition;
 import org.apache.poi.ss.usermodel.charts.LineChartData;
-import org.apache.poi.ss.usermodel.charts.LineChartSerie;
+import org.apache.poi.ss.usermodel.charts.LineChartSeries;
 import org.apache.poi.ss.usermodel.charts.ValueAxis;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -807,13 +807,13 @@ public class XLSXReporter extends AbstractEventReporter
             // Mean
             ChartDataSource<Number> yMean = DataSources.fromNumericCellRange(sheet,
                     new CellRangeAddress(1, rowNum.intValue() - 1, 1, 1));
-            LineChartSerie yMeanSerie = chartDataTimes.addSerie(xTime, yMean);
+            LineChartSeries yMeanSerie = chartDataTimes.addSeries(xTime, yMean);
             yMeanSerie.setTitle(title + " - " + eventName + ": Mean (ms)");
 
             // Std Dev
             ChartDataSource<Number> yStdDev = DataSources.fromNumericCellRange(sheet,
                     new CellRangeAddress(1, rowNum.intValue() - 1, 4, 4));
-            LineChartSerie yStdDevSerie = chartDataTimes.addSerie(xTime, yStdDev);
+            LineChartSeries yStdDevSerie = chartDataTimes.addSeries(xTime, yStdDev);
             yStdDevSerie.setTitle(title + " - " + eventName + ": Standard Deviation (ms)");
 
             // Plot event times
@@ -837,13 +837,13 @@ public class XLSXReporter extends AbstractEventReporter
             // Number per second
             ChartDataSource<Number> yNumPerSec = DataSources.fromNumericCellRange(sheet,
                     new CellRangeAddress(1, rowNum.intValue() - 1, 6, 6));
-            LineChartSerie yNumPerSecSerie = chartDataVolumes.addSerie(xTime, yNumPerSec);
+            LineChartSeries yNumPerSecSerie = chartDataVolumes.addSeries(xTime, yNumPerSec);
             yNumPerSecSerie.setTitle(title + " - " + eventName + ": Events per Second");
 
             // Failures per second
             ChartDataSource<Number> yFailPerSec = DataSources.fromNumericCellRange(sheet, new CellRangeAddress(1,
                     rowNum.intValue() - 1, 8, 8));
-            LineChartSerie yFailPerSecSerie = chartDataVolumes.addSerie(xTime, yFailPerSec);
+            LineChartSeries yFailPerSecSerie = chartDataVolumes.addSeries(xTime, yFailPerSec);
             yFailPerSecSerie.setTitle(title + " - " + eventName + ": Failures per Second");
 
             // Plot volumes
