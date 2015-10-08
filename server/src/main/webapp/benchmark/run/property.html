@@ -106,7 +106,10 @@
                                     </div>
                                     <div ng-show="item.mask" type="password">*******</div>
                                 </a>
-                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">{{item.default}}</a>
+                                <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">
+                                {{item.default}} 
+                                <div ng-hide="item.default">(Empty)</div>
+                                </a>
                             </div>
                         </span> 
                         <div ng-show="propertyEditorEnabled"> 
