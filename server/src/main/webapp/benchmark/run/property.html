@@ -108,7 +108,7 @@
                                 </a>
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled" ng-hide="item.value">
                                 {{item.default}} 
-                                <div ng-hide="item.default">(Empty)</div>
+                                <div ng-show="item.default == ''">(Empty)</div>
                                 </a>
                             </div>
                         </span> 
