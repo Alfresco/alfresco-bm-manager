@@ -2258,15 +2258,6 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .and(FIELD_VERSION).is(Integer.valueOf(version))
                 .get();
         
-        // GIT #67 ignore the version when removing the property
-        DBObject deleteQueryObj = QueryBuilder
-                .start()
-                .and(FIELD_TEST).is(testObjId)
-                .and(FIELD_RUN).is(runObjId)
-                .and(FIELD_NAME).is(propertyName)
-                .get();
-        
-        
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .add(FIELD_TEST, testObjId)
@@ -2284,7 +2275,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             if (value == null)
             {
                 // remove property
-                result = testProps.remove(deleteQueryObj);
+                result = testProps.remove(queryObj);
                 written = (result.getN() > 0);
             }
             else
