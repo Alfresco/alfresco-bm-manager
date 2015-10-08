@@ -158,7 +158,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 false;
                 
         // get inputData
-        Object inputData = eventDetailsObj.get(EventRecord.FIELD_DATA);       
+        Object eventData = eventDetailsObj.get(EventRecord.FIELD_DATA);       
         
         // get Event
         DBObject eventObj = (DBObject) eventDetailsObj.get(EventRecord.FIELD_EVENT);
@@ -172,7 +172,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         String name = event.getName();
         
         // get Event.Data
-        Object eventData = event.getData();
+        Object inputData = event.getData();
         
         return new EventDetails(startTime, name, success, inputData, eventData);
     }

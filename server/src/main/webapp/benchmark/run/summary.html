@@ -273,17 +273,17 @@
                                         </a>
                                     </th>
                                     <th data-align="left">
-                                        <a ng-click="setEventSortColumn('eventInputData')">
-                                            Input Data
-                                            <span ng-show="eventColumnSort.sortColumn == 'eventInputData'">
+                                        <a ng-click="setEventSortColumn('eventResultData')">
+                                            Result Data
+                                            <span ng-show="eventColumnSort.sortColumn == 'eventResultData'">
                                                 <i alt="Sort" class="fa fa-caret-square-o-{{eventColumnSort.reverse == false ? 'down' : 'up'}}"></i>
                                             </span>
                                         </a>
                                     </th>
                                     <th data-align="left">
-                                        <a ng-click="setEventSortColumn('eventResultData')">
-                                            Result Data
-                                            <span ng-show="eventColumnSort.sortColumn == 'eventResultData'">
+                                        <a ng-click="setEventSortColumn('eventInputData')">
+                                            Input Data
+                                            <span ng-show="eventColumnSort.sortColumn == 'eventInputData'">
                                                 <i alt="Sort" class="fa fa-caret-square-o-{{eventColumnSort.reverse == false ? 'down' : 'up'}}"></i>
                                             </span>
                                         </a>
@@ -294,8 +294,8 @@
                                 <td style="width: 10em;">{{detail.eventTime.$date | date:'yyyy-MM-dd HH:mm:ss Z' }}</td>
                                 <td>{{detail.eventName}}</td>
                                 <td>{{detail.eventSuccess}}</td>
-                                <td>{{detail.eventInputData}}</td>
                                 <td>{{detail.eventResultData}}</td>
+                                <td>{{detail.eventInputData}}</td>
                             </tr>
                          </table>
                     </div>
