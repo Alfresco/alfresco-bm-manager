@@ -26,6 +26,7 @@ Follow instructions in sample/building-the-archetype
 Commit all the changes:
 > git add *
 > git commit
+> git push --all
 
 Tag the branch in GitHub
 Move onto the new version
