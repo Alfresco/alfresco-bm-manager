@@ -379,13 +379,11 @@
      * Test run property controller
      */
     .controller('TestRunPropertyCtrl', ['$scope',
-        '$document',                                
         '$location',
         'TestRunService',
         'TestRunPropertyService',
         'UtilService',
         function($scope,
-            $document,
             $location,
             TestRunService,
             TestRunPropertyService,
@@ -471,6 +469,7 @@
                     "value": item.value
                 };
                 $scope.updateTestRunProperty(testname, runname, item.name, propData);
+                item.version = item.version + 1;
             }
 
             $scope.resetProperty = function(item) {
@@ -479,6 +478,7 @@
                 };
                 $scope.updateTestRunProperty(testname, runname, item.name, restData);
                 item.value = item['default'];
+                item.version = 0;
             }
             
             // checks whether value is empty or not
@@ -508,7 +508,7 @@
             
             // called for each key press - returns true if to continue edit
             // returns false if edit is done. 
-            $scope.doClick = function(event, item){
+            $scope.doKeyPress = function(event, item){
                 if (event.keyCode == 13){
                     // ENTER
                     $scope.updateProperty(item);

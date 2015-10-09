@@ -275,25 +275,67 @@
                     "value": item.value
                 };
                 $scope.updateTestProperty(testname, item, propData);
-                var scope = $scope.data.properties;
-                $compile(content.contents(scope));
+                item.version = item.version + 1; 
+                // this doesn't work! 2015-10-09: has to be investigated for 2.0.11
+                //var scope = $scope.data.properties;
+                //$compile(content.contents(scope));
             }
 
             $scope.cancelEdit = function(item) {
-                // item.newvalue = item.value;
+                // restore
+                item.value = item['cancelValue'];
             }
 
             $scope.resetProperty = function(item) {
-                item.version;
-                item.newvalue = "";
                 var restData = {
-                    "version": item.version,
-                    "value": item['default']
+                    "version": item.version
                 };
                 $scope.updateTestProperty(testname, item, restData);
                 item.value = item['default'];
+                item.version = 0;
+            }
+            
+            // checks whether value is empty or not
+            $scope.isEmpty = function(value){
+                if (typeof value == undefined){
+                    return true;
+                }
+                if (value == null){
+                    return true;
+                }
+                var testString = "" + value; 
+                if (testString == ""){
+                    return true;
+                }
+                return false;
             }
 
+            // copy the value from default if value is empty
+            $scope.setInitialValue = function(item){
+                if ($scope.isEmpty(item.value)){
+                    item.value = item['default'];
+                }
+
+                // store for cancel
+                item['cancelValue'] = item.value;
+            }
+            
+            // called for each key press  in the property editor:
+            // returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doKeyPress = function(event, item){
+                if (event.keyCode == 13){
+                    // ENTER
+                    $scope.updateProperty(item);
+                    return false;
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.cancelEdit(item);
+                    return false;
+                }
+                return true;
+            }
             $scope.updateTestProperty = function(testname, item, propData) {
                 TestPropertyService.update({
                         "id": testname,
