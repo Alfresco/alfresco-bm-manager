@@ -55,7 +55,7 @@
     <!-- Test Files      -->
     <!--                 -->
     <!--
-        Contrived example in order to demostrate how test files can be obtained.
+        Contrived example in order to demonstrate how test files can be obtained.
         The LocalTestFileService can also be used but it limits how your tests can be distributed.
     -->
     <bean id="fileDataService" class="org.alfresco.bm.file.FileDataServiceImpl">
@@ -80,10 +80,10 @@
         So, for example:
             bean "event.start" will handle events named "start"
             bean "event.invite" will handle events named "invite"
-        This behaviour can be overridden.  See the javadocs of AbstractEventProcessor.
+        This behavior can be overridden.  See the javadocs of AbstractEventProcessor.
         
         The 'producer.process' bean shows how an event can be redirected with an optional delay: in this case, to 'event.doProcess'.
-        The 'producer.users.ready' renames the 'users.ready' event to 'scheduleProcesses' without any other mondification.
+        The 'producer.users.ready' renames the 'users.ready' event to 'scheduleProcesses' without any other modification.
         The 'producer.processDone' effectively absorbs the 'processDone' events.
     -->
 

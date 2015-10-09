@@ -50,7 +50,7 @@ import com.mongodb.DBObject;
  * There is no real processing for this sample, but the basic principle of
  * running a process from associated data, marking it as done and recording
  * the result is demonstrated.<br/>
- * A certain number of failures are demostrated as well.
+ * A certain number of failures are demonstrated as well.
  * 
  * <h1>Output</h1>
  * 
