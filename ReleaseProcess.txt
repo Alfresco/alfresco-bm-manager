@@ -1,6 +1,6 @@
 Create a new branch for the release process.
 If the current version is 2.0.3-SNAPSHOT, then it will be:
-> git branch -b V2.0.3
+> git checkout -b prepare-V2.0.3
 
 Update POM file revision numbers
 > find . -name pom.xml | xargs sed -i -e 's/2.0.3-SNAPSHOT/2.0.3/g'
