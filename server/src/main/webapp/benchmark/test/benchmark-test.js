@@ -516,7 +516,7 @@
         }
     ])
     /**
-     * Controler to display test def detail.
+     * Controller to display test def detail.
      */
     .controller('TestDefDetailCtrl', ['$scope', '$location', 'TestDefDetailService',
         function($scope, $location, TestDefDetailService) {

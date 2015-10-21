@@ -190,22 +190,100 @@
         })
     }).value('version', '0.1')
     
+        /**
+     * Tests service.
+     */
+    .factory('TestService', function($resource) {
+        return $resource("api/v1/tests/:id/:param", {
+            id: '@id'
+        }, {
+            //Define methods on the TestService Object
+            getTests: {
+                method: 'GET',
+                isArray: true
+            },
+            getTest: {
+                method: 'GET',
+                params: {
+                    id: 'id'
+                }
+            },
+            saveTest: {
+                method: 'POST'
+            },
+            updateTest: {
+                method: 'PUT'
+            },
+            copyTest: {
+                method: 'POST'
+            },
+            deleteTest: {
+                method: 'DELETE',
+                params: {
+                    id: 'id'
+                }
+            },
+            getDrivers: {
+                method: 'GET',
+                isArray: true,
+                params: {
+                    id: 'id',
+                    param:'drivers'
+                }
+            }
+        })
+    }).value('version', '0.1')
+    
     /**
      * List test runs controller
      */
-    .controller('TestRunListCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService',
-        function($scope, $location, $timeout, TestRunService, ModalService) {
+    .controller('TestRunListCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService', 'TestService',
+        function($scope, $location, $timeout, TestRunService, ModalService, TestService) {
             var timer;
             $scope.data = {};
             $scope.data.runs = {};
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
             $scope.data.testname = names[0];
+            $scope.drivers = [];
+            $scope.hasError = false;
+            $scope.error = {};
+            $scope.error.msg = "";
+            
+            //loads the driver properties
+            $scope.loadDrivers = function(thetestname){
+                TestService.getDrivers({
+                    id: thetestname
+                }, function(response) {
+                    //Strip $ as it prevents value from appearing
+                    var jsonStr = JSON.stringify(response);
+                    jsonStr = jsonStr.replace(/\$/g, '').replace('_id','ID');
+                    $scope.drivers = JSON.parse(jsonStr); 
+                });
+            };
+            
+            // checks if at least one driver is present
+            $scope.checkDriver = function(thetestname){
+                $scope.error.msg = "";
+                $scope.hasError = false;
+                $scope.loadDrivers(thetestname);
+                if($scope.drivers){
+                    if ($scope.drivers.length < 1){
+                        // show HTML error message 
+                        $scope.error.msg = "Unable to start test '" + thetestname + "': there is no driver present";
+                        $scope.hasError = true;
+                        return false;
+                    }
+                }
+                return true;
+            };
             /**
              * Get data gets test run collection from back-end.
              */
             $scope.getData = function() {
-
+                // load initial drivers
+                $scope.loadDrivers($scope.data.testname);
+                
                 TestRunService.getTestRuns({
                     id: $scope.data.testname
                 }, function(response) {
@@ -284,6 +362,11 @@
             };
             //call back to start run
             $scope.startRun = function(testname, index) {
+                // check if driver present
+                if (!$scope.checkDriver(testname)){
+                    return;
+                };
+                
                 var run = $scope.data.runs[index];
                 var version = run.version;
                 var currentdate = new Date();
@@ -574,8 +657,8 @@
     /*
      * Run summary controller
      */
-    .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'TestShowLogsService', 'ModalService',
-        function($scope, $location, $timeout, TestRunService, TestShowLogsService, ModalService) {
+    .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'TestShowLogsService', 'ModalService', 'TestService',
+        function($scope, $location, $timeout, TestRunService, TestShowLogsService, ModalService, TestService) {
             var timer;
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
@@ -584,6 +667,44 @@
             $scope.testname = names[0];
             $scope.runname = names[1];
             $scope.mockData = []; //Implement call to get charts
+            $scope.hasError = false;
+            $scope.errorMsg = "";
+          
+            // stores the driver properties 
+            $scope.drivers = [];            
+            
+         // gets the driver properties
+            $scope.loadDrivers = function(){
+                TestService.getDrivers({
+                            id: $scope.testname
+                        }, function(response) {
+                            //Strip $ as it prevents value from appearing
+                            var jsonStr = JSON.stringify(response);
+                            jsonStr = jsonStr.replace(/\$/g, '').replace('_id','ID');
+                            $scope.drivers = JSON.parse(jsonStr); 
+                        });
+            };
+            
+            // checks if drivers are present
+            $scope.hasDrivers = function(){
+                if ($scope.drivers){
+                    return $scope.drivers.length > 0;
+                }
+                return false;
+            };
+            
+            // checks if drivers are present and notifies if not. 
+            $scope.checkDrivers = function(){
+                $scope.hasError = false;
+                $scope.loadDrivers();
+                if ($scope.drivers.length < 1){
+                    // show HTML error message
+                    $scope.hasError = true;
+                    $scope.errorMsg = "No driver present, unable to start test run '" + $scope.testname + "." + $scope.runname;
+                    return false;
+                }
+                return true;
+            }
             
             $scope.getSummary = function() {
                 //initial chart display.
@@ -629,7 +750,9 @@
             };
             //call back to start run
             $scope.startRun = function() {
-
+                if (!$scope.checkDrivers()){
+                    return;
+                }          
                 var version = $scope.summary.version;
                 var currentdate = new Date();
                 var time = currentdate.valueOf();
@@ -819,6 +942,9 @@
             
             //Get the summary now!
             $scope.getSummary();
+            
+            // initial load drivers
+            $scope.loadDrivers();
             
             //Refresh data every 2.5 seconds.
             $scope.summaryPoll = function() {
