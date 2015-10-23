@@ -49,12 +49,52 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
   
         // validation by "type" (int | decimal | boolean | string) of the property
         typeValidator:function(property){
+            if (typeof property.type == 'undefined'){
+                property.validationFail = true;
+                property.validationMessage = "Internal configuration error: the property '" + property.title + "' has no type!";
+            }
+            else{
+                switch (property.type.toLowerCase()){
+                    case "string":
+                        validators.stringValidator(property);
+                        break;
+                        
+                    case "int":
+                        validators.intValidator(property);
+                        break;
+                        
+                    case "decimal":
+                        validators.decimalValidator(property);
+                        break;
+                        
+                    case "boolean":
+                        validators.booleanValidator(property);
+                        break;
+                        
+                    default:
+                        property.validationFail = true;
+                        property.validationMessage = "Internal configuration error: the property '" + property.title + "' has an unknown 'type': '" + property.type + "'";
+                        break;
+                }
+            }
+        },
+        stringValidator:function(property){
             /*
             // TODO - just some test code
             if (property.value == "Test"){
                 property.validationFail = true;
                 property.validationMessage = "Don't use the value 'Test'!";
-            }*/
+            }
+            */
+        },
+        intValidator:function(property){
+            // TODO
+        },
+        decimalValidator:function(property){
+            // TODO
+        },
+        booleanValidator:function(property){
+            // TODO
         }
     };
     return validators;
