@@ -23,6 +23,42 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
         return input ? '\u2713' : '\u2718';
     };
 })
+
+// Validation service - inject into your controller and call "ValidationService.validate(property)" 
+.service('ValidationService', function(){
+    var validators = {
+        
+        // main entry point for validation
+        validate:function(property){
+            // reset the validation values first
+            property.validationFail = false;
+            property.validationMessage = "";
+            
+            // check if "validation" property is set, if not, use the type validation
+            if (typeof property.validation != 'undefined'){
+                if (property.validation.toLowerCase() == "type"){
+                    validators.typeValidator(property);
+                }
+                // TODO V2 extension: append other validation like "host, URL, ..."
+            }
+            else{
+                // no "special" validation selected - so fall-back to type validation
+                validators.typeValidator(property);
+            } 
+        },
+  
+        // validation by "type" (int | decimal | boolean | string) of the property
+        typeValidator:function(property){
+            /*
+            // TODO - just some test code
+            if (property.value == "Test"){
+                property.validationFail = true;
+                property.validationMessage = "Don't use the value 'Test'!";
+            }*/
+        }
+    };
+    return validators;
+})
 /**
  * General utility service that provides:
  * Group elements in an array.

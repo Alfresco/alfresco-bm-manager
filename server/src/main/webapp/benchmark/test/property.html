@@ -116,7 +116,7 @@
             <li class="list-group-item filterable" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse " filter-value="{{item.title.toLowerCase()}}">
                 <div class="row">               
                     <div class="col-xs-6 col-md-6">
-                        <h4 class="panel-title">{{item.title}} </h4> 
+                        <h4 ng-class="{'panel-title': !item.validationFail, 'panel-title alert alert-danger alert-dismissible fade in': item.validationFail}">{{item.title}}</h4> 
                         <p> 
                             {{item.description}}
                         </p>
@@ -146,7 +146,7 @@
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset</button>
                                     </span>
                                     
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-hide="item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="item.mask">
                                     <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-show="item.mask">                                                                                  
                                     <span class="input-group-btn">
                                         <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
@@ -158,6 +158,7 @@
                                     </span>
                                 </div>
                                 <span ng-hide="item.mask">{{item.default}}</span>
+                                <span ng-show="item.validationFail" class="alert-danger">{{item.validationMessage}}</span>
                             </div>
                         </div>
                     </div>

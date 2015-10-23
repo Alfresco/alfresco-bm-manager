@@ -164,8 +164,8 @@
     /**
      * Controller to display test detail
      */
-    .controller('TestPropertyCtrl', ['$scope', '$location', 'TestService', 'TestPropertyService', 'UtilService','ModalService',
-        function($scope, $location, TestService, TestPropertyService, UtilService, ModalService) {
+    .controller('TestPropertyCtrl', ['$scope', '$location', 'TestService', 'TestPropertyService', 'UtilService','ModalService', 'ValidationService',
+        function($scope, $location, TestService, TestPropertyService, UtilService, ModalService, ValidationService) {
             $scope.data = {};
             $scope.properties = [];
             $scope.master = {};
@@ -336,6 +336,12 @@
                 }
                 return true;
             }
+            
+            // validates the property
+            $scope.validate = function(itemProperty){
+                ValidationService.validate(itemProperty);
+            }
+            
             $scope.updateTestProperty = function(testname, item, propData) {
                 TestPropertyService.update({
                         "id": testname,
