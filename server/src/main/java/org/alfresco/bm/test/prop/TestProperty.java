@@ -44,6 +44,15 @@ public abstract class TestProperty implements Comparable<TestProperty>
     public static final String PROP_HIDE = "hide";
     public static final String PROP_MASK = "mask";
     
+    /** @since 2.1 - optional validation for the property */
+    public static final String PROP_VALIDATION = "validation";
+    
+    /** @since 2.1 - optional choice collection for validation */
+    public static final String PROP_CHOICE_COLLECTION = "choices";
+    
+    /** @since 2.1 - optional dependencies for a property */
+    public static final String PROP_DEPENDENCIES = "dependencies";
+    
     /**
      * Enumeration of the basic property types supported
      * 
@@ -126,6 +135,10 @@ public abstract class TestProperty implements Comparable<TestProperty>
         valueNames.add(PROP_DESCRIPTION);
         valueNames.add(PROP_HIDE);
         valueNames.add(PROP_MASK);
+        // TODO - this values are optional - make sure that IF these values are still required if the configured values are empty!
+        valueNames.add(PROP_VALIDATION);
+        valueNames.add(PROP_CHOICE_COLLECTION);
+        valueNames.add(PROP_DEPENDENCIES);
         return valueNames;
     }
     
@@ -138,6 +151,9 @@ public abstract class TestProperty implements Comparable<TestProperty>
     private final String description;
     private final boolean hide;
     private final boolean mask;
+    private final String validation;
+    private final String choices;
+    private final String dependencies;
     
     /**
      * Construct a test property
@@ -154,6 +170,11 @@ public abstract class TestProperty implements Comparable<TestProperty>
         this.description = properties.getProperty(PROP_DESCRIPTION, "");
         this.hide = Boolean.parseBoolean(properties.getProperty(PROP_HIDE, "false"));
         this.mask = Boolean.parseBoolean(properties.getProperty(PROP_MASK, "false"));
+
+        // since 2.1 (optional extra values if to specify a "special" validation or a list of allowed values) 
+        this.validation =  properties.getProperty(PROP_VALIDATION, "");
+        this.choices = properties.getProperty(PROP_CHOICE_COLLECTION, "");
+        this.dependencies = properties.getProperty(PROP_DEPENDENCIES, "");
     }
     
     @Override
@@ -168,9 +189,22 @@ public abstract class TestProperty implements Comparable<TestProperty>
           .append(", title=").append(title)
           .append(", description=").append(description)
           .append(", hide=").append(hide)
-          .append(", mask=").append(mask)
-          .append("]");
-        return sb.toString();
+          .append(", mask=").append(mask);
+      // since 2.1 append optional values 
+      if (!this.validation.isEmpty())
+      {
+          sb.append(", validation=").append(this.validation);
+      }
+      if (!this.choices.isEmpty())
+      {
+          sb.append(", choices=").append(this.choices);
+      }
+      if (!this.dependencies.isEmpty())
+      {
+          sb.append(", dependencies=").append(this.dependencies);
+      }
+      sb.append("]");
+      return sb.toString();
     }
 
     /**
@@ -259,6 +293,20 @@ public abstract class TestProperty implements Comparable<TestProperty>
         properties.setProperty(PROP_DESCRIPTION, description);
         properties.setProperty(PROP_HIDE, "" + hide);
         properties.setProperty(PROP_MASK, "" + mask);
+        
+        // add optional values (since 2.1)
+        if (!this.validation.isEmpty())
+        {
+            properties.setProperty(PROP_VALIDATION, this.validation);
+        }
+        if (!this.choices.isEmpty())
+        {
+            properties.setProperty(PROP_CHOICE_COLLECTION, this.choices);
+        }
+        if (!this.dependencies.isEmpty())
+        {
+            properties.setProperty(PROP_DEPENDENCIES, this.dependencies);
+        }
         // Add derived type properties
         addProperties(properties);
         // Done
@@ -312,5 +360,43 @@ public abstract class TestProperty implements Comparable<TestProperty>
     public boolean isMask()
     {
         return mask;
+    }
+    
+    /**
+     * @return validation name for UI - the JavaScript validation called for this property
+     * Note: this value is optional and defaults to "type" in the JavaScript code. This 
+     * means validation will be done on the type (boolean, int, decimal or string) and the 
+     * up-to 2.0.10 defined properties only. But you may specify a special validation for 
+     * example to make sure an URL is reachable.
+     * @since 2.1 
+     */
+    public String getValidation()
+    {
+        return this.validation;
+    }
+    
+    /**
+     * @return (String) choice collection. This a a JSON string containing the array values that 
+     * are allowed as values for the property.value. 
+     * Note: this value is optional. If configured, only the values in the array are allowed values 
+     * for the property.value and property.defaultValue. 
+     * @since 2.1
+     */
+    public String getChoices()
+    {
+        return this.choices;
+    }
+    
+    /**
+     * @return (String) dependencies. This is a JSON string containing the group and names of one or more properties 
+     * this property depends on. Whenever a depended property changes it value (or defaultValue) the validation
+     * of this property will also be executed. This is useful for example for URL properties that contain 
+     * the server name as a placeholder / variable. If for example the host name contained in the URL 
+     * is updated, the URL will be validated. If specified a validation this can also trigger a 
+     * round-trip to the server to make sure the URL is reachable. 
+     */
+    public String getDependencies()
+    {
+        return this.dependencies;
     }
 }
