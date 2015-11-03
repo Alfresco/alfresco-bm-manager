@@ -34,31 +34,21 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
             property.validationFail = false;
             property.validationMessage = "";
             
+            // check 'choice'
+            var choiceValidated = false;
+            if (typeof property.choice != 'undefined'){
+                // convert JSON string to object/array and validate 
+                validators.choiceCollectionValidator(property, JSON.parse(property.choice));
+                choiceValidated = true;
+            }
+            
             // check if "validation" property is set, if not, use the type validation
             if (typeof property.validation != 'undefined'){
-                alert(property.validation.toLowerCase());
                 switch (property.validation.toLowerCase()){
                     case "type":
                         validators.typeValidator(property);
                         break;
                     
-                    case "benchmarkduration":
-                        validators.oneOf(property, new Array("SECONDS", "MINUTES", "HOURS", "DAYS"));
-                        break;
-                        
-                    case "benchmarkdurationex":
-                        validators.oneOf(property, new Array("MILLISECONDS", "SECONDS", "MINUTES", "HOURS", "DAYS"));
-                        break;
-                        
-                    case "cmisbinding":
-                        validators.oneOf(property, new Array("atompub", "browser"));
-                        break;
-                        
-                    case "cmisrelationship":
-                        validators.oneOf(property, new Array("NONE", "SOURCE", "TARGET", "BOTH"));
-                        break;
-                        
-                    // TODO add validation for URLs 
                     default:
                         property.validationFail = true;
                         property.validationMessage = "Internal error: unknown validation type '" + property.validation + "'";
@@ -66,8 +56,11 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
                 }
             }
             else{
-                // no "special" validation selected - so fall-back to type validation
-                validators.typeValidator(property);
+                // if choice collection was validated OK and no special validation was assigned, we're done
+                if (!choiceValidated){
+                    // no "special" validation selected - so fall-back to type validation
+                    validators.typeValidator(property);
+                }
             } 
         },
   
@@ -218,20 +211,17 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
         },
         
         // validation if property.value is part of the values array
-        oneOf:function(property, values){
-            
-            // TODO remove
-            property.validationFail = true;
-            property.validationMessage = "DEBUG " + values;
-            
-            if (typeof property.value != 'undefined'){
-                if (typeof (values[property.value]) != 'undefined'){
-                    return;
+        choiceCollectionValidator:function(property, values){
+            if (typeof property.value != 'undefined' && typeof values != 'undefined'){
+                for (var i = 0; i < values.length; i++) {
+                    if (values[i] === property.value) {
+                        return;
+                    }
                 }
             }
             
             property.validationFail = true;
-            property.validationMessage = "Please enter one of " + values;
+            property.validationMessage = "Please use one of: " + values;
         }
     };
     return validators;

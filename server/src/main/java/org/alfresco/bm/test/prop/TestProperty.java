@@ -48,7 +48,7 @@ public abstract class TestProperty implements Comparable<TestProperty>
     public static final String PROP_VALIDATION = "validation";
     
     /** @since 2.1 - optional choice collection for validation */
-    public static final String PROP_CHOICE_COLLECTION = "choices";
+    public static final String PROP_CHOICE_COLLECTION = "choice";
     
     /**
      * Enumeration of the basic property types supported
@@ -349,10 +349,12 @@ public abstract class TestProperty implements Comparable<TestProperty>
     
     /**
      * @return validation name for UI - the JavaScript validation called for this property
+     * 
      * Note: this value is optional and defaults to "type" in the JavaScript code. This 
      * means validation will be done on the type (boolean, int, decimal or string) and the 
      * up-to 2.0.10 defined properties only. But you may specify a special validation for 
      * example to make sure an URL is reachable.
+     * 
      * @since 2.1 
      */
     public String getValidation()
