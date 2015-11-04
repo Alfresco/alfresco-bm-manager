@@ -611,7 +611,35 @@
             $scope.validate = function(itemProperty){
                 ValidationService.validate(itemProperty);
             }
-
+            
+            // checks whether the property item has a choice collection
+            $scope.hasChoice = function(itemProperty){
+                if (itemProperty.type.toLowerCase() == 'boolean'){
+                    // a boolean value has implicit 'true' and 'false' only ...
+                    return true;
+                }
+                    
+                if (typeof itemProperty.choice != 'undefined'){
+                    if(JSON.parse(itemProperty.choice).length > 0){
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // returns the choice collection of a property item or null 
+            $scope.getChoiceCollection = function(itemProperty){
+                // check boolean first ...
+                if (itemProperty.type.toLowerCase() == 'boolean'){
+                    var choices= ["true", "false"];
+                    return choices; 
+                }
+                if (typeof itemProperty.choice != 'undefined'){
+                    return JSON.parse(itemProperty.choice);
+                }
+                return null;
+            }
+            
             $scope.updateTestRunProperty = function(testname, runname, propertyName, propData) {
                 TestRunPropertyService.update({
                         "id": testname,
