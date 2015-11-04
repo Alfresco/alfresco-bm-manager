@@ -695,6 +695,7 @@
     .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'TestShowLogsService', 'ModalService', 'TestService',
         function($scope, $location, $timeout, TestRunService, TestShowLogsService, ModalService, TestService) {
             var timer;
+            var timerEvents = null;
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
             $scope.summary = {};
@@ -874,6 +875,42 @@
             // possible number of events to retrieve
             $scope.numEventValues = [5, 10, 15, 20, 25, 50, 100];
             
+            // selected auto refresh
+            $scope.autoRefresh = "off";
+            
+            // values for auto-refresh
+            $scope.autoRefreshValues = ["off", "3 sec", "5 sec", "10sec", "15 sec", "30 sec", "60 sec", "90 sec"];
+            
+            // update auto-refresh of events
+            $scope.selectRefresh = function(value){
+                $scope.autoRefresh=value;
+                var time = parseInt(value);
+                if (time > 0){
+                    time = time * 1000;
+                    $scope.doAutoRefresh(time);
+                }
+                else{
+                    // cancel timer
+                    if (null != timerEvents){
+                        $timeout.cancel(timerEvents);
+                        timerEvents = null;
+                    }
+                }
+            } 
+            
+            // auto refreh events
+            $scope.doAutoRefresh=function(time){
+                if (null != timerEvents){
+                    $timeout.cancel(timerEvents);
+                    timerEvents = null;
+                }
+                
+                timerEvents = $timeout(function() {
+                    $scope.getEvents();
+                    $scope.doAutoRefresh(time);
+                }, time);
+            }
+            
             // selects number of events and updates 
             $scope.selectNumEvents = function(num){
                 $scope.numEvents = num;
@@ -997,6 +1034,10 @@
                 "$destroy",
                 function(event) {
                     $timeout.cancel(timer);
+                    if (null != timerEvents){
+                        $timeout.cancel(timerEvents);
+                        timerEvents = null;
+                    }
                 }
             );
         }
