@@ -118,8 +118,8 @@
                                     <span class="input-group-btn" ng-hide="isEmpty(item.value)">
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset </button>
                                     </span>
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-hide="item.mask">
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-show="item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-show="item.mask">
                                     <span class="input-group-btn">
                                         <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
                                             <span class="glyphicon glyphicon-remove" />
@@ -130,6 +130,7 @@
                                     </span>
                                 </div>
                                 <div ng-hide="item.mask">{{item.default}}</div>
+                                <span ng-show="item.validationFail" class="alert-danger">{{item.validationMessage}}</span>
                             </div>
                         </div> 
                     </div>

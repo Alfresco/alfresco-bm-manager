@@ -466,11 +466,13 @@
         'TestRunService',
         'TestRunPropertyService',
         'UtilService',
+        'ValidationService',
         function($scope,
             $location,
             TestRunService,
             TestRunPropertyService,
-            UtilService) {
+            UtilService,
+            ValidationService) {
             $scope.data = {};
             $scope.master = {};
             var path = $location.path();
@@ -603,6 +605,11 @@
                     return false;
                 }
                 return true;
+            }
+            
+            // validates the property
+            $scope.validate = function(itemProperty){
+                ValidationService.validate(itemProperty);
             }
 
             $scope.updateTestRunProperty = function(testname, runname, propertyName, propData) {
