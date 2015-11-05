@@ -174,6 +174,7 @@
             $scope.attentionRequired=false;
             var myname = $location.path().split('/');
             var testname = myname[2];
+            $scope.nameErrorMessage = null;
 
             TestService.getDrivers({
                 id: testname
@@ -220,15 +221,18 @@
 
             //callback for ng-click 'renameTest'
             $scope.renameTest = function(name) {
-                var postData = {
-                    "oldName": testname,
-                    "name": name,
-                    "version": $scope.data.test.version,
-                    "description": $scope.data.test.description,
-                    "release": $scope.data.test.release,
-                    "schema": $scope.data.test.schema
-                };
-                $scope.updateTest(postData);
+                // V2.1: only call back-end if name was altered ...
+                if (name != testname){
+                    var postData = {
+                        "oldName": testname,
+                        "name": name,
+                        "version": $scope.data.test.version,
+                        "description": $scope.data.test.description,
+                        "release": $scope.data.test.release,
+                        "schema": $scope.data.test.schema
+                    };
+                    $scope.updateTest(postData);
+                }
             }
 
             //callback for ng-click 'updateTestDesc':
@@ -263,8 +267,11 @@
 
             //Updates the test and redirects to new page
             $scope.updateTest = function(postData) {
-                TestService.updateTest({}, postData, function(res) {});
-                $location.path("/tests/" + postData.name + "/properties");
+                var result = TestService.updateTest({}, postData, function(res) {});
+                // V2.1 only update location if name was altered
+                if (result.name != result.oldName){
+                    $location.path("/tests/" + postData.name + "/properties");
+                }
             }
 
             //-------------- Test properties crud ----------
@@ -297,7 +304,7 @@
             
             // checks whether value is empty or not
             $scope.isEmpty = function(value){
-                if (typeof value == undefined){
+                if (typeof value == 'undefined'){
                     return true;
                 }
                 if (value == null){
@@ -335,6 +342,30 @@
                     return false;
                 }
                 return true;
+            }
+            
+            // called for each key press  in the BM name editor:
+            // returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doKeyPressName = function(event){
+                if (event.keyCode == 13){
+                    // ENTER - allowed only if no validation error message is present
+                    if (null == $scope.nameErrorMessage){
+                        $scope.renameTest($scope.data.test.name);
+                        return false;
+                    }
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.cancelRename();
+                    return false;
+                }
+                return true;
+            }
+            
+            // Validates the name entered by the user
+            $scope.validateName = function(){
+                $scope.nameErrorMessage = ValidationService.isValidTestName($scope.data.test.name);
             }
             
             // validates the property

@@ -63,10 +63,42 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
                 }
             } 
         },
+        
+        // checks if "value" is empty string
+        isEmpty:function(value){
+            if (typeof value == 'undefined'){
+                return true;
+            }
+            if (value == null){
+                return true;
+            }
+            var testString = "" + value; 
+            if (testString == ""){
+                return true;
+            }
+            return false;
+        },
+        
+        // test name validation - only alpha-numeric values and the underscore are allowed values
+        // returns null if everything is OK or a string error message if not. 
+        isValidTestName:function(testName){
+            // check empty
+            if (validators.isEmpty(testName) ){
+                return "Please enter a test name!";
+            }
+            
+            // validate RegEx
+            var regex = new RegExp( "[a-zA-Z][a-zA-Z0-9_]*" );
+            if (testName.match(regex) != testName){
+                return "Test names must start with a letter and contain only letters, numbers or underscores!";
+            }
+            
+            return null;
+        },
   
         // validation by "type" (int | decimal | boolean | string) of the property
         typeValidator:function(property){
-            if (typeof property.type === 'undefined'){
+            if (typeof property.type == 'undefined'){
                 property.validationFail = true;
                 property.validationMessage = "Internal configuration error: the property '" + property.title + "' has no type!";
             }
@@ -107,7 +139,7 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
                 // if a minimum value is defined the string must NOT be empty
                 min = property.min;
             }
-            if (typeof property.value === 'string'){
+            if (typeof property.value == 'string'){
                 // check 'min'
                 if (property.value.length < min){
                     property.validationFail = true;
@@ -142,7 +174,7 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
         
         // integer validation
         intValidator:function(property){
-            if (typeof property.value === 'number' || (typeof property.value === 'string' && property.value.length > 0)) {
+            if (typeof property.value == 'number' || (typeof property.value == 'string' && property.value.length > 0)) {
                 // don't accept numbers that are not 'int' ...
                 if ( property.value%1 == 0){
                  // 'min'
@@ -200,8 +232,8 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
         booleanValidator:function(property){
             if (typeof property.value != 'boolean'){
                 // also accept strings 'true' and 'false'
-                if (typeof property.value === 'string'){
-                    if (property.value.toLowerCase() === 'true' || property.value.toLowerCase() === 'false'){
+                if (typeof property.value == 'string'){
+                    if (property.value.toLowerCase() == 'true' || property.value.toLowerCase() == 'false'){
                         return;
                     }
                 }
@@ -214,7 +246,7 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
         choiceCollectionValidator:function(property, values){
             if (typeof property.value != 'undefined' && typeof values != 'undefined'){
                 for (var i = 0; i < values.length; i++) {
-                    if (values[i] === property.value) {
+                    if (values[i] == property.value) {
                         return;
                     }
                 }
