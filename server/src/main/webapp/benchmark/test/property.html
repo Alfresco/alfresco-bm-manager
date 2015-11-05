@@ -44,12 +44,12 @@
         <div class="row" ng-show="testDescEditorEnabled">
             <div class="col-lg-6">
                 <div class="input-group">
-                    <input class="form-control input-sm ng-valid" ng-model="data.test.description">
+                    <input class="form-control input-sm ng-valid" ng-model="data.test.description" onClick="this.select();" ng-keyup="testDescEditorEnabled = doKeyPressDesc($event)">
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-dark" ng-click="cancelDesc();testDescEditorEnabled=!testDescEditorEnabled" type="button" tabindex="-1">
+                        <button class="btn btn-sm btn-dark" ng-click="cancelDesc();testDescEditorEnabled=false" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-remove" />
                         </button>
-                        <button class="btn btn-sm btn-default" ng-click="updateTestDesc(data.test.description)" type="button" tabindex="-1">
+                        <button class="btn btn-sm btn-default" ng-click="updateTestDesc(data.test.description);testDescEditorEnabled=false" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-ok" />
                         </button>
                     </span>

@@ -248,6 +248,7 @@
                     "schema": $scope.data.test.schema
                 };
                 $scope.updateTest(postData);
+                $scope.data.test.version = $scope.data.test.version + 1;
             }
 
             //callback for ng-click 'updateTestSchema':
@@ -272,6 +273,7 @@
                 if (result.name != result.oldName){
                     $location.path("/tests/" + postData.name + "/properties");
                 }
+                return result;
             }
 
             //-------------- Test properties crud ----------
@@ -283,9 +285,7 @@
                 };
                 $scope.updateTestProperty(testname, item, propData);
                 item.version = item.version + 1; 
-                // this doesn't work! 2015-10-09: has to be investigated for 2.0.11
-                //var scope = $scope.data.properties;
-                //$compile(content.contents(scope));
+                // TODO - check if update was successful and update UI if not
             }
 
             $scope.cancelEdit = function(item) {
@@ -358,6 +358,23 @@
                 else if (event.keyCode == 27){
                     // ESC
                     $scope.cancelRename();
+                    return false;
+                }
+                return true;
+            }
+            
+            // called for each key press  in the BM test description editor:
+            // returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doKeyPressDesc = function(event){
+                if (event.keyCode == 13){
+                    // ENTER
+                    $scope.updateTestDesc($scope.data.test.description);
+                    return false;
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.cancelDesc();
                     return false;
                 }
                 return true;
