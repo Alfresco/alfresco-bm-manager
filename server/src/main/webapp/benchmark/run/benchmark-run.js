@@ -401,14 +401,15 @@
     /**
      * Controller to create test run
      */
-    .controller('TestRunCreateCtrl', ['$scope', '$location', '$window', 'TestRunService',
-        function($scope, $location, $window, TestRunService) {
+    .controller('TestRunCreateCtrl', ['$scope', '$location', '$window', 'TestRunService', 'ValidationService',
+        function($scope, $location, $window, TestRunService, ValidationService) {
             $scope.master = {};
             $scope.testname = {};
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
             $scope.testname = names[0];
             $scope.runs = [];
+            $scope.testNameErrorMessage = null;
 
             TestRunService.getTestRuns({
                     id: $scope.testname
@@ -426,6 +427,11 @@
                 }
             };
 
+            // validation of user entries
+            $scope.validateName = function(testrun){
+                $scope.testNameErrorMessage = ValidationService.isValidTestName(testrun.name);
+            }
+            
             $scope.createTestRun = function(testrun) {
                 var postData = {
                     "name": testrun.name,
