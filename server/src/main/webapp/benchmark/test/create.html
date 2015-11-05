@@ -1,7 +1,7 @@
 <div class="main" ng-controller="TestCreateCtrl">
     <form name="form" class="form-horizontal" id="create-test" role="form" novalidate>
         <div class="form-group">
-            <div ng-show="hasError" class="alert alert-danger">{{errorMsg}}</div>
+            <div ng-show="errorMsg != null" class="alert alert-danger">{{errorMsg}}</div>
         </div>
         <div class="form-group">
             <label for="inputTestName" class="col-lg-2 control-label">Test name</label>
@@ -14,7 +14,8 @@
                         Test name must have at least 3 characters
                     </small>
                 </div>
-                <input type="text" ng-model="test.name" name="tName" ng-minlength="3" class="form-control" id="inputTestName" placeholder="Test name" required ng-focus>
+                <input type="text" ng-model="test.name" name="tName" ng-minlength="3" class="form-control" id="inputTestName" placeholder="Test name" 
+                required ng-focus onClick="this.select();" ng-change="validateName(test.name)">
             </div>
         </div>
         <div class="form-group">
@@ -37,7 +38,7 @@
 
         <div class="form-group">
             <div class="col-lg-offset-2 col-lg-10">
-                <button ng-disabled="!form.$valid" type="submit" class="btn btn-default btn-lg" ng-click="createTest(test)">Ok</button>
+                <button ng-disabled="!form.$valid || errorMsg != null || !test.def" type="submit" class="btn btn-default btn-lg" ng-click="createTest(test)">Ok</button>
                 <a href="#/tests" ng-click="cancel()" class="btn btn-dark btn-lg" id="cancelCreateTestBtn">Cancel</a>
             </div>
         </div>

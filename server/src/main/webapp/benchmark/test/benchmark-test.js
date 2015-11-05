@@ -491,12 +491,13 @@
     /**
      * Controller to create test detail
      */
-    .controller('TestCreateCtrl', ['$scope', '$location', 'TestService', 'TestDefService',
-        function($scope, $location, TestService, TestDefService) {
+    .controller('TestCreateCtrl', ['$scope', '$location', 'TestService', 'TestDefService', 'ValidationService',
+        function($scope, $location, TestService, TestDefService, ValidationService) {
             $scope.master = {};
             $scope.defs = {};
             $scope.nodefs = false;
             $scope.showActiveTests = true;
+            $scope.errorMsg = null;
             
             $scope.showActiveTestDefs = function(value) {
                 if (value == true) {
@@ -539,6 +540,11 @@
                 };
             };
 
+            // validates the test name
+            $scope.validateName = function(testName){
+                $scope.errorMsg = ValidationService.isValidTestName(testName);
+            };
+            
             $scope.update = function(test) {
                 $scope.master = angular.copy(test);
             };
