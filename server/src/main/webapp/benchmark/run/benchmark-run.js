@@ -401,14 +401,15 @@
     /**
      * Controller to create test run
      */
-    .controller('TestRunCreateCtrl', ['$scope', '$location', '$window', 'TestRunService',
-        function($scope, $location, $window, TestRunService) {
+    .controller('TestRunCreateCtrl', ['$scope', '$location', '$window', 'TestRunService', 'ValidationService',
+        function($scope, $location, $window, TestRunService, ValidationService) {
             $scope.master = {};
             $scope.testname = {};
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
             $scope.testname = names[0];
             $scope.runs = [];
+            $scope.testNameErrorMessage = null;
 
             TestRunService.getTestRuns({
                     id: $scope.testname
@@ -426,6 +427,11 @@
                 }
             };
 
+            // validation of user entries
+            $scope.validateName = function(testrun){
+                $scope.testNameErrorMessage = ValidationService.isValidTestName(testrun.name);
+            }
+            
             $scope.createTestRun = function(testrun) {
                 var postData = {
                     "name": testrun.name,
@@ -466,11 +472,13 @@
         'TestRunService',
         'TestRunPropertyService',
         'UtilService',
+        'ValidationService',
         function($scope,
             $location,
             TestRunService,
             TestRunPropertyService,
-            UtilService) {
+            UtilService,
+            ValidationService) {
             $scope.data = {};
             $scope.master = {};
             var path = $location.path();
@@ -481,6 +489,7 @@
             $scope.readOnly = false;
             $scope.data.testname = testname;
             $scope.data.runname = runname;
+            $scope.nameErrorMessage = null;
 
             TestRunService.getTestRun({
                 id: $scope.data.testname,
@@ -507,7 +516,48 @@
             $scope.reset = function() {
                 $scope.data = angular.copy($scope.master);
             }
+            
+            // Validates the name entered by the user
+            $scope.validateRunName = function(){          
+                $scope.nameErrorMessage = ValidationService.isValidTestName($scope.data.name);
+            }
 
+            // called for each key press  in the BM name editor:
+            // returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doKeyPressName = function(event){
+                if (event.keyCode == 13){
+                    // ENTER - allowed only if no validation error message is present
+                    if (null == $scope.nameErrorMessage){
+                        $scope.updateRunName($scope.data.name);
+                        return false;
+                    }
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.reset();
+                    return false;
+                }
+                return true;
+            }
+
+            // called for each key press  in the BM test description editor:
+            // returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doKeyPressDesc = function(event){
+                if (event.keyCode == 13){
+                    // ENTER
+                    $scope.updateRunDesc($scope.data.description);
+                    return false;
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.reset();
+                    return false;
+                }
+                return true;
+            }
+            
             //-------------- Test run properties CRUD ----------
             //call back for update run
             $scope.updateRunName = function(name) {
@@ -534,12 +584,17 @@
                     "description": description
                 }
                 $scope.updateTestRun(json);
+                // increase version number for there will be no reload of page on update
+                // of the version number ... else next save will fail ...
+                $scope.data.version = $scope.data.version + 1;
             }
 
             $scope.updateTestRun = function(data) {
                 TestRunService.updateTestRun({
                     "id": testname
                 }, data, function(response) {
+                    // ---->>>> TODO remove debug code
+                    //alert(JSON.stringify(response));
                     $scope.runNameEditorEnabled = false;
                     $scope.runDescEditorEnabled = false;
                     $location.path("/tests/" + testname + "/" + response.name + "/properties");
@@ -604,7 +659,40 @@
                 }
                 return true;
             }
-
+            
+            // validates the property
+            $scope.validate = function(itemProperty){
+                ValidationService.validate(itemProperty);
+            }
+            
+            // checks whether the property item has a choice collection
+            $scope.hasChoice = function(itemProperty){
+                if (itemProperty.type.toLowerCase() == 'boolean'){
+                    // a boolean value has implicit 'true' and 'false' only ...
+                    return true;
+                }
+                    
+                if (typeof itemProperty.choice != 'undefined'){
+                    if(JSON.parse(itemProperty.choice).length > 0){
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // returns the choice collection of a property item or null 
+            $scope.getChoiceCollection = function(itemProperty){
+                // check boolean first ...
+                if (itemProperty.type.toLowerCase() == 'boolean'){
+                    var choices= ["true", "false"];
+                    return choices; 
+                }
+                if (typeof itemProperty.choice != 'undefined'){
+                    return JSON.parse(itemProperty.choice);
+                }
+                return null;
+            }
+            
             $scope.updateTestRunProperty = function(testname, runname, propertyName, propData) {
                 TestRunPropertyService.update({
                         "id": testname,
@@ -660,6 +748,7 @@
     .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'TestShowLogsService', 'ModalService', 'TestService',
         function($scope, $location, $timeout, TestRunService, TestShowLogsService, ModalService, TestService) {
             var timer;
+            var timerEvents = null;
             var path = $location.path();
             var names = path.replace("/tests/", "").split("/");
             $scope.summary = {};
@@ -839,6 +928,42 @@
             // possible number of events to retrieve
             $scope.numEventValues = [5, 10, 15, 20, 25, 50, 100];
             
+            // selected auto refresh
+            $scope.autoRefresh = "off";
+            
+            // values for auto-refresh
+            $scope.autoRefreshValues = ["off", "3 sec", "5 sec", "10sec", "15 sec", "30 sec", "60 sec", "90 sec"];
+            
+            // update auto-refresh of events
+            $scope.selectRefresh = function(value){
+                $scope.autoRefresh=value;
+                var time = parseInt(value);
+                if (time > 0){
+                    time = time * 1000;
+                    $scope.doAutoRefresh(time);
+                }
+                else{
+                    // cancel timer
+                    if (null != timerEvents){
+                        $timeout.cancel(timerEvents);
+                        timerEvents = null;
+                    }
+                }
+            } 
+            
+            // auto refreh events
+            $scope.doAutoRefresh=function(time){
+                if (null != timerEvents){
+                    $timeout.cancel(timerEvents);
+                    timerEvents = null;
+                }
+                
+                timerEvents = $timeout(function() {
+                    $scope.getEvents();
+                    $scope.doAutoRefresh(time);
+                }, time);
+            }
+            
             // selects number of events and updates 
             $scope.selectNumEvents = function(num){
                 $scope.numEvents = num;
@@ -962,6 +1087,10 @@
                 "$destroy",
                 function(event) {
                     $timeout.cancel(timer);
+                    if (null != timerEvents){
+                        $timeout.cancel(timerEvents);
+                        timerEvents = null;
+                    }
                 }
             );
         }

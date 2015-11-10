@@ -487,4 +487,4 @@ public class Test implements
             logger.debug("Registered test driver details: " + release + ", " + ipAddress + ", " + systemCapabilities);
         }
     }
-}
+} //org.alfresco.bm.test.Test

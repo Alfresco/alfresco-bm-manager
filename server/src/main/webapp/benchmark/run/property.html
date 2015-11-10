@@ -10,16 +10,17 @@
         <div class="row" ng-show="runNameEditorEnabled">
             <div class="col-lg-6">
                 <div class="input-group">
-                    <input class="form-control input-sm ng-valid ng-pristine" ng-model="data.name">
+                    <input class="form-control input-sm ng-valid ng-pristine" ng-model="data.name" onClick="this.select();" ng-keyup="runNameEditorEnabled = doKeyPressName($event)" ng-change="validateRunName()">
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-dark" ng-click="reset();runNameEditorEnabled=!runNameEditorEnabled" type="button" tabindex="-1">
+                        <button class="btn btn-sm btn-dark" ng-click="reset();runNameEditorEnabled=false" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-remove" />
                         </button>
-                        <button class="btn btn-sm btn-default" ng-click="updateRunName(data.name)" type="button" tabindex="-1">
+                        <button  ng-hide="nameErrorMessage != null" class="btn btn-sm btn-default" ng-click="updateRunName(data.name);runNameEditorEnabled=false" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-ok" />
                         </button>
                     </span>
                 </div>
+                <span ng-show="nameErrorMessage != null" class="alert-danger">{{nameErrorMessage}}</span>
             </div>
         </div>
         <h3>
@@ -56,12 +57,12 @@
         <div class="row" ng-show="runDescEditorEnabled">
             <div class="col-lg-6">
                 <div class="input-group">
-                    <input class="form-control input-sm ng-valid" ng-model="data.description">
+                    <input class="form-control input-sm ng-valid" ng-model="data.description" onClick="this.select();" ng-keyup="runDescEditorEnabled = doKeyPressDesc($event)">
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-dark" ng-click="reset();runDescEditorEnabled=!runDescEditorEnabled" type="button" tabindex="-1">
+                        <button class="btn btn-sm btn-dark" ng-click="reset();runDescEditorEnabled=false;" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-remove" />
                         </button>
-                        <button class="btn btn-sm btn-default" ng-click="updateRunDesc(data.description)" type="button" tabindex="-1">
+                        <button class="btn btn-sm btn-default" ng-click="updateRunDesc(data.description);" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-ok" />
                         </button>
                     </span>
@@ -114,22 +115,43 @@
                         </span> 
                         <div ng-show="propertyEditorEnabled"> 
                             <div>
+                                <!-- Show text edit only if no choice collection - prefer a drop-down if item has choices or is boolean-->
                                 <div class="input-group">
                                     <span class="input-group-btn" ng-hide="isEmpty(item.value)">
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset </button>
                                     </span>
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-hide="item.mask">
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-show="item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="hasChoice(item) || item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-show="item.mask">
+                                    <div class="dropdown" ng-hide="!hasChoice(item) || item.mask">
+                                      <button class="form-control text-left" 
+                                              type="button" 
+                                              id="dropdownPropValue{{item.name}}" 
+                                              data-toggle="dropdown" 
+                                              aria-haspopup="true" 
+                                              aria-expanded="true">
+                                              {{item.value}}
+                                              <i class="fa fa-angle-down"></i>
+                                      </button>
+                                      <ul class="dropdown-menu" aria-labelledby="dropdownPropValue{{item.name}}">
+                                          <div ng-repeat="choice in getChoiceCollection(item)" ng-click="item.value=choice;">
+                                              {{choice}} 
+                                              <span ng-show="item.value == choice">
+                                                  <i alt="check" class="fa fa-check"></i>
+                                              </span>
+                                          </div>
+                                      </ul>
+                                    </div>
                                     <span class="input-group-btn">
-                                        <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=!propertyEditorEnabled" type="button"> 
+                                        <button class="btn btn-dark" ng-click="cancelEdit(item);propertyEditorEnabled=false;" type="button"> 
                                             <span class="glyphicon glyphicon-remove" />
                                         </button>
-                                        <button class="btn btn-default" ng-click="propertyEditorEnabled=!propertyEditorEnabled; updateProperty(item)">                                                                          
+                                        <button class="btn btn-default" ng-click="propertyEditorEnabled=false; updateProperty(item)">                                                                          
                                             <span class="glyphicon glyphicon-ok" />
                                         </button>
                                     </span>
                                 </div>
                                 <div ng-hide="item.mask">{{item.default}}</div>
+                                <span ng-show="item.validationFail" class="alert-danger">{{item.validationMessage}}</span>
                             </div>
                         </div> 
                     </div>

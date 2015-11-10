@@ -44,6 +44,12 @@ public abstract class TestProperty implements Comparable<TestProperty>
     public static final String PROP_HIDE = "hide";
     public static final String PROP_MASK = "mask";
     
+    /** @since 2.1 - optional validation for the property */
+    public static final String PROP_VALIDATION = "validation";
+    
+    /** @since 2.1 - optional choice collection for validation */
+    public static final String PROP_CHOICE_COLLECTION = "choice";
+    
     /**
      * Enumeration of the basic property types supported
      * 
@@ -126,6 +132,8 @@ public abstract class TestProperty implements Comparable<TestProperty>
         valueNames.add(PROP_DESCRIPTION);
         valueNames.add(PROP_HIDE);
         valueNames.add(PROP_MASK);
+        valueNames.add(PROP_VALIDATION);
+        valueNames.add(PROP_CHOICE_COLLECTION);
         return valueNames;
     }
     
@@ -138,6 +146,8 @@ public abstract class TestProperty implements Comparable<TestProperty>
     private final String description;
     private final boolean hide;
     private final boolean mask;
+    private final String validation;
+    private final String choices;
     
     /**
      * Construct a test property
@@ -154,6 +164,10 @@ public abstract class TestProperty implements Comparable<TestProperty>
         this.description = properties.getProperty(PROP_DESCRIPTION, "");
         this.hide = Boolean.parseBoolean(properties.getProperty(PROP_HIDE, "false"));
         this.mask = Boolean.parseBoolean(properties.getProperty(PROP_MASK, "false"));
+
+        // since 2.1 (optional extra values if to specify a "special" validation or a list of allowed values) 
+        this.validation =  properties.getProperty(PROP_VALIDATION, "");
+        this.choices = properties.getProperty(PROP_CHOICE_COLLECTION, "");
     }
     
     @Override
@@ -168,9 +182,18 @@ public abstract class TestProperty implements Comparable<TestProperty>
           .append(", title=").append(title)
           .append(", description=").append(description)
           .append(", hide=").append(hide)
-          .append(", mask=").append(mask)
-          .append("]");
-        return sb.toString();
+          .append(", mask=").append(mask);
+      // since 2.1 append optional values 
+      if (!this.validation.isEmpty())
+      {
+          sb.append(", validation=").append(this.validation);
+      }
+      if (!this.choices.isEmpty())
+      {
+          sb.append(", choices=").append(this.choices);
+      }
+      sb.append("]");
+      return sb.toString();
     }
 
     /**
@@ -259,6 +282,16 @@ public abstract class TestProperty implements Comparable<TestProperty>
         properties.setProperty(PROP_DESCRIPTION, description);
         properties.setProperty(PROP_HIDE, "" + hide);
         properties.setProperty(PROP_MASK, "" + mask);
+        
+        // add optional values (since 2.1)
+        if (!this.validation.isEmpty())
+        {
+            properties.setProperty(PROP_VALIDATION, this.validation);
+        }
+        if (!this.choices.isEmpty())
+        {
+            properties.setProperty(PROP_CHOICE_COLLECTION, this.choices);
+        }
         // Add derived type properties
         addProperties(properties);
         // Done
@@ -313,4 +346,36 @@ public abstract class TestProperty implements Comparable<TestProperty>
     {
         return mask;
     }
+    
+    /**
+     * @return validation name for UI - the JavaScript validation called for this property
+     * 
+     * Note: this value is optional and defaults to "type" in the JavaScript code. This 
+     * means validation will be done on the type (boolean, int, decimal or string) and the 
+     * up-to 2.0.10 defined properties only. But you may specify a special validation for 
+     * example to make sure an URL is reachable.
+     * 
+     * @since 2.1 
+     */
+    public String getValidation()
+    {
+        return this.validation;
+    }
+    
+    /**
+     * @return (String) choice collection. This a a JSON array string containing the values that 
+     * are allowed for "default". 
+     * 
+     * Note: "choice" is optional, but if configured, only the values in the array are allowed values 
+     * for the property.
+     *  
+     * Example: ["browser", "atompub"] - this will allow only the two values "browser" and "atompub" to 
+     * be configured. 
+     * 
+     * @since 2.1
+     */
+    public String getChoices()
+    {
+        return this.choices;
+    }    
 }

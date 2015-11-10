@@ -34,17 +34,66 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
             property.validationFail = false;
             property.validationMessage = "";
             
+            // check 'choice'
+            var choiceValidated = false;
+            if (typeof property.choice != 'undefined'){
+                // convert JSON string to object/array and validate 
+                validators.choiceCollectionValidator(property, JSON.parse(property.choice));
+                choiceValidated = true;
+            }
+            
             // check if "validation" property is set, if not, use the type validation
             if (typeof property.validation != 'undefined'){
-                if (property.validation.toLowerCase() == "type"){
-                    validators.typeValidator(property);
+                switch (property.validation.toLowerCase()){
+                    case "type":
+                        validators.typeValidator(property);
+                        break;
+                    
+                    default:
+                        property.validationFail = true;
+                        property.validationMessage = "Internal error: unknown validation type '" + property.validation + "'";
+                        break;
                 }
-                // TODO V2 extension: append other validation like "host, URL, ..."
             }
             else{
-                // no "special" validation selected - so fall-back to type validation
-                validators.typeValidator(property);
+                // if choice collection was validated OK and no special validation was assigned, we're done
+                if (!choiceValidated){
+                    // no "special" validation selected - so fall-back to type validation
+                    validators.typeValidator(property);
+                }
             } 
+        },
+        
+        // checks if "value" is empty string
+        isEmpty:function(value){
+            if (typeof value == 'undefined'){
+                return true;
+            }
+            if (value == null){
+                return true;
+            }
+            var testString = "" + value; 
+            if (testString == ""){
+                return true;
+            }
+            return false;
+        },
+        
+        // test name validation - only alpha-numeric values and the underscore are allowed values
+        // returns null if everything is OK or a string error message if not. 
+        isValidTestName:function(testName){
+            // check empty
+            if (validators.isEmpty(testName) ){
+                return "Please enter a test name!";
+            }
+            
+            // validate RegEx
+            var regex = new RegExp( "[a-zA-Z][a-zA-Z0-9_]*" );
+            if (testName.match(regex) != testName){
+                return "Test names must start with a letter and contain only letters, numbers or underscores!";
+            }
+            
+            return null;
         },
   
         // validation by "type" (int | decimal | boolean | string) of the property
@@ -78,23 +127,133 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
                 }
             }
         },
+        
+        // string validation
+        // min: minimum length (optional)
+        // max: maximum length (optional)
+        // regex: regular expression (optional)
         stringValidator:function(property){
-            /*
-            // TODO - just some test code
-            if (property.value == "Test"){
-                property.validationFail = true;
-                property.validationMessage = "Don't use the value 'Test'!";
+            // check 'min'
+            var min = 0;
+            if (typeof property.min != 'undefined'){
+                // if a minimum value is defined the string must NOT be empty
+                min = property.min;
             }
-            */
+            if (typeof property.value == 'string'){
+                // check 'min'
+                if (property.value.length < min){
+                    property.validationFail = true;
+                    property.validationMessage = "Please enter at least " + min + " char(s)";
+                    return;
+                }
+                // check 'max'
+                if (typeof property.max != 'undefined'){
+                    if (property.value.length > property.max){
+                        property.validationFail = true;
+                        property.validationMessage = "The value entered is too long. Enter max " + property.max + " char(s)";
+                        return;
+                    }
+                }
+                // check 'regex'
+                if (typeof property.regex != 'undefined'){
+                    var value = property.value;
+                    var regex = new RegExp( property.regex );
+                    if (value.match(regex) != value){
+                        property.validationFail = true;
+                        property.validationMessage = "The value entered doesn't match the regular expression '" + property.regex + "'";
+                    }
+                }
+            }
+            else{
+                if (min > 0){
+                    property.validationFail = true;
+                    property.validationMessage = "Please enter a string value";
+                }
+            }
         },
+        
+        // integer validation
         intValidator:function(property){
-            // TODO
+            if (typeof property.value == 'number' || (typeof property.value == 'string' && property.value.length > 0)) {
+                // don't accept numbers that are not 'int' ...
+                if ( property.value%1 == 0){
+                 // 'min'
+                    if (typeof property.min != 'undefined'){
+                        if (parseInt(property.value, 10) < parseInt(property.min, 10)){
+                            property.validationFail = true;
+                            property.validationMessage = "The value entered is too small, min. value is " + property.min;
+                            return;
+                        }
+                    }
+                    // 'max'
+                    if (typeof property.max != 'undefined'){
+                        if (parseInt(property.value, 10) > parseInt(property.max, 10)){
+                            property.validationFail = true;
+                            property.validationMessage = "The value entered is too large, max. value is " + property.max;
+                            return;
+                        }
+                    }
+                    return;
+                }
+            }
+
+            // neither a number, nor a string with at least one char
+            property.validationFail = true;
+            property.validationMessage = "Please enter an integer value";
         },
+        
+        // decimal validation
         decimalValidator:function(property){
-            // TODO
+            // accept any number
+            if (typeof property.value != 'number'){
+                property.validationFail = true;
+                property.validationMessage = "Please enter a decimal number";
+                return;
+            }
+            // 'min'
+            if (typeof property.min != 'undefined'){
+                if (parseFloat(property.value) < parseFloat(property.min)){
+                    property.validationFail = true;
+                    property.validationMessage = "The value entered is too small, min. value is " + property.min;
+                    return;
+                }
+            }
+            // 'max'
+            if (typeof property.max != 'undefined'){
+                if (parseFloat(property.value) > parseFloat(property.max)){
+                    property.validationFail = true;
+                    property.validationMessage = "The value entered is too large, max. value is " + property.max;
+                    return;
+                }
+            }
         },
+        
+        // boolean validation
         booleanValidator:function(property){
-            // TODO
+            if (typeof property.value != 'boolean'){
+                // also accept strings 'true' and 'false'
+                if (typeof property.value == 'string'){
+                    if (property.value.toLowerCase() == 'true' || property.value.toLowerCase() == 'false'){
+                        return;
+                    }
+                }
+                property.validationFail = true;
+                property.validationMessage = "Please enter 'true' or 'false'";
+            }
+        },
+        
+        // validation if property.value is part of the values array
+        choiceCollectionValidator:function(property, values){
+            if (typeof property.value != 'undefined' && typeof values != 'undefined'){
+                for (var i = 0; i < values.length; i++) {
+                    if (values[i] == property.value) {
+                        return;
+                    }
+                }
+            }
+            
+            property.validationFail = true;
+            property.validationMessage = "Please use one of: " + values;
         }
     };
     return validators;

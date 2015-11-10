@@ -7,12 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 
-import org.alfresco.bm.log.TestRunLogService;
 import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.CommandFailureException;
 import com.mongodb.DB;
@@ -334,10 +332,6 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
         
         // sort and return cursor
         DBCursor dbCursor = this.collectionExtraData.find(queryObj);
-        /** should not be necessary because index was changed to be ASC 
-         * TODO test!
-        dbCursor.sort(new BasicDBObject(FIELD_TIME, 1));        
-        */
         
         return dbCursor;
     }

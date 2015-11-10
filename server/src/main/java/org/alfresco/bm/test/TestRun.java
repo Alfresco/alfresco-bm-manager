@@ -147,7 +147,7 @@ public class TestRun implements TestConstants
      * Get the application context associated with the test run.
      * 
      * @return              the application context or <tt>null</tt> if the application context
-     *                      has not been initialised or has already been shut down.
+     *                      has not been initialized or has already been shut down.
      */
     public synchronized ApplicationContext getCtx()
     {
@@ -206,6 +206,22 @@ public class TestRun implements TestConstants
                     if (testRunCtx == null)
                     {
                         // It failed to start.  Errors will have been reported.
+                        // now stop the test (otherwise it will restart again and again ...) - fkb 2015-11-10 
+                        boolean stopped = testDAO.updateTestRunState(
+                                id, version,
+                                TestRunState.STOPPED, null, now, null, null, null, 0.0D,
+                                0L, 0L);
+                        if (logger.isDebugEnabled())
+                        {
+                            if (stopped)
+                            {
+                                logger.debug("Successfully switched test run to " + TestRunState.STOPPED + ": " + id);
+                            }
+                            else 
+                            {
+                                logger.debug("Failed to transition test run to " + TestRunState.STOPPED + ": " + id);
+                            }
+                        }
                         return;
                     }
                     

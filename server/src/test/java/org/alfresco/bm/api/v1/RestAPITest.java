@@ -994,6 +994,7 @@ public class RestAPITest implements TestConstants
         Assert.assertTrue("Title in XLSX must contain test run FQN: " + xlsxFile, xlsxCoreProperties.getTitle().contains("T07.01"));
         Assert.assertTrue("Description in XLSX must contain test name and description: " + xlsxFile, xlsxCoreProperties.getDescription().contains("A test for scenario 07."));
         Assert.assertTrue("Description in XLSX must contain test name and description." + xlsxFile, xlsxCoreProperties.getDescription().contains("Scenario 07 - Run 01"));
+        xlsxWorkbook.close();
     }
 
     /**
@@ -1151,6 +1152,7 @@ public class RestAPITest implements TestConstants
         assertNull("Description of sheet 3 expected to be empty.", reportService.getDescription(null, test, run, sheet3));
         
         // clean-up: delete XLSX file
+        xlsxWorkbook.close();
         xlsxFile.delete();
     }
 }

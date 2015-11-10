@@ -944,7 +944,6 @@ public class TestRestAPI extends AbstractRestResource
         if (test == null || test.length() == 0)
         {
             throwAndLogException(Status.BAD_REQUEST, "No test name supplied.");
-            return null;
         }
         
         if (version == null)
@@ -980,7 +979,6 @@ public class TestRestAPI extends AbstractRestResource
             if (dbObject == null)
             {
                 throwAndLogException(Status.NOT_FOUND, "The test for test run '" + test + "." + name + "' could not be found.");
-                return null;
             }
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
