@@ -7,8 +7,6 @@ import org.alfresco.bm.util.ArgumentCheck;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
-import com.sun.jersey.json.impl.JSONHelper;
 
 /**
  * Event details to show in the BM UI

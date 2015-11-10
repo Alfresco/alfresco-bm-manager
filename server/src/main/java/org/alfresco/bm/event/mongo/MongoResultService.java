@@ -27,8 +27,6 @@ import org.alfresco.bm.api.v1.EventResultFilter;
 import org.alfresco.bm.event.AbstractResultService;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventRecord;
-import org.alfresco.bm.event.EventResult;
-import org.alfresco.bm.report.DataReportService;
 import org.alfresco.bm.test.LifecycleListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -191,9 +189,8 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         String driverId = (String) eventRecordObj.get(EventRecord.FIELD_DRIVER_ID);
         if (driverId == null)
         {
-            // For backward compatibility, check the old field name
-            // TODO: Remove after August 2015
-            driverId = (String) eventRecordObj.get("serverId");
+           // data model is too old
+            throw new IllegalArgumentException("DBObject for EventRecord doesn't contain a driver ID. The data model may be too old!");
         }
         boolean success = eventRecordObj.containsField(EventRecord.FIELD_SUCCESS) ?
                 (Boolean) eventRecordObj.get(EventRecord.FIELD_SUCCESS) :
@@ -297,9 +294,6 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
                 .add(EventRecord.FIELD_CHART, result.isChart())
                 .add(EventRecord.FIELD_DATA, result.getData())
                 .add(EventRecord.FIELD_DRIVER_ID, result.getDriverId())
-                // Write the old 'serverId' field so that older servers can access the results
-                // TODO: Remove after August 2015
-                .add("serverId", result.getDriverId())
                 .add(EventRecord.FIELD_START_DELAY, result.getStartDelay())
                 .add(EventRecord.FIELD_START_TIME, new Date(result.getStartTime()))
                 .add(EventRecord.FIELD_SUCCESS, result.isSuccess())

@@ -593,6 +593,8 @@
                 TestRunService.updateTestRun({
                     "id": testname
                 }, data, function(response) {
+                    // ---->>>> TODO remove debug code
+                    //alert(JSON.stringify(response));
                     $scope.runNameEditorEnabled = false;
                     $scope.runDescEditorEnabled = false;
                     $location.path("/tests/" + testname + "/" + response.name + "/properties");

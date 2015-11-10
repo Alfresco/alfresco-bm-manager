@@ -94,37 +94,34 @@ public class FtpTestFileService extends AbstractTestFileService
     /**
      * Provides a safe (connected) FTP client
      */
-    private FTPClient getFTPClient()
+    private FTPClient getFTPClient() throws IOException
     {
-        FTPClient ftp;
-        try
+        // Connect to the FTP server
+         FTPClient ftp = new FTPClient();
+        
+         // Connect and login 
+        ftp.connect(ftpHost, ftpPort);
+        if (!ftp.login(ftpUsername, ftpPassword))
         {
-            // Connect to the FTP server
-            ftp = new FTPClient();
-            // Connect
-            ftp.connect(ftpHost, ftpPort);
-            if (!ftp.login(ftpUsername, ftpPassword))
-            {
-                throw new IOException("FTP credentials rejected.");
-            }
-            if (ftpLocalPassiveMode)
-            {
-                ftp.enterLocalPassiveMode();
-            }
-            // Settings for the FTP channel
-            ftp.setControlKeepAliveTimeout(300);
-            ftp.setFileType(FTP.BINARY_FILE_TYPE);
-            ftp.setAutodetectUTF8(false);
-            int reply = ftp.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply))
-            {
-                throw new IOException("FTP server refused connection.");
-            }
+            throw new IOException("FTP credentials rejected.");
         }
-        catch (IOException e)
+        
+        if (ftpLocalPassiveMode)
         {
-            throw new RuntimeException("FTP communication failed: " + this, e);
+            ftp.enterLocalPassiveMode();
         }
+        
+        // Settings for the FTP channel
+        ftp.setControlKeepAliveTimeout(300);
+        ftp.setFileType(FTP.BINARY_FILE_TYPE);
+        ftp.setAutodetectUTF8(false);
+        int reply = ftp.getReplyCode();
+        
+        if (!FTPReply.isPositiveCompletion(reply))
+        {
+            throw new IOException("FTP server refused connection.");
+        }
+
         // Done
         return ftp;
     }
@@ -145,10 +142,11 @@ public class FtpTestFileService extends AbstractTestFileService
     protected List<FileData> listRemoteFiles()
     {
         // Get a list of files from the FTP server
-        FTPClient ftp = getFTPClient();
+        FTPClient ftp = null;
         FTPFile[] ftpFiles = new FTPFile[0];
         try
         {
+            ftp = getFTPClient();
             if (!ftp.changeWorkingDirectory(ftpPath))
             {
                 throw new IOException("Failed to change directory (leading '/' could be a problem): " + ftpPath);
@@ -163,8 +161,11 @@ public class FtpTestFileService extends AbstractTestFileService
         {
             try
             {
-                ftp.logout();
-                ftp.disconnect();
+                if (null != ftp)
+                {
+                    ftp.logout();
+                    ftp.disconnect();
+                }
             }
             catch (IOException e)
             {
@@ -225,8 +226,11 @@ public class FtpTestFileService extends AbstractTestFileService
             }
             try
             {
-                ftp.logout();
-                ftp.disconnect();
+                if (null != ftp)
+                {
+                    ftp.logout();
+                    ftp.disconnect();
+                }
             }
             catch (IOException e)
             {
