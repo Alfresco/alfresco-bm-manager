@@ -52,6 +52,7 @@ public enum TestRunState implements TestConstants
                 case NOT_SCHEDULED:
                 case SCHEDULED:
                 case STARTED:
+                case STOPPED:   // 2015-11-10 allowed STOPPED as transition after scheduled. Allow to stop a BM run with no driver as well as config issues in server connection that now stop the run
                     return next;
                 default:
                     // Fall through

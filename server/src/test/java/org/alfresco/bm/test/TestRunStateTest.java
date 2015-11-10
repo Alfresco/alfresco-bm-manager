@@ -84,7 +84,7 @@ public class TestRunStateTest implements TestConstants
         transition(TestRunState.SCHEDULED, TestRunState.NOT_SCHEDULED, true);
         transition(TestRunState.SCHEDULED, TestRunState.SCHEDULED, true);
         transition(TestRunState.SCHEDULED, TestRunState.STARTED, true);
-        transition(TestRunState.SCHEDULED, TestRunState.STOPPED, false);
+        transition(TestRunState.SCHEDULED, TestRunState.STOPPED, true); // updated 2015-11-10 - may be stopped even if not started, for example no driver present or server connection issue! 
         transition(TestRunState.SCHEDULED, TestRunState.COMPLETED, false);
     }
     

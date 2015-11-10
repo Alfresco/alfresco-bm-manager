@@ -209,7 +209,7 @@ public class TestRun implements TestConstants
                         // now stop the test (otherwise it will restart again and again ...) - fkb 2015-11-10 
                         boolean stopped = testDAO.updateTestRunState(
                                 id, version,
-                                TestRunState.STOPPED, null, now, null, null, null, 0.0D,
+                                TestRunState.STOPPED, now, now, now, null, 1L, 0.0D,
                                 0L, 0L);
                         if (logger.isDebugEnabled())
                         {
