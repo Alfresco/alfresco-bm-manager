@@ -248,6 +248,8 @@
                     "schema": $scope.data.test.schema
                 };
                 $scope.updateTest(postData);
+                // increase version number for there will be no reload of page on update
+                // of the version number ... else next save will fail ...
                 $scope.data.test.version = $scope.data.test.version + 1;
             }
 

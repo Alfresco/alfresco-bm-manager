@@ -489,6 +489,7 @@
             $scope.readOnly = false;
             $scope.data.testname = testname;
             $scope.data.runname = runname;
+            $scope.nameErrorMessage = null;
 
             TestRunService.getTestRun({
                 id: $scope.data.testname,
@@ -515,7 +516,48 @@
             $scope.reset = function() {
                 $scope.data = angular.copy($scope.master);
             }
+            
+            // Validates the name entered by the user
+            $scope.validateRunName = function(){          
+                $scope.nameErrorMessage = ValidationService.isValidTestName($scope.data.name);
+            }
 
+            // called for each key press  in the BM name editor:
+            // returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doKeyPressName = function(event){
+                if (event.keyCode == 13){
+                    // ENTER - allowed only if no validation error message is present
+                    if (null == $scope.nameErrorMessage){
+                        $scope.updateRunName($scope.data.name);
+                        return false;
+                    }
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.reset();
+                    return false;
+                }
+                return true;
+            }
+
+            // called for each key press  in the BM test description editor:
+            // returns true if to continue edit
+            // returns false if edit is done. 
+            $scope.doKeyPressDesc = function(event){
+                if (event.keyCode == 13){
+                    // ENTER
+                    $scope.updateRunDesc($scope.data.description);
+                    return false;
+                }
+                else if (event.keyCode == 27){
+                    // ESC
+                    $scope.reset();
+                    return false;
+                }
+                return true;
+            }
+            
             //-------------- Test run properties CRUD ----------
             //call back for update run
             $scope.updateRunName = function(name) {
@@ -542,6 +584,9 @@
                     "description": description
                 }
                 $scope.updateTestRun(json);
+                // increase version number for there will be no reload of page on update
+                // of the version number ... else next save will fail ...
+                $scope.data.version = $scope.data.version + 1;
             }
 
             $scope.updateTestRun = function(data) {
