@@ -849,7 +849,8 @@ public class RestAPITest implements TestConstants
         // Poke the test and check that the test run's new state brings it into view
         test.forcePing();
         // The test run should not have started as the mongo host is invalid
-        checkTestRunState("T06", "01", TestRunState.SCHEDULED, true);
+        // from server 2.1 on the test would be STOPPED if incorrect server connection - because otherwise it will restart over and over again.
+        // depending on the test check speed the status would be scheduled or stopped - but must never be started!
         checkTestRunState("T06", "01", TestRunState.STARTED, false);
         
         // Now check that the logs reflect the situation
