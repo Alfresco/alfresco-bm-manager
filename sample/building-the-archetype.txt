@@ -2,7 +2,7 @@ To create an archetype:
 Note: Commands are for Windows with Git tools installed
 
 Copy the 'src' folder to the archetype
-> cp -R src archetype\src\main\resources\archetype-resources
+> cp -R src archetype/src/main/resources/archetype-resources
 > cd archetype
 
 Update dependency versions numbers
