@@ -25,7 +25,7 @@
                 <b>
                     Summary 
                     <span ng-show="summary.state == 'STARTED'">({{summary.progress | number:2}}% complete)</span>
-                    <span ng-show="summary.state == 'STOPPED'">(Stopped)</span>
+                    <span ng-hide="summary.state == 'STARTED'">({{summary.state}})</span>
                 </b></a>
             </li>
             <li>
