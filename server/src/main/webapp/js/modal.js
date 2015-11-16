@@ -1,7 +1,8 @@
 'use strict';
-angular.module('modal', [])
+var modal = angular.module('modal', []);
+
 /* Factory that creates the modal json */
-.factory('ModalService', function() {
+modal.factory('ModalService', function() {
     return {
         display: false,
         title: "Title",
@@ -19,7 +20,8 @@ angular.module('modal', [])
             this.actionValue = modal.actionValue
         },
     }
-}).value('version', '0.1')
+}).value('version', '0.1');
+
 /**
  *  Modal message directive with an inner controller to handle basic button events.
  *  Cancel button closes the modal and the confirm button calls on the next action.
@@ -29,7 +31,7 @@ angular.module('modal', [])
  *  action name and parameters. This is used to determine the parent function and perform a call
  *  to complete the confirm action.
  */
-.directive('modal', function() {
+modal.directive('modal', function() {
     return {
         restrict: 'E',
         scope: {

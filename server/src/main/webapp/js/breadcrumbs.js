@@ -1,6 +1,7 @@
 'use strict';
-angular.module('benchmark-breadcrumbs', [])
-    .factory('BreadcrumbsFactory', ['$rootScope', '$location',
+var breadcrumb = angular.module('benchmark-breadcrumbs', []);
+
+breadcrumb.factory('BreadcrumbsFactory', ['$rootScope', '$location',
         function($rootScope, $location) {
             var breadcrumbs = [];
             var factory = {};
@@ -35,8 +36,8 @@ angular.module('benchmark-breadcrumbs', [])
             };
             return factory;
         }
-    ])
+    ]);
 
-.controller('BreadcrumbCtrl', function($scope, BreadcrumbsFactory) {
+breadcrumb.controller('BreadcrumbCtrl', function($scope, BreadcrumbsFactory) {
     $scope.breadcrumbs = BreadcrumbsFactory;
-})
+});

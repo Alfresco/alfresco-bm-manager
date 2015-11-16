@@ -7,12 +7,12 @@
     /**
      * Service layer to interact with Test API.
      */
-    angular.module('benchmark-test', ['ngResource','benchmark-run'])
+    var bmTest = angular.module('benchmark-test', ['ngResource','benchmark-run']);
 
     /**
      * Test Def Service.
      */
-    .factory('TestDefDetailService', function($resource) {
+    bmTest.factory('TestDefDetailService', function($resource) {
         return $resource('api/v1/test-defs/:name/:schema', {
             name: '@name',
             schema: '@schema'
@@ -26,9 +26,9 @@
                 }
             }
         })
-    }).value('version', '0.1')
+    }).value('version', '0.1');
 
-    .factory('TestDefService', function($resource) {
+    bmTest.factory('TestDefService', function($resource) {
         return $resource('api/v1/test-defs?:name', {
             name: '@name'
         }, {
@@ -48,12 +48,12 @@
                 isArray: true
             },
         })
-    }).value('version', '0.1')
+    }).value('version', '0.1');
 
     /**
      * Tests service.
      */
-    .factory('TestService', function($resource) {
+    bmTest.factory('TestService', function($resource) {
         return $resource("api/v1/tests/:id/:param", {
             id: '@id'
         }, {
@@ -92,24 +92,24 @@
                 }
             }
         })
-    }).value('version', '0.1')
+    }).value('version', '0.1');
 
     /**
      * Test properties service.
      */
-    .factory('TestPropertyService', function($resource) {
+    bmTest.factory('TestPropertyService', function($resource) {
         return $resource('api/v1/tests/:id/props/:propertyname', {
             id: '@id',
             propertyname: '@propertyname'
         }, {
-            update: {
+            'update': {
                 method: 'PUT',
                 params: {
                     id: 'id',
                     propertyname: 'propertyname'
                 }
             },
-            delete: {
+            'delete': {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -120,7 +120,7 @@
                 }
             }
         })
-    }).value('version', '0.1')
+    }).value('version', '0.1');
 
     
 
@@ -128,7 +128,7 @@
      * Test Controllers
      */
      //Controller to list tests, delete test and edit test.
-    .controller('ListTestsCtrl', ['$scope', '$location', '$timeout','TestService', 'ModalService',
+    bmTest.controller('ListTestsCtrl', ['$scope', '$location', '$timeout','TestService', 'ModalService',
         function($scope, $location, $timeout, TestService, ModalService) {
             // Instantiate an object to store your scope data in (Best Practices)
             $scope.data = {};
@@ -158,13 +158,13 @@
 
             $scope.data.tests = TestService.getTests();
         }
-    ])
+    ]);
 
 
     /**
      * Controller to display test detail
      */
-    .controller('TestPropertyCtrl', ['$scope', '$location', 'TestService', 'TestPropertyService', 'UtilService','ModalService', 'ValidationService',
+    bmTest.controller('TestPropertyCtrl', ['$scope', '$location', 'TestService', 'TestPropertyService', 'UtilService','ModalService', 'ValidationService',
         function($scope, $location, TestService, TestPropertyService, UtilService, ModalService, ValidationService) {
             $scope.data = {};
             $scope.properties = [];
@@ -488,12 +488,12 @@
             }
             
         }
-    ])
+    ]);
 
     /**
      * Controller to create test detail
      */
-    .controller('TestCreateCtrl', ['$scope', '$location', 'TestService', 'TestDefService', 'ValidationService',
+    bmTest.controller('TestCreateCtrl', ['$scope', '$location', 'TestService', 'TestDefService', 'ValidationService',
         function($scope, $location, TestService, TestDefService, ValidationService) {
             $scope.master = {};
             $scope.defs = {};
@@ -574,12 +574,12 @@
                         if (res.name === postData.name) {
                             $location.path("/tests/" + res.name + "/properties");
                         }
-                    }, function error(error) {
+                    }, function error(errorVal) {
                         $scope.hasError = true;
-                        if (error.status == 500) {
+                        if (errorVal.status == 500) {
                             $scope.errorMsg = "The name already exists, please choose another unique name.";
                         } else {
-                            $scope.errorMsg = error.data.error;
+                            $scope.errorMsg = errorVal.data.error;
                         }
 
                     });
@@ -591,12 +591,12 @@
             $scope.showActiveTestDefs(true);
             $scope.reset();
         }
-    ])
+    ]);
 
     /**
-     * Controller to list test defs.
+     * Controller to list test definitions.
      */
-    .controller('TestDefListCtrl', ['$scope', 'TestDefService',
+    bmTest.controller('TestDefListCtrl', ['$scope', 'TestDefService',
         function($scope, TestDefService) {
             // Instantiate an object to store your scope data in (Best Practices)
             $scope.data = {};
@@ -604,11 +604,12 @@
                 $scope.data.tests = response;
             });
         }
-    ])
+    ]);
+    
     /**
-     * Controller to display test def detail.
+     * Controller to display test definition detail.
      */
-    .controller('TestDefDetailCtrl', ['$scope', '$location', 'TestDefDetailService',
+    bmTest.controller('TestDefDetailCtrl', ['$scope', '$location', 'TestDefDetailService',
         function($scope, $location, TestDefDetailService) {
             $scope.data = {};
             var path = $location.path();
@@ -621,12 +622,12 @@
                 $scope.data.item = response;
             });
         }
-    ])
+    ]);
     
     /*
      * Copy test form controller
      */
-    .controller('TestCopyCtrl', ['$scope', '$location', 'TestService', 'TestDefService',
+    bmTest.controller('TestCopyCtrl', ['$scope', '$location', 'TestService', 'TestDefService',
         function($scope, $location, TestService, TestDefService) {
             $scope.testname = $location.path().split('/')[2];
             TestService.getTest({
@@ -718,12 +719,12 @@
                         if (res.name === postData.name) {
                             $location.path("/tests/" + res.name + "/properties");
                         }
-                    }, function error(error) {
+                    }, function error(errorVal) {
                         $scope.hasError = true;
-                        if (error.status == 500) {
+                        if (errorVal.status == 500) {
                             $scope.errorMsg = "The name already exists, please choose another unique name.";
                         } else {
-                            $scope.errorMsg = error.data.error;
+                            $scope.errorMsg = errorVal.data.error;
                         }
                     });
                 } else {
@@ -735,14 +736,14 @@
                         $scope.response = res;
                         $location.path("/tests/" + res.name);
                     },
-                    function error(error) {
+                    function error(errorVal) {
                         $scope.hasError = true;
-                        if (error.status == 500) {
+                        if (errorVal.status == 500) {
                             $scope.errorMsg = "The name already exists, please choose another unique name.";
                         } else {
-                            $scope.errorMsg = error.data.error;
+                            $scope.errorMsg = errorVal.data.error;
                         }
-                        $scope.errorMsg = error.data.error;
+                        $scope.errorMsg = errorVal.data.error;
                     });
             };
         }

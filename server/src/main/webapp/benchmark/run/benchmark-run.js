@@ -7,12 +7,12 @@
     /**
      * Service layer to interact with Test API.
      */
-    angular.module('benchmark-run', ['ngResource'])
+    var bmRun = angular.module('benchmark-run', ['ngResource']);
 
     /**
      * Test run properties service.
      */
-    .factory('TestRunPropertyService', function($resource) 
+    bmRun.factory('TestRunPropertyService', function($resource) 
     {
         return $resource
         (
@@ -22,8 +22,7 @@
                 propertyname: '@propertyname'
             }, 
             {
-                update: 
-                {
+                'update': {
                     method: 'PUT',
                     params: 
                     {
@@ -32,8 +31,7 @@
                         propertyname: 'propertyname'
                     }
                 }, 
-                delete: 
-                {
+                'delete': {
                     method: 'DELETE',
                     headers: 
                     {
@@ -47,7 +45,7 @@
                 }
             }
         )
-    }).value('version', '0.1')
+    }).value('version', '0.1');
 
     /**
      * Test run service.
@@ -55,7 +53,7 @@
      * Stop run /api/v1/tests/SAMPLE1/runs/RUN01/terminate
      * Copy test run /api/v1/tests/SAMPLE1/runs
      */
-    .factory('TestRunService', function($resource) {
+    bmRun.factory('TestRunService', function($resource) {
         return $resource('api/v1/tests/:id/runs/:runname/:param1/:param2', {
             id: '@id',
             runname: '@runname',
@@ -176,24 +174,24 @@
                 isArray: true
             }
         })
-    }).value('version', '0.1')
+    }).value('version', '0.1');
     
     /**
      * Show all logs /api/v1/status/logs
      */
-    .factory('TestShowLogsService', function($resource) {
+    bmRun.factory('TestShowLogsService', function($resource) {
         return $resource('api/v1/status/logs', {}, {
             getAllLogs: {
                 method: 'GET',
                 isArray: true
             }
         })
-    }).value('version', '0.1')
+    }).value('version', '0.1');
     
         /**
      * Tests service.
      */
-    .factory('TestService', function($resource) {
+    bmRun.factory('TestService', function($resource) {
         return $resource("api/v1/tests/:id/:param", {
             id: '@id'
         }, {
@@ -232,12 +230,12 @@
                 }
             }
         })
-    }).value('version', '0.1')
+    }).value('version', '0.1');
     
     /**
      * List test runs controller
      */
-    .controller('TestRunListCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService', 'TestService',
+    bmRun.controller('TestRunListCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'ModalService', 'TestService',
         function($scope, $location, $timeout, TestRunService, ModalService, TestService) {
             var timer;
             $scope.data = {};
@@ -396,12 +394,12 @@
             }
         }
 
-    ])
+    ]);
 
     /**
      * Controller to create test run
      */
-    .controller('TestRunCreateCtrl', ['$scope', '$location', '$window', 'TestRunService', 'ValidationService',
+    bmRun.controller('TestRunCreateCtrl', ['$scope', '$location', '$window', 'TestRunService', 'ValidationService',
         function($scope, $location, $window, TestRunService, ValidationService) {
             $scope.master = {};
             $scope.testname = {};
@@ -452,22 +450,22 @@
                             }
                         }
                     },
-                    function error(error) {
+                    function error(errorVal) {
                         $scope.hasError = true;
-                        if (error.status == 500) {
+                        if (errorVal.status == 500) {
                             $scope.errorMsg = "The name already exists, please choose another unique name.";
                         } else {
-                            $scope.errorMsg = error.data.error;
+                            $scope.errorMsg = errorVal.data.error;
                         }
                     });
             }
         }
-    ])
+    ]);
 
     /**
      * Test run property controller
      */
-    .controller('TestRunPropertyCtrl', ['$scope',
+    bmRun.controller('TestRunPropertyCtrl', ['$scope',
         '$location',
         'TestRunService',
         'TestRunPropertyService',
@@ -724,28 +722,32 @@
             $scope.attentionRequired = false;
 
             $scope.attentionReq = function(item) {
-                //for the case when we don't have a value and default '--' one exists
-                if (angular.isUndefined(item.value) && item['default'].indexOf('--') > -1)
-                {
-                    $scope.attentionRequired = true;
-                    $scope.attentionMessage = "* {" + item.group + " / " +item.name + "}: A value must be set.";
+                if (typeof item.value != 'undefined'){
+                    //for the case when we don't have a value and default '--' one exists
+                    if (angular.isUndefined(item.value) && item['default'].indexOf('--') > -1)
+                    {
+                        $scope.attentionRequired = true;
+                        $scope.attentionMessage = "* {" + item.group + " / " +item.name + "}: A value must be set.";
+                        return true;
+                    }
+    
+                    var isAttentionReq = item.value.indexOf('--') > -1;
+                    if (isAttentionReq)
+                    {
+                        $scope.attentionRequired = true;
+                        $scope.attentionMessage = "* {" + item.group + " / " +item.name + "}: A value must be set.";
+                    }
+                    return isAttentionReq;
                 }
-
-                var isAttentionReq = item.value.indexOf('--') > -1;
-                if (isAttentionReq)
-                {
-                    $scope.attentionRequired = true;
-                    $scope.attentionMessage = "* {" + item.group + " / " +item.name + "}: A value must be set.";
-                }
-                return isAttentionReq;
+                return false;
             }
         }
-    ])
+    ]);
 
     /*
      * Run summary controller
      */
-    .controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'TestShowLogsService', 'ModalService', 'TestService',
+    bmRun.controller('TestRunSummaryCtrl', ['$scope', '$location', '$timeout', 'TestRunService', 'TestShowLogsService', 'ModalService', 'TestService',
         function($scope, $location, $timeout, TestRunService, TestShowLogsService, ModalService, TestService) {
             var timer;
             var timerEvents = null;
@@ -1094,12 +1096,12 @@
                 }
             );
         }
-    ])
+    ]);
     
     /*
      * Copy test form controller
      */
-    .controller('TestRunCopyCtrl', ['$scope', '$location', 'TestRunService',
+    bmRun.controller('TestRunCopyCtrl', ['$scope', '$location', 'TestRunService',
         function($scope, $location, TestRunService) {
             $scope.testname = $location.path().split('/')[2];
             $scope.runname = $location.path().split('/')[3];
@@ -1147,12 +1149,12 @@
                         $scope.response = res;
                         $location.path("/tests/" + $scope.testname);
                     },
-                    function error(error) {
+                    function error(errorVal) {
                         $scope.hasError = true;
-                        if (error.status == 500) {
+                        if (errorVal.status == 500) {
                             $scope.errorMsg = "The name already exists, please choose another unique name.";
                         } else {
-                            $scope.errorMsg = error.data.error;
+                            $scope.errorMsg = errorVal.data.error;
                         }
                     });
             };

@@ -1,6 +1,7 @@
 'use strict';
-angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal','benchmark-breadcrumbs'])
-.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
+var app = angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal','benchmark-breadcrumbs']);
+
+app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.
      when('/home', {templateUrl: 'benchmark/dashboard.html',   controller:'ListTestsCtrl'}).
      when('/tests', {templateUrl: 'benchmark/dashboard.html',   controller:'ListTestsCtrl'}).
@@ -16,16 +17,16 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
      when('/testdefs', {templateUrl: 'benchmark/list-testdefs.html', controller:'TestDefListCtrl'}).
      when('/testdefs/:testId/:schemaId', {templateUrl: 'benchmark/testdef-detail.html', controller: 'TestDefDetailCtrl'}).
      otherwise({redirectTo: '/home'});
-}])
+}]);
 
-.filter('checkmark', function() {
+app.filter('checkmark', function() {
     return function(input) {
         return input ? '\u2713' : '\u2718';
     };
-})
+});
 
 // Validation service - inject into your controller and call "ValidationService.validate(property)" 
-.service('ValidationService', function(){
+app.service('ValidationService', function(){
     var validators = {
         
         // main entry point for validation
@@ -257,13 +258,14 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
         }
     };
     return validators;
-})
+});
+
 /**
  * General utility service that provides:
  * Group elements in an array.
  * @return {[type]} [description]
  */
-.service('UtilService',function(){
+app.service('UtilService',function(){
     return {
         /**
          * Group results from an array.
@@ -293,8 +295,9 @@ angular.module('benchmark', ['ngRoute','benchmark-test', 'd3benchmark', 'modal',
         }
         
     }
-})
-.directive('ngFocus', [function() {
+});
+
+app.directive('ngFocus', [function() {
   var FOCUS_CLASS = "ng-focused";
   return {
     restrict: 'A',

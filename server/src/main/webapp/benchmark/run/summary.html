@@ -22,7 +22,11 @@
 			<li class="active">
 			     <a href="#/tests/{{testname}}/{{summary.name}}/#summary"
 				    data-toggle="tab" onclick="return false;">
-                <b>Summary</b></a>
+                <b>
+                    Summary 
+                    <span ng-show="summary.state == 'STARTED'">({{summary.progress | number:2}}% complete)</span>
+                    <span ng-show="summary.state == 'STOPPED'">(Stopped)</span>
+                </b></a>
             </li>
             <li>
                 <a href="#/tests/{{testname}}/{{summary.name}}/#events"  data-toggle="tab" onclick="return false;">
@@ -63,7 +67,7 @@
 		                    Progress:
 		                    <div class="progress">
 		                        <div class="progress-bar" role="progressbar" aria-valuenow="{{summary.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{summary.progress | number:2}}%;">
-		                            {{summary.progress}}
+		                            {{summary.progress | number:2}}
 		                        </div>
 		                    </div>
 		                </div>

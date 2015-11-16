@@ -3,7 +3,7 @@ Filter rows marked as "filterable" based on filter-value data searched in "filte
 This will also expand and collapse the "test list-groups" in order to view all the filtered values
 */ 
 
-angular.module('Filter', []);
+var filter = angular.module('Filter', []);
 
 function TestProperties($scope) {
     angular.element(document).ready(function () {
