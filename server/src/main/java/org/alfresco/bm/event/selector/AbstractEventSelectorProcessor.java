@@ -18,9 +18,7 @@
  */
 package org.alfresco.bm.event.selector;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.alfresco.bm.event.AbstractEventProcessor;
