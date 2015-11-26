@@ -18,7 +18,9 @@
  */
 package org.alfresco.bm.event.selector;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.alfresco.bm.event.AbstractEventProcessor;
@@ -137,6 +139,8 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
         EventProcessorResponse response = processEventImpl(event);
         super.stopTimer();
 
+        long now = System.currentTimeMillis();
+        
         if (response == null)
         {
             logger.warn("Response is null for event " + event);
@@ -144,19 +148,38 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
         else if (sessionEndTime > 0L)
         {
             // The session has finished
+        	if (logger.isDebugEnabled())
+        	{
+        		logger.debug(this.getClass().getName() + ": session finished.");
+        	}
         }
-        else if (sessionStartTime + maxSessionTime > System.currentTimeMillis())
+        else if (now > (sessionStartTime + maxSessionTime))
         {
             // The session has expired
+        	if (logger.isDebugEnabled())
+        	{
+        		logger.debug(this.getClass().getName() + ": session expired.");
+        	}
         }
         else if (response.getResult() == EventProcessorResult.SUCCESS && eventSelector != null)
         {
-            // if we haven't passed the expected session end time and the previous event was successful
+        	if (logger.isDebugEnabled())
+        	{
+        		logger.debug(this.getClass().getName() + ": session OK, selecting next event.");
+        	}
+
+        	// if we haven't passed the expected session end time and the previous event was successful
             Object responseData = response.getResponseData();
             Event evt = eventSelector.nextEvent(input, responseData);
             if(evt != null)
             {
                 nextEvents.add(evt);
+
+                if (logger.isDebugEnabled())
+            	{
+            		logger.debug(this.getClass().getName() + ": next event: " + evt.getName());
+            	}
+
             }
         }
 
@@ -164,6 +187,10 @@ public abstract class AbstractEventSelectorProcessor extends AbstractEventProces
         if (nextEvents.size() < 1)
         {
             sessionService.endSession(sessionId);
+        	if (logger.isDebugEnabled())
+        	{
+        		logger.debug(this.getClass().getName() + ": no more events, ending session.");
+        	}
         }
         
         Object data = null;
