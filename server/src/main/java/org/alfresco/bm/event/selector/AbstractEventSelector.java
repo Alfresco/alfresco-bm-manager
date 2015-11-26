@@ -22,6 +22,8 @@ import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventProcessor;
 import org.alfresco.bm.event.EventProcessorRegistry;
 import org.alfresco.bm.event.selector.EventDataObject.STATUS;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Abstract base class for event selectors. 
@@ -33,6 +35,9 @@ public abstract class AbstractEventSelector implements EventSelector
 {
     protected String name;
     protected EventProcessorRegistry registry;
+    
+    /** Logging */
+    protected Log logger = LogFactory.getLog(this.getClass());
 
     public AbstractEventSelector(String name, EventProcessorRegistry registry)
     {
@@ -72,6 +77,11 @@ public abstract class AbstractEventSelector implements EventSelector
             
             String nextEventName = eventSuccessor.getEventName();
             EventDataObject nextEventInput = null;
+            
+            if (logger.isDebugEnabled())
+            {
+            	logger.debug("AbstractEventSelector -> nextEventName: " + nextEventName);
+            }
     
             if (nextEventName != null && !nextEventName.equals("") && !nextEventName.equalsIgnoreCase("noop"))
             {
@@ -102,6 +112,11 @@ public abstract class AbstractEventSelector implements EventSelector
                         nextEventName,
                         System.currentTimeMillis(),
                         nextEventInput.getData(), true);
+                
+                if (logger.isDebugEnabled())
+                {
+                	logger.debug("AbstractEventSelector: next event created.");
+                }
             }
         }
 
