@@ -407,7 +407,7 @@
             var names = path.replace("/tests/", "").split("/");
             $scope.testname = names[0];
             $scope.runs = [];
-            $scope.testNameErrorMessage = null;
+            $scope.errorMsg = null;
 
             TestRunService.getTestRuns({
                     id: $scope.testname
@@ -425,10 +425,10 @@
                 }
             };
 
-            // validation of user entries
-            $scope.validateName = function(testrun){
-                $scope.testNameErrorMessage = ValidationService.isValidTestName(testrun.name);
-            }
+            // validates the test name
+            $scope.validateName = function(testRunName){
+                $scope.errorMsg = ValidationService.isValidTestName(testRunName);
+            };
             
             $scope.createTestRun = function(testrun) {
                 var postData = {
@@ -1101,8 +1101,8 @@
     /*
      * Copy test form controller
      */
-    bmRun.controller('TestRunCopyCtrl', ['$scope', '$location', 'TestRunService',
-        function($scope, $location, TestRunService) {
+    bmRun.controller('TestRunCopyCtrl', ['$scope', '$location', 'TestRunService', 'ValidationService',
+        function($scope, $location, TestRunService, ValidationService) {
             $scope.testname = $location.path().split('/')[2];
             $scope.runname = $location.path().split('/')[3];
             TestRunService.getTestRun({
@@ -1112,6 +1112,12 @@
                 $scope.data = response;
             });
             $scope.master = {};
+            $scope.errorMsg = null;
+            
+            // validates the test run name
+            $scope.validateName = function(testRunName){
+                $scope.errorMsg = ValidationService.isValidTestName(testRunName);
+            };
 
             $scope.update = function(test) {
                 $scope.master = angular.copy(test);

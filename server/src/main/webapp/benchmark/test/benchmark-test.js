@@ -627,8 +627,8 @@
     /*
      * Copy test form controller
      */
-    bmTest.controller('TestCopyCtrl', ['$scope', '$location', 'TestService', 'TestDefService',
-        function($scope, $location, TestService, TestDefService) {
+    bmTest.controller('TestCopyCtrl', ['$scope', '$location', 'TestService', 'TestDefService', 'ValidationService',
+        function($scope, $location, TestService, TestDefService, ValidationService) {
             $scope.testname = $location.path().split('/')[2];
             TestService.getTest({
                 id: $scope.testname
@@ -639,6 +639,7 @@
             $scope.defs = {};
             $scope.nodefs = false;
             $scope.showActiveTests = true;
+            $scope.errorMsg = null;
             
             $scope.showActiveTestDefs = function(value) {
                 if (value == true) {
@@ -682,6 +683,11 @@
             };
             $scope.showActiveTestDefs(true);
 
+            // validation of user entries
+            $scope.validateName = function(runName){
+                $scope.errorMsg = ValidationService.isValidTestName(runName);
+            }
+            
             $scope.update = function(test) {
                 $scope.master = angular.copy(test);
             };
