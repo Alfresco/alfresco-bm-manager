@@ -46,7 +46,7 @@
                     <td class="col-sm-3">
                         <div class="pull-right">
                             <span ng-show="!item.run">
-                                <a ng-hide="item.hasStarted" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(data.testname, $index)" class="btn">
+                                <a ng-hide="item.hasStarted|| !hasDrivers(data.testname)" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(data.testname, $index)" class="btn">
                                     <span class="fa fa-play fa-lg"></span>
                                 </a>
                                 <a ng-show="item.hasStarted && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">

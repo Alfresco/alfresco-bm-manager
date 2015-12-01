@@ -260,6 +260,14 @@
                 });
             };
             
+         // checks if drivers are present
+            $scope.hasDrivers = function(thetestname){
+                if ($scope.drivers){
+                    return $scope.drivers.length > 0;
+                }
+                return false;
+            };
+            
             // checks if at least one driver is present
             $scope.checkDriver = function(thetestname){
                 $scope.error.msg = "";
@@ -961,6 +969,7 @@
                 }
                 
                 timerEvents = $timeout(function() {
+                	$scope.getEventNames(); // update names for there may be new ones
                     $scope.getEvents();
                     $scope.doAutoRefresh(time);
                 }, time);
@@ -1000,7 +1009,7 @@
             
             // filter by event names 
             $scope.eventNames = [];
-            $scope.selectedEventName = "(All Events)";
+            $scope.selectedEventName = null;
             $scope.selectEventName = function(eventName){
                 $scope.selectedEventName = eventName;
                 $scope.getEvents();
@@ -1021,14 +1030,16 @@
                     $scope.eventNames = evn;
                     
                     // inital set the (All Events) text
-                    TestRunService.getAllEventsFilterName({
-                        id: $scope.testname,
-                        runname: $scope.runname
-                    }, function(response) {
-                        if (response.length == 1){
-                            $scope.selectedEventName = response[0];
-                        }
-                    });
+                    if ($scope.selectedEventName == null){
+	                    TestRunService.getAllEventsFilterName({
+	                        id: $scope.testname,
+	                        runname: $scope.runname
+	                    }, function(response) {
+	                        if (response.length == 1){
+	                            $scope.selectedEventName = response[0];
+	                        }
+	                    });
+                    }
                 });
             };
             
