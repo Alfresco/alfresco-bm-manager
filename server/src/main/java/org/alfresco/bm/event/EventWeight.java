@@ -97,6 +97,6 @@ public class EventWeight
     @Override
     public String toString()
     {
-        return "EventSuccessorInfo [eventName=" + eventName + ", weight=" + weight + "]";
+        return "EventWeight [eventName=" + eventName + ", weight=" + weight + "]";
     }
 }
