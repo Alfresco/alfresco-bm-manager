@@ -320,4 +320,30 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
         // Done
         return localFile;
     }
+    
+    /**
+     * Test file name for JUnit testing
+     * 
+     * @since 2.1.1
+     */
+    private String testFileName = null;
+
+    /**
+     * Sets test file name for JUnit testing
+     * 
+     * @since 2.1.1
+     */
+    public void setTestFileName(String testFileName)
+    {
+        this.testFileName = testFileName;
+    }
+
+    /**
+     * @return (String) Test file name for JUnit testing
+     * @since 2.1.1
+     */
+    public String getTestFileName()
+    {
+        return this.testFileName;
+    }
 }

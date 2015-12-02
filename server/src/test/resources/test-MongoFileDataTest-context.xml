@@ -36,11 +36,13 @@
     <bean id="ftpTestFileService" class="org.alfresco.bm.file.FtpTestFileService">
         <constructor-arg name="fileDataService" ref="fileDataService" />
         <constructor-arg name="localDir" value="${test.localDir}" /> 
-        <constructor-arg name="ftpHost" value="${test.ftpHost}" /> 
-        <constructor-arg name="ftpPort" value="${test.ftpPort}" /> 
-        <constructor-arg name="ftpUsername" value="${test.ftpUsername}" /> 
-        <constructor-arg name="ftpPassword" value="${test.ftpPassword}" /> 
-        <constructor-arg name="ftpPath" value="${test.ftpPath}" /> 
+        <constructor-arg name="ftpHost" value="ftp.mirrorservice.org" /> 
+        <constructor-arg name="ftpPort" value="21" /> 
+        <constructor-arg name="ftpUsername" value="anonymous" /> 
+        <constructor-arg name="ftpPassword" value="" /> 
+        <constructor-arg name="ftpPath" value="/sites/www.linuxfromscratch.org/images" />
+        <!-- If you change the FTP test connection please make sure the test file exists with size > 0 in the the ftpPath! -->
+        <property name="testFileName" value="lfs-logo.png"/>
     </bean>
     
     <bean id="localTestFileService" class="org.alfresco.bm.file.LocalTestFileService">

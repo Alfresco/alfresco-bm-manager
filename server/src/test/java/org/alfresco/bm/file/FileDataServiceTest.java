@@ -80,11 +80,6 @@ public class FileDataServiceTest
         Properties props = new Properties();
         props.put("test.mongoCollection", COLLECTION_BM_FILE_DATA_SERVICE);
         props.put("test.localDir", localDir.getCanonicalFile());
-        props.put("test.ftpHost", "ftp.mirrorservice.org");
-        props.put("test.ftpPort", "21");
-        props.put("test.ftpUsername", "anonymous");
-        props.put("test.ftpPassword", "");
-        props.put("test.ftpPath", "/sites/www.linuxfromscratch.org/images");
         props.put("test.testFileDir", testFiles.getCanonicalPath());
         
         ctx = new ClassPathXmlApplicationContext(new String[] {"test-MongoFileDataTest-context.xml"}, false);
@@ -238,12 +233,14 @@ public class FileDataServiceTest
     @Test
     public void testGetFileByName()
     {
-        for (int i = 0; i < 100; i++)
+        Assert.assertNotNull("(FTP) Expected to have a test file name, see 'ftpTestFileService.getTestFileName()'.", ftpTestFileService.getTestFileName());
+        
+        for (int i = 0; i < 10; i++)
         {
-            File file = ftpTestFileService.getFileByName("lfs-logo.png");
+            File file = ftpTestFileService.getFileByName(ftpTestFileService.getTestFileName());
             Assert.assertNotNull("(FTP) Expected to find a named file.", file);
-            Assert.assertTrue("(FTP) Test PNG file does not exist.", file.exists());
-            Assert.assertTrue("(FTP) Test PNG file is empty.", file.length() > 0);
+            Assert.assertTrue("(FTP) Test file does not exist.", file.exists());
+            Assert.assertTrue("(FTP) Test file is empty.", file.length() > 0);
 
             file = localTestFileService.getFileByName("test.txt");
             Assert.assertNotNull("(LOCAL) Expected to find a named file.", file);
