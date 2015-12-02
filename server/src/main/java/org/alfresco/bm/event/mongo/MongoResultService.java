@@ -386,14 +386,19 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         // Get all the results and convert them
         int size = cursor.size();
         List<EventRecord> results = new ArrayList<EventRecord>(size);
-        while (cursor.hasNext())
+        try
         {
-            DBObject obj = cursor.next();
-            EventRecord eventRecord = convertToEventRecord(obj);
-            results.add(eventRecord);
+            while (cursor.hasNext())
+            {
+                DBObject obj = cursor.next();
+                EventRecord eventRecord = convertToEventRecord(obj);
+                results.add(eventRecord);
+            }
         }
-        cursor.close();
-        
+        finally
+        {
+            cursor.close();
+        }
         // Done
         if (logger.isDebugEnabled())
         {
@@ -436,14 +441,19 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         // Get all the results and convert them
         int size = cursor.size();
         List<EventRecord> results = new ArrayList<EventRecord>(size);
-        while (cursor.hasNext())
+        try
         {
-            DBObject obj = cursor.next();
-            EventRecord eventRecord = convertToEventRecord(obj);
-            results.add(eventRecord);
+            while (cursor.hasNext())
+            {
+                DBObject obj = cursor.next();
+                EventRecord eventRecord = convertToEventRecord(obj);
+                results.add(eventRecord);
+            }
         }
-        cursor.close();
-        
+        finally
+        {
+            cursor.close();
+        }
         // Done
         if (logger.isDebugEnabled())
         {
@@ -579,13 +589,19 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         // Get all the results and convert them
         int size = cursor.size();
         List<EventDetails> results = new ArrayList<EventDetails>(size);
-        while (cursor.hasNext())
+        try
         {
-            DBObject obj = cursor.next();
-            EventDetails eventDetails = convertToEventDetails(obj);
-            results.add(eventDetails);
+            while (cursor.hasNext())
+            {
+                DBObject obj = cursor.next();
+                EventDetails eventDetails = convertToEventDetails(obj);
+                results.add(eventDetails);
+            }
         }
-        cursor.close();
+        finally
+        {
+            cursor.close();
+        }
         
         return results;
     }
