@@ -207,6 +207,7 @@ public class TestRun implements TestConstants
                     {
                         // It failed to start.  Errors will have been reported.
                         // now stop the test (otherwise it will restart again and again ...) - fkb 2015-11-10 
+                    	now = System.currentTimeMillis();
                         boolean stopped = testDAO.updateTestRunState(
                                 id, version,
                                 TestRunState.STOPPED, now, now, now, null, 1L, 0.0D,

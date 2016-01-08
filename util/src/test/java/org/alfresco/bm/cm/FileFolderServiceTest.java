@@ -36,7 +36,7 @@ import org.junit.runners.JUnit4;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.MongoException.DuplicateKey;
+import com.mongodb.DuplicateKeyException;
 
 /**
  * @see FileFolderService
@@ -120,7 +120,7 @@ public class FileFolderServiceTest
         assertEquals(0, fileFolderService.deleteFolder("home", "/myfolders", true));
     }
     
-    @Test(expected=DuplicateKey.class)
+    @Test(expected=DuplicateKeyException.class)
     public void uniqueId()
     {
         FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 6L, 17L);
@@ -130,7 +130,7 @@ public class FileFolderServiceTest
         fileFolderService.createNewFolder(folderData2);
     }
     
-    @Test(expected=DuplicateKey.class)
+    @Test(expected=DuplicateKeyException.class)
     public void uniquePath()
     {
         FolderData folderData = new FolderData("A123", "home", "/myfolders/tests", 3L, 17L);

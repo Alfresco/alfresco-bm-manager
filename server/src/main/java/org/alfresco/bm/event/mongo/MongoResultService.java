@@ -33,11 +33,11 @@ import org.apache.commons.logging.LogFactory;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.CommandFailureException;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoCommandException;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 
@@ -64,7 +64,7 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
             this.collection = db.createCollection(collection, new BasicDBObject());
             checkIndexes = true;
         }
-        catch (CommandFailureException e)
+        catch (MongoCommandException e)
         {
             if (!db.collectionExists(collection))
             {

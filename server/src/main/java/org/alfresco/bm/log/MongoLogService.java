@@ -24,11 +24,11 @@ import org.alfresco.bm.test.LifecycleListener;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.CommandFailureException;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoCommandException;
 
 /**
  * Mongo implementation of service providing log message persistence
@@ -85,9 +85,12 @@ public class MongoLogService implements LifecycleListener, LogService
                 throw new IllegalArgumentException("The logs must always be capped by size before capping by number.");
             }
             DBObject options = optionsBuilder.get();
-            this.collection = db.createCollection(COLLECTION_LOGS, options);
+            //if (!db.collectionExists(COLLECTION_LOGS))
+            {
+            	this.collection = db.createCollection(COLLECTION_LOGS, options);
+            }
         }
-        catch (CommandFailureException e)
+        catch (MongoCommandException e)
         {
             // Double check
             if (!db.collectionExists(COLLECTION_LOGS))
