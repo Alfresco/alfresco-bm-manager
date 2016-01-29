@@ -215,7 +215,9 @@ public class MongoFactoriesTest
             {
                 MongoClient client = clientFactory.getObject();
                 String credentials = client.getCredentialsList().toString();
-                Assert.assertEquals("[MongoCredential{mechanism='MONGODB-CR', userName='ifa', source='admin', password=<hidden>, mechanismProperties={}}]", credentials);
+                // MongoDB 3.0 changed auth ...
+                //Assert.assertEquals("[MongoCredential{mechanism='MONGODB-CR', userName='ifa', source='admin', password=<hidden>, mechanismProperties={}}]", credentials);
+                Assert.assertTrue(credentials.endsWith("userName='ifa', source='admin', password=<hidden>, mechanismProperties={}}]"));
             }
             finally
             {

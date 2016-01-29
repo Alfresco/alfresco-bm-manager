@@ -12,11 +12,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.CommandFailureException;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoCommandException;
 
 /**
  * extra data report service
@@ -65,7 +65,7 @@ public class DataReportServiceImpl implements LifecycleListener, DataReportServi
             this.collectionExtraData = db.createCollection(COLLECTION_EXTRA_DATA, null);
             this.collectionDescription = db.createCollection(COLLECTION_EXTRA_DATA_DESCRIPTION, null);
         }
-        catch (CommandFailureException e)
+        catch (MongoCommandException e)
         {
             // try to get collection anyway - if not there, re-throw
             if (!db.collectionExists(COLLECTION_EXTRA_DATA) || !db.collectionExists(COLLECTION_EXTRA_DATA_DESCRIPTION))
