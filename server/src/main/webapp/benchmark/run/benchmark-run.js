@@ -183,6 +183,11 @@
         return $resource('api/v1/status/logs', {}, {
             getAllLogs: {
                 method: 'GET',
+                params: {
+                	driverId: 'driverId',
+                	test: 'test',
+                	run: 'run'
+                },
                 isArray: true
             }
         })
@@ -878,9 +883,13 @@
             }
             
             $scope.errorLogs = 0;
-            // get test logs only 
+            // get test logs only - 2016-01-29 fkb: match at least test and run
             $scope.getTestLogs = function() {
-            	TestShowLogsService.getAllLogs(function(response) {
+            	TestShowLogsService.getAllLogs({
+                    driverId: null,
+                    test: $scope.testname,
+                    run: $scope.runname
+                }, function(response) {
                     var logs = [];
                     $scope.errorLogs = 0;
                     for (var i = 0; i < response.length; i++) {

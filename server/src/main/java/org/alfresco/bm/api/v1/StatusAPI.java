@@ -96,7 +96,7 @@ public class StatusAPI extends AbstractRestResource
     @Path("/logs")
     @Produces(MediaType.APPLICATION_JSON)
     public String getLogs(
-            @QueryParam("driverId") String driverId,
+    		@QueryParam("driverId") String driverId,
             @QueryParam("test") String test,
             @QueryParam("run") String run,
             @DefaultValue("INFO") @QueryParam("level") String levelStr,
