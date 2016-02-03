@@ -12,10 +12,16 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        'test/js/lib/angular.js',
-        'test/js/lib/angular-mocks.js',
-        'test/js/lib/angular-resource.js',
-        'main/webapp/**/*.js',
+        'main/webapp/js/jquery/jquery-2.2.0.min.js',
+        'main/webapp/js/angularjs/1.4.9/angular.js',
+        'main/webapp/js/angularjs/1.4.9/angular-mocks.js',
+        'main/webapp/js/angularjs/1.4.9/angular-resource.js',
+        'main/webapp/js/angularjs/1.4.9/angular-route.js',
+        'main/webapp/js/app.js',
+        'main/webapp/js/breadcrumbs.js',
+        'main/webapp/js/filter.js',
+        'main/webapp/js/modal.js',
+        'main/webapp/benchmark/**/*.js',
         'test/js/unit/*.js'
     ],
 

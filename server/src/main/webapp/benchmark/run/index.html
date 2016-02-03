@@ -1,4 +1,4 @@
-<div ng-show="hasError" class="alert alert-danger">{{error.msg}}</div>
+<div ng-show="hasError == true" class="alert alert-danger">{{error.msg}}</div>
 <!-- popup modal message -->
 <modal data="modal"></modal>
 
@@ -8,7 +8,7 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 <h3>
-                    <span ng-hide="testNameEditorEnabled">
+                    <span ng-hide="testNameEditorEnabled == true">
                         {{data.testname}}
                     </span>
                     <div class="pull-right">
@@ -45,11 +45,11 @@
                     </td>
                     <td class="col-sm-3">
                         <div class="pull-right">
-                            <span ng-show="!item.run">
-                                <a ng-hide="item.hasStarted|| !hasDrivers(data.testname)" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(data.testname, $index)" class="btn">
+                            <span ng-show="item.run == false">
+                                <a ng-hide="item.hasStarted == true || !hasDrivers(data.testname)" id="startTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;startRun(data.testname, $index)" class="btn">
                                     <span class="fa fa-play fa-lg"></span>
                                 </a>
-                                <a ng-show="item.hasStarted && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
+                                <a ng-show="item.hasStarted == true && item.completed == -1" class="btn" id="stopTestRunBtn-{{item.name}}" ng-click="startRunEnabled=!startRunEnabled;stopRun(item.name, data.testname, $index)">
                                     <span class="fa fa-stop fa-lg"></span>
                                 </a>
                             </span>

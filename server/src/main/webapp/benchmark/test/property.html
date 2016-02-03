@@ -27,7 +27,7 @@
             </div>
         </div>
         <h3>
-            <span ng-hide="testNameEditorEnabled">
+            <span ng-hide="testNameEditorEnabled == true">
                 {{data.test.name}}
                 <a ng-click="testNameEditorEnabled=!testNameEditorEnabled">
                     <span class="glyphicon glyphicon-edit"></span>
@@ -35,7 +35,7 @@
             </span>
         </h3>
         <div ng-show="hasError" class="alert alert-danger">{{error.msg}}</div>
-        <div ng-hide="testDescEditorEnabled">
+        <div ng-hide="testDescEditorEnabled == true">
             {{data.test.description}}
             <a ng-click="testDescEditorEnabled=!testDescEditorEnabled">
                 <span class="glyphicon glyphicon-edit"></span>
@@ -79,12 +79,12 @@
     <div class="panel-heading">
         <a ng-click="toggleCollapsedStates(drivers)" href="">
             <h3>Driver Details
-            <i class="fa fa-chevron-down  pull-right" ng-hide="drivers.collapsed"></i>
-            <i class="fa fa-chevron-right pull-right" ng-show="drivers.collapsed"></i>
+            <i class="fa fa-chevron-down  pull-right" ng-hide="drivers.collapsed == true"></i>
+            <i class="fa fa-chevron-right pull-right" ng-show="drivers.collapsed == true"></i>
             </h3>
         </a>
     </div>
-    <ul class="test list-group"  id="driver-list" ng-hide="drivers.collapsed" ng-show="drivers.prop > 0">
+    <ul class="test list-group"  id="driver-list" ng-hide="drivers.collapsed == true" ng-show="drivers.prop > 0">
         <li class="list-group-item" ng-repeat="driver in drivers.prop">
             <div class="row filterable" ng-repeat="(key,value) in driver" filter-value="{{key.toLowerCase()}}">        
                 <div class="col-xs-6 col-md-6">
@@ -96,7 +96,7 @@
             </div>
         </li>
     </ul>
-    <div class="panel-body"   ng-hide="drivers.collapsed">
+    <div class="panel-body"   ng-hide="drivers.collapsed == true">
         <h3 ng-show="drivers.prop < 1"> There are no drivers for this test</h3>   
     </div>     
 </div>
@@ -106,14 +106,14 @@
         <div class="panel-heading">
             <a ng-click="toggleCollapsedStates(prop)" href="">{{item.title}}
                 <h3>{{prop.properties[0].group}}
-                <i class="fa fa-chevron-down  pull-right" ng-hide="prop.collapsed"></i>
-                <i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed"></i>
+                <i class="fa fa-chevron-down  pull-right" ng-hide="prop.collapsed == true"></i>
+                <i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed == true"></i>
                 </h3>
             </a>
         </div>
         <!-- Collapse group -->
         <!-- List group -->
-        <ul class="test list-group"  id="property-{{prop.uid}}" ng-hide="prop.collapsed">
+        <ul class="test list-group"  id="property-{{prop.uid}}" ng-hide="prop.collapsed == true">
             <li class="list-group-item filterable" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse " filter-value="{{item.title.toLowerCase()}}">
                 <div class="row">               
                     <div class="col-xs-6 col-md-6">
@@ -126,13 +126,13 @@
                         <span ng-show="attentionReq(item)"></span>
                         <span ng-show="readOnly">{{item.value}}</span>                                             
                         <span ng-show="!readOnly"> 
-                            <div ng-hide="propertyEditorEnabled">
+                            <div ng-hide="propertyEditorEnabled == true">
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled;setInitialValue(item)" ng-show="!isEmpty(item.value)">
-                                    <div ng-hide="item.mask">
+                                    <div ng-hide="item.mask == true">
                                         <b ng-show="item.default != item.value">{{item.value}}</b>
                                         <span ng-show="item.value == item.default"> {{item.value}} </span>
                                     </div>
-                                    <div ng-show="item.mask" type="password">*******</div>
+                                    <div ng-show="item.mask == true" type="password">*******</div>
                                 </a>
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled;setInitialValue(item)" ng-show="isEmpty(item.value)">
                                 {{item.default}}
@@ -147,9 +147,9 @@
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset</button>
                                     </span>
                                     
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="hasChoice(item) || item.mask">
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-show="item.mask">
-                                    <div class="dropdown" ng-hide="!hasChoice(item) || item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="hasChoice(item) || item.mask == true">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-show="item.mask == true">
+                                    <div class="dropdown" ng-hide="!hasChoice(item) || item.mask == true">
                                       <button class="form-control text-left" 
                                               type="button" 
                                               id="dropdownPropValue{{item.name}}" 
@@ -177,7 +177,7 @@
                                         </button>
                                     </span>
                                 </div>
-                                <span ng-hide="item.mask">{{item.default}}</span>
+                                <span ng-hide="item.mask == true">{{item.default}}</span>
                                 <span ng-show="item.validationFail" class="alert-danger">{{item.validationMessage}}</span>
                             </div>
                         </div>

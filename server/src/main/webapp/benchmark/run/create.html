@@ -2,7 +2,7 @@
 
     <form name="form" class="form-horizontal" id="create-testrun" role="form" novalidate>
         <div class="form-group">
-            <div ng-show="hasError ||testNameErrorMessage != null" class="alert alert-danger">{{errorMsg}} {{testNameErrorMessage}}</div>
+            <div ng-show="hasError == true ||testNameErrorMessage != null" class="alert alert-danger">{{errorMsg}} {{testNameErrorMessage}}</div>
         </div>
         <div class="form-group">
             <label for="inputTestRunName" class="col-lg-2 control-label">Test run name</label>

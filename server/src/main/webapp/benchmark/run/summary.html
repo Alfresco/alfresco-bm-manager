@@ -1,4 +1,4 @@
-<div ng-show="hasError" class="alert alert-danger">{{errorMsg}}</div>
+<div ng-show="hasError == true" class="alert alert-danger">{{errorMsg}}</div>
 <!-- popup modal message -->
 <modal data="modal"></modal>
 <div class="row" ng-show="summary.started > 0">
@@ -74,7 +74,7 @@
 		                <table>
 		                  <tr>
 		                    <td class="col-sm-5 text-right">
-		                      <a ng-hide="summary.state != 'NOT_SCHEDULED' || hasStarted || !hasDrivers()" id="startTestRunBtn-{{summary.name}}" ng-click="startRun()" class="btn">
+		                      <a ng-hide="summary.state != 'NOT_SCHEDULED' || hasStarted == true || !hasDrivers()" id="startTestRunBtn-{{summary.name}}" ng-click="startRun()" class="btn">
 		                          <span class="fa fa-play fa-lg"></span>
 		                      </a>
                               <a ng-show="summary.state == 'STARTED'" class="btn" id="stopTestRunBtn-{{summary.name}}" ng-click="stopRun()">

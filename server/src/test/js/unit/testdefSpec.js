@@ -2,7 +2,7 @@
 
 describe('Test Service Unit test'
 , function(){
-    beforeEach(module("benchtest"));
+    beforeEach(module("benchmark-test"));
     var service;
     beforeEach(inject(function(TestService){
        service = TestService;

@@ -1,4 +1,4 @@
-<div ng-show="attentionRequired" class="alert alert-danger alert-dismissible fade in">
+<div ng-show="attentionRequired == true" class="alert alert-danger alert-dismissible fade in">
       <button aria-label="Close" data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span></button>
       <h4 id="attention-required">Attention Required<a href="#oh-snap!-you-got-an-error!" class="anchorjs-link"><span class="anchorjs-icon"></span></a></h4>
   <p>Please review the following property values before starting your tests:</p>
@@ -7,7 +7,7 @@
 
 <div class="panel panel-default">
     <div class="panel-body ">
-        <div class="row" ng-show="runNameEditorEnabled">
+        <div class="row" ng-show="runNameEditorEnabled == true">
             <div class="col-lg-6">
                 <div class="input-group">
                     <input class="form-control input-sm ng-valid ng-pristine" ng-model="data.name" onClick="this.select();" ng-keyup="runNameEditorEnabled = doKeyPressName($event)" ng-change="validateRunName()">
@@ -24,11 +24,11 @@
             </div>
         </div>
         <h3>
-            <div ng-show="readOnly">
+            <div ng-show="readOnly == true">
                 {{data.name}}
             </div>
-            <div ng-show="!readOnly">
-                <span ng-hide="runNameEditorEnabled">
+            <div ng-show="readOnly == false">
+                <span ng-hide="runNameEditorEnabled == true">
                     {{data.name}}
                     <a ng-click="runNameEditorEnabled=!runNameEditorEnabled">
                         <span class="glyphicon glyphicon-edit"></span>
@@ -37,15 +37,15 @@
             </div>
         </h3>
         <div>
-            <div ng-show="readOnly">
+            <div ng-show="readOnly == true">
                 {{data.description}}
             </div>
-            <span ng-show="!readOnly">
-                <span ng-hide="runDescEditorEnabled">
-                    <span ng-show="data.description">
+            <span ng-show="readOnly == false">
+                <span ng-hide="runDescEditorEnabled == true">
+                    <span ng-show="!isEmpty(data.description)">
                         {{data.description}}
                     </span>
-                    <span ng-show="!data.description">
+                    <span ng-show="isEmpty(data.description)">
                         Description
                     </span>
                     <a ng-click="runDescEditorEnabled=!runDescEditorEnabled">
@@ -54,7 +54,7 @@
                 </span>
             </span>
         </div>
-        <div class="row" ng-show="runDescEditorEnabled">
+        <div class="row" ng-show="runDescEditorEnabled == true">
             <div class="col-lg-6">
                 <div class="input-group">
                     <input class="form-control input-sm ng-valid" ng-model="data.description" onClick="this.select();" ng-keyup="runDescEditorEnabled = doKeyPressDesc($event)">
@@ -77,15 +77,15 @@
         <div class="panel-heading">
             <a ng-click="toggleCollapsedStates(prop)" href="">{{item.title}}
                 <h3>{{prop.properties[0].group}}
-                <i class="fa fa-chevron-down  pull-right" ng-hide="prop.collapsed"></i>
-                <i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed"></i>
+                <i class="fa fa-chevron-down  pull-right" ng-hide="prop.collapsed == true"></i>
+                <i class="fa fa-chevron-right pull-right" ng-show="prop.collapsed == true"></i>
                 </h3>
             </a>
             
         </div>
         <!-- Collapse group -->
         <!-- List group -->
-        <ul class="test list-group" id="property-{{prop.uid}}" ng-hide="prop.collapsed">
+        <ul class="test list-group" id="property-{{prop.uid}}" ng-hide="prop.collapsed == true">
             <li class="list-group-item filterable" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse "  filter-value="{{item.title.toLowerCase()}}">
                 <div class="row">                                               
                     <div class="col-xs-6 col-md-6">
@@ -97,15 +97,15 @@
 
                     <div class="col-xs-6 col-md-6">
                         <span ng-show="attentionReq(item)"></span>
-                        <span ng-show="readOnly">{{item.value}}</span>                                             
-                        <span ng-show="!readOnly"> 
-                            <div ng-hide="propertyEditorEnabled">
+                        <span ng-show="readOnly == true">{{item.value}}</span>                                             
+                        <span ng-show="readOnly == false"> 
+                            <div ng-hide="propertyEditorEnabled == true">
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled;setInitialValue(item)" ng-show="!isEmpty(item.value)">
-                                    <div ng-hide="item.mask">
+                                    <div ng-hide="item.mask == true">
                                     <b ng-show="item.default != item.value">{{item.value}}</b>
                                     <span ng-show="item.value == item.default">{{item.value}}</span>
                                     </div>
-                                    <div ng-show="item.mask" type="password">*******</div>
+                                    <div ng-show="item.mask == true" type="password">*******</div>
                                 </a>
                                 <a ng-click="propertyEditorEnabled=!propertyEditorEnabled;setInitialValue(item)" ng-show="isEmpty(item.value)">
                                 {{item.default}}
@@ -113,16 +113,16 @@
                                 </a>
                             </div>
                         </span> 
-                        <div ng-show="propertyEditorEnabled"> 
+                        <div ng-show="propertyEditorEnabled == true"> 
                             <div>
                                 <!-- Show text edit only if no choice collection - prefer a drop-down if item has choices or is boolean-->
                                 <div class="input-group">
                                     <span class="input-group-btn" ng-hide="isEmpty(item.value)">
                                         <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset </button>
                                     </span>
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="hasChoice(item) || item.mask">
-                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-show="item.mask">
-                                    <div class="dropdown" ng-hide="!hasChoice(item) || item.mask">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="hasChoice(item) || item.mask == true">
+                                    <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" type="password" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-show="item.mask == true">
+                                    <div class="dropdown" ng-hide="!hasChoice(item) || item.mask == true">
                                       <button class="form-control text-left" 
                                               type="button" 
                                               id="dropdownPropValue{{item.name}}" 
@@ -150,7 +150,7 @@
                                         </button>
                                     </span>
                                 </div>
-                                <div ng-hide="item.mask">{{item.default}}</div>
+                                <div ng-hide="item.mask == true">{{item.default}}</div>
                                 <span ng-show="item.validationFail" class="alert-danger">{{item.validationMessage}}</span>
                             </div>
                         </div> 

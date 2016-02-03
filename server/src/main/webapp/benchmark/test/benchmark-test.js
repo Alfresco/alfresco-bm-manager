@@ -146,7 +146,8 @@
                 }
                 $scope.modal = ModalService.create($scope.modal);
             }
-
+            
+            // callback from modal '$scope.deleteTest': delete test OK
             $scope.doDeleteTest = function(name) {
                 TestService.deleteTest({
                     id: name
@@ -155,7 +156,8 @@
                 });
                 $scope.data.tests = TestService.getTests();
             }
-
+            
+            // create the list of tests
             $scope.data.tests = TestService.getTests();
         }
     ]);
