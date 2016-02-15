@@ -6,7 +6,9 @@ import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.alfresco.bm.exception.CipherException;
@@ -92,9 +94,16 @@ public class AESCipher
             // get cipher and decode
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, keySpec);
-            return new String(cipher.doFinal(crypted));
+            try
+            {
+                return new String(cipher.doFinal(crypted));
+            }
+            catch (IllegalBlockSizeException | BadPaddingException e)
+            {
+                throw new CipherException("Error decrypting '" + value + "' - bad 'salt'?", e);
+            }
         }
-        catch (Exception e)
+       catch (Exception e)
         {
             throw new CipherException("Error decrypting '" + value + "'.", e);
         }
