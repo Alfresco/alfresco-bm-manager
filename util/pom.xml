@@ -18,6 +18,18 @@
             <version>${project.version}</version>
             <classifier>classes</classifier>
         </dependency>
+        <!-- springsocial Alfresco -->
+        <dependency>
+            <groupId>org.springframework.social</groupId>
+            <artifactId>spring-social-alfresco-bm</artifactId>
+            <version>0.5.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.alfresco.services.sync</groupId>
+                    <artifactId>service-synchronization-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <!-- General -->
         <dependency>
             <groupId>junit</groupId>

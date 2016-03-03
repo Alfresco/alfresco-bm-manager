@@ -250,6 +250,19 @@ public class MongoFactoriesTest
             // Get the DB
             
             ctx.close();
+            
+            // avoid failing test because Threads are not aligned/synchronized
+            int count = 0;
+            while (threadCount != Thread.activeCount())
+            {
+                Thread.sleep(1000);
+                count ++;
+                if (count > 10 )
+                {
+                    // wait a max. of 10 seconds ... than fail test
+                    break; 
+                }
+            }
             Assert.assertEquals("Not all threads killed", threadCount, Thread.activeCount());
         }
         finally
