@@ -206,27 +206,42 @@ app.service('ValidationService', function(){
         // decimal validation
         decimalValidator:function(property){
             // accept any number
-            if (typeof property.value != 'number'){
+        	if (Number.isNaN(parseFloat(property.value))){
                 property.validationFail = true;
-                property.validationMessage = "Please enter a decimal number";
-                return;
-            }
-            // 'min'
-            if (typeof property.min != 'undefined'){
-                if (parseFloat(property.value) < parseFloat(property.min)){
-                    property.validationFail = true;
-                    property.validationMessage = "The value entered is too small, min. value is " + property.min;
-                    return;
-                }
-            }
-            // 'max'
-            if (typeof property.max != 'undefined'){
-                if (parseFloat(property.value) > parseFloat(property.max)){
-                    property.validationFail = true;
-                    property.validationMessage = "The value entered is too large, max. value is " + property.max;
-                    return;
-                }
-            }
+                property.validationMessage = "Please enter a decimal value.";
+                return;        		
+        	}
+        	if (typeof property.value == 'number' || (typeof property.value == 'string' && property.value.length > 0)) {
+        		var value = parseFloat(property.value);
+        		if ("" + value !== property.value)
+        		{
+        			// the entered value may be a float so do a regular expression test
+        			var val = property.value;
+        			var regex = new RegExp( "[-+]?[0-9]*\\.?[0-9]+" );
+                    if (val.match(regex) != val){
+	                    property.validationFail = true;
+	                    property.validationMessage = "Please enter a decimal value. ";
+	                    return;
+                    }
+        		}
+        		
+	            // 'min'
+	            if (typeof property.min != 'undefined'){
+	                if (parseFloat(property.value) < parseFloat(property.min)){
+	                    property.validationFail = true;
+	                    property.validationMessage = "The value entered is too small, min. value is " + property.min;
+	                    return;
+	                }
+	            }
+	            // 'max'
+	            if (typeof property.max != 'undefined'){
+	                if (parseFloat(property.value) > parseFloat(property.max)){
+	                    property.validationFail = true;
+	                    property.validationMessage = "The value entered is too large, max. value is " + property.max;
+	                    return;
+	                }
+	            }
+        	}
         },
         
         // boolean validation
