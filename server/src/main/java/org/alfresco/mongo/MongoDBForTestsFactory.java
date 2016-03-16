@@ -59,7 +59,7 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
     {
         MongodStarter starter = MongodStarter.getDefaultInstance();
         IMongodConfig mongodConfig = new MongodConfigBuilder()
-                .version(Main.V2_6)
+                .version(Main.V3_0)
                 .processListener(new MongoDBProcessListener())
                 .build();
         
