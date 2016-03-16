@@ -110,7 +110,7 @@ public class BMTestRunner implements TestConstants
         System.out.println("   To set the MongoDB connection properties for either the 'config' or 'test' databases:");
         System.out.println("      mongo.<config|test>.host:         Another way of setting the host");
         System.out.println("      mongo.<config|test>.port:         Change the port connection away from default of '27017'");
-        System.out.println("      mongo.<config|test>.database:     Connect to a different database from default of 'bm20-config'");
+        System.out.println("      mongo.<config|test>.database:     Connect to a different database from default of 'bm21-config'");
         System.out.println("      mongo.<config|test>.username:     Apply username credential to the database connection");
         System.out.println("      mongo.<config|test>.password:     Supply a password if the username is specified");
         System.out.println("      mongo.<config|test>.uri:          Full URI format as specified by com.mongodb.MongoClientURI");

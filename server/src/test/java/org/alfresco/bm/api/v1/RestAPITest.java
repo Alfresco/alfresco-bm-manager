@@ -961,7 +961,7 @@ public class RestAPITest implements TestConstants
         csvOutput.write(csvBos);
         String csvResults = new String(csvBos.toByteArray());
         // Check
-        assertTrue(csvResults.contains("Data:,bm20-data.T07.01.results"));
+        assertTrue(csvResults.contains("Data:,bm21-data.T07.01.results"));
         assertTrue(csvResults.contains("Started"));
         assertTrue(csvResults.contains("Finished"));
         assertTrue(csvResults.contains("Duration"));
@@ -1005,7 +1005,7 @@ public class RestAPITest implements TestConstants
     public synchronized void testScenario08() throws Exception
     {
         MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
-        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm20-data").getObject();
+        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm21-data").getObject();
         Set<String> testRunCollections = testMongoDB.getCollectionNames();
         Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
 
@@ -1030,7 +1030,7 @@ public class RestAPITest implements TestConstants
     public synchronized void testScenario09() throws Exception
     {
         MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
-        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm20-data").getObject();
+        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm21-data").getObject();
         Set<String> testRunCollections = testMongoDB.getCollectionNames();
         Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
 
