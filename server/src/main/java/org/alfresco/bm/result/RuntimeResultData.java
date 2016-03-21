@@ -15,10 +15,10 @@ public class RuntimeResultData extends AbstractResultData
 
     private long runtimeTicks;
 
-    public RuntimeResultData(long runtime, String description)
+    public RuntimeResultData(long runtime, String description, ResultOperation resultOperation)
             throws BenchmarkResultException
     {
-        super(description);
+        super(description, resultOperation);
         setRuntimeTicks(runtime);
     }
 
@@ -59,7 +59,7 @@ public class RuntimeResultData extends AbstractResultData
      * 
      * @throws BenchmarkResultException
      */
-    public static RuntimeResultData Combine(RuntimeResultData data1,
+    public static RuntimeResultData combine(RuntimeResultData data1,
             RuntimeResultData data2) throws BenchmarkResultException
     {
         if (null == data1 || null == data2)
@@ -71,9 +71,14 @@ public class RuntimeResultData extends AbstractResultData
             throw new BenchmarkResultException(
                     "Data objects must have the same descriptive type!");
         }
+        if (data1.getResultOperation() != data2.getResultOperation())
+		{
+			throw new BenchmarkResultException(
+					"Data objects must have the same result operation type!");
+		}
 
         long ticks = data1.getRuntimeTicks() + data2.getRuntimeTicks();
-        return new RuntimeResultData(ticks, data1.getDescription());
+        return new RuntimeResultData(ticks, data1.getDescription(), data1.getResultOperation());
     }
 
     @Override

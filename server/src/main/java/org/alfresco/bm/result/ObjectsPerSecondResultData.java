@@ -18,10 +18,10 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
 
     /** Constructor */
     public ObjectsPerSecondResultData(double objectsPerSecond,
-            ResultObjectType objectType, String description)
+            ResultObjectType objectType, String description, ResultOperation resultOperation)
             throws BenchmarkResultException
     {
-        super(description);
+        super(description, resultOperation);
         setObjectType(objectType);
         setObjectsPerSecond(objectsPerSecond);
     }
@@ -83,7 +83,7 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
      * @throws BenchmarkResultException
      *         if object type or description differ
      */
-    public static ObjectsPerSecondResultData Combine(
+    public static ObjectsPerSecondResultData combine(
             ObjectsPerSecondResultData data1, ObjectsPerSecondResultData data2)
             throws BenchmarkResultException
     {
@@ -101,11 +101,16 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
             throw new BenchmarkResultException(
                     "Data objects must have the same descriptive type!");
         }
+        if (data1.getResultOperation() != data2.getResultOperation())
+		{
+			throw new BenchmarkResultException(
+					"Data objects must have the same result operation type!");
+		}
 
         double value = (data1.getObjectsPerSecond()
                 + data2.getObjectsPerSecond()) / 2;
         return new ObjectsPerSecondResultData(value, data1.getObjectType(),
-                data1.getDescription());
+                data1.getDescription(), data1.getResultOperation());
     }
 
     @Override

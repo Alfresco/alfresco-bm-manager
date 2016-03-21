@@ -13,11 +13,14 @@ public abstract class AbstractResultData implements ResultData
     
     /** stores the JSON description field */
     private String description;
+    /** stores the result operation */
+    private ResultOperation resultOperation;
     
     /** constructor */
-    public AbstractResultData(String description)
+    public AbstractResultData(String description, ResultOperation resultOperation)
     {
-        this.description = description;
+        setDescription(description);
+        setResultOperation(resultOperation);
     }
     
     @Override
@@ -40,4 +43,14 @@ public abstract class AbstractResultData implements ResultData
     {
         return toJSON();
     }
+    
+    @Override
+	public ResultOperation getResultOperation() {
+		return this.resultOperation;
+	}
+
+	@Override
+	public void setResultOperation(ResultOperation operation) {
+		this.resultOperation = operation;
+	}
 }
