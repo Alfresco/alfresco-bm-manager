@@ -21,6 +21,7 @@ import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.processlistener.IMongoProcessListener;
+import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version.Main;
 
 /**
@@ -33,18 +34,25 @@ import de.flapdoodle.embed.mongo.distribution.Version.Main;
 public class MongoDatabaseForTestsFactory implements
         FactoryBean<MongoDatabase>, DisposableBean, TestConstants
 {
-    private Log logger = LogFactory.getLog(MongoDBForTestsFactory.class);
+    /** Stores the Mongo version to test against.*/
+    private final Main version = Main.V3_2;
 
+    private Log logger = LogFactory.getLog(MongoDBForTestsFactory.class);
     private final MongodExecutable mongodExecutable;
     private final MongodProcess mongodProcess;
     private final MongoDatabase database;
     private final MongoClient mongoClient;
-
+    
+    /**
+     * Constructor 
+     * 
+     * @throws Exception
+     */
     public MongoDatabaseForTestsFactory() throws Exception
     {
         MongodStarter starter = MongodStarter.getDefaultInstance();
         IMongodConfig mongodConfig = new MongodConfigBuilder()
-                .version(Main.V3_2)
+                .version(version)
                 .processListener(new MongoDatabaseProcessListener())
                 .build();
 
@@ -59,6 +67,16 @@ public class MongoDatabaseForTestsFactory implements
         this.mongoClient = new MongoClient(new ServerAddress(address, port));
         this.database = this.mongoClient.getDatabase(UUID.randomUUID()
                 .toString());
+    }
+
+    /**
+     * returns the Mongo version to test against
+     * 
+     * @since 2.1.2
+     */
+    public Main getMongoTestFeatureVersion()
+    {
+        return version;
     }
 
     @Override
@@ -113,45 +131,50 @@ public class MongoDatabaseForTestsFactory implements
             }
         }
     }
-    
+
     /**
-     * Utility method to build a MongoDB URI that references the {@link #getObject() DB} provided by this factory
+     * Utility method to build a MongoDB URI that references the
+     * {@link #getObject() DB} provided by this factory
      * 
-     * @return                          a MongoDB URI that can be used to connect to the DB instance
+     * @return a MongoDB URI that can be used to connect to the DB instance
      */
     public String getMongoURI()
     {
         String dbName = this.database.getName();
         ServerAddress mongoAddress = this.mongoClient.getAddress();
-        String mongoUri = MONGO_PREFIX + mongoAddress.getHost() + ":" + mongoAddress.getPort() + "/" + dbName;
+        String mongoUri = MONGO_PREFIX + mongoAddress.getHost() + ":"
+                + mongoAddress.getPort() + "/" + dbName;
         return mongoUri;
     }
-    
+
     /**
-     * Utility method to build a MongoDB URI that can be used to construct a {@link MongoClient mongo client}.
+     * Utility method to build a MongoDB URI that can be used to construct a
+     * {@link MongoClient mongo client}.
      * 
-     * @return                          a MongoDB URI that can be used to connect to mongo
+     * @return a MongoDB URI that can be used to connect to mongo
      */
     public String getMongoURIWithoutDB()
     {
         ServerAddress mongoAddress = this.mongoClient.getAddress();
-        String mongoUri = MONGO_PREFIX + mongoAddress.getHost() + ":" + mongoAddress.getPort();
+        String mongoUri = MONGO_PREFIX + mongoAddress.getHost() + ":"
+                + mongoAddress.getPort();
         return mongoUri;
     }
-    
+
     /**
      * Get a Mongo host string e.g. <b>127.0.0.1:51932</b>
      */
     public String getMongoHost()
     {
-        MongoClientURI mongoClientURI = new MongoClientURI(getMongoURIWithoutDB());
+        MongoClientURI mongoClientURI = new MongoClientURI(
+                getMongoURIWithoutDB());
         return mongoClientURI.getHosts().get(0);
     }
-    
+
     /**
      * Utility method to build a MongoDB host string (IP:PORT)
      * 
-     * @return                          the MongoDB server address
+     * @return the MongoDB server address
      */
     public ServerAddress getServerAddress()
     {

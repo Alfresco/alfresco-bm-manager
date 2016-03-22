@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.alfresco.bm.api.v1.RestAPITest;
 import org.alfresco.bm.event.mongo.MongoEventService;
 import org.alfresco.bm.event.mongo.MongoResultService;
 import org.alfresco.bm.event.producer.EventProducerRegistry;
@@ -35,6 +36,8 @@ import org.alfresco.bm.log.TestRunLogService;
 import org.alfresco.bm.session.MongoSessionService;
 import org.alfresco.mongo.MongoDBForTestsFactory;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +56,8 @@ import com.mongodb.DB;
 @RunWith(JUnit4.class)
 public class EventWorkTest
 {
+    private static Log logger = LogFactory.getLog(EventWorkTest.class);
+    
     private static final String DRIVER_ID = "testdriver";
     private static final String TEST_NAME = "EventWorkTest";
     private static final String TEST_RUN_NAME = "X";
@@ -76,6 +81,8 @@ public class EventWorkTest
     public void setUp() throws Exception
     {
         mongoFactory = new MongoDBForTestsFactory();
+        String uri = mongoFactory.getMongoURI();
+        logger.debug("Mongo URI: " + uri);
         db = mongoFactory.getObject();
         eventService = new MongoEventService(db, "es");
         eventService.start();
@@ -83,7 +90,7 @@ public class EventWorkTest
         resultService.start();
         sessionService = new MongoSessionService(db, "ss");
         sessionService.start();
-        LogService mongoLogService = new MongoLogService(db, Long.MAX_VALUE, 1000, 0);
+        LogService mongoLogService = new MongoLogService(db, Integer.MAX_VALUE, 1000, 0);
         logService = new TestRunLogService(mongoLogService, DRIVER_ID, TEST_NAME, TEST_RUN_NAME);
 
         event = new Event(EVENT_NAME, "SOME_DATA");
@@ -103,9 +110,10 @@ public class EventWorkTest
     @After
     public void tearDown() throws Exception
     {
-        mongoFactory.destroy();
         eventService.stop();
         resultService.stop();
+        sessionService.stop();
+        mongoFactory.destroy();
     }
     
     private class TestEventProcessor extends AbstractEventProcessor

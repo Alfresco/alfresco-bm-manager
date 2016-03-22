@@ -64,6 +64,26 @@ public class MongoResultServiceTest
     private DB db;
     private DBCollection rs;
     
+    /**
+     * make sure the system name is NOT contained as from 3.2 on
+     * 
+     * @param collection
+     *        (Set<String>) collection to check
+     * @return
+     */
+    private Set<String> removeSystemValues(Set<String> collection)
+    {
+        if (null != collection)
+        {
+            // make sure the system name is NOT contained as from 3.2 on
+            if (collection.contains("system.indexes"))
+            {
+                collection.remove("system.indexes");
+            }
+        }
+        return collection;
+    }
+    
     @Before
     public void setUp() throws Exception
     {
@@ -87,9 +107,9 @@ public class MongoResultServiceTest
         assertNotNull(db);
         assertNotNull(rs);
         Set<String> collectionNames = new HashSet<String>();
-        collectionNames.add("system.indexes");
         collectionNames.add("rs");
-        assertEquals(collectionNames, db.getCollectionNames());
+        assertEquals(collectionNames, removeSystemValues(
+                db.getCollectionNames()));
         
         // Check indexes (includes implicit '_id_' index)
         List<DBObject> indexes = rs.getIndexInfo();

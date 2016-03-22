@@ -79,10 +79,7 @@ public class MongoEventServiceTest
     {
         assertNotNull(db);
         assertNotNull(es);
-        Set<String> collectionNames = new HashSet<String>();
-        collectionNames.add("system.indexes");
-        collectionNames.add("es");
-        assertEquals(collectionNames, db.getCollectionNames());
+        assertTrue(db.getCollectionNames().contains("es"));
         
         // Check indexes (includes implicit '_id_' index)
         List<DBObject> indexes = es.getIndexInfo();

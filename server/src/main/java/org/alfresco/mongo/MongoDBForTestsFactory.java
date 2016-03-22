@@ -39,6 +39,7 @@ import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.processlistener.IMongoProcessListener;
+import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version.Main;
 
 /**
@@ -49,18 +50,25 @@ import de.flapdoodle.embed.mongo.distribution.Version.Main;
  */
 public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, TestConstants
 {
+    /** Stores the Mongo version to test against.*/
+    private final Main version = Main.V3_2;
+
     private Log logger = LogFactory.getLog(MongoDBForTestsFactory.class);
-    
     private final MongodExecutable mongodExecutable;
     private final MongodProcess mongodProcess;
     private final DB db;
     private final MongoClient mongo;
 
+    /**
+     * Constructor
+     * 
+     * @throws Exception
+     */
     public MongoDBForTestsFactory() throws Exception
     {
         MongodStarter starter = MongodStarter.getDefaultInstance();
         IMongodConfig mongodConfig = new MongodConfigBuilder()
-                .version(Main.V3_0)
+                .version(version)
                 .processListener(new MongoDBProcessListener())
                 .build();
         
@@ -79,6 +87,16 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
     public synchronized DB getObject() throws Exception
     {
         return db;
+    }
+    
+    /**
+     * returns the Mongo version to test against
+     * 
+     * @since 2.1.2
+     */
+    public Main getMongoTestFeatureVersion()
+    {
+        return version;
     }
     
     /**
