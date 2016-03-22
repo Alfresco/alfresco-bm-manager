@@ -54,6 +54,7 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
     private final MongodExecutable mongodExecutable;
     private final MongodProcess mongodProcess;
     private final DB db;
+    private final MongoClient mongo;
 
     public MongoDBForTestsFactory() throws Exception
     {
@@ -70,7 +71,7 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
         InetAddress address = mongodProcess.getConfig().net().getServerAddress();
         int port = mongodProcess.getConfig().net().getPort();
         
-        MongoClient mongo = new MongoClient(new ServerAddress(address, port));
+        mongo = new MongoClient(new ServerAddress(address, port));
         db = mongo.getDB(UUID.randomUUID().toString());
     }
     
@@ -139,6 +140,7 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
     @Override
     public void destroy() throws Exception
     {
+        mongo.close();
         mongodProcess.stop();
         mongodExecutable.stop();
     }

@@ -73,7 +73,7 @@ public class MongoFactoriesTest
             db.getCollectionNames();
             Assert.fail("DB must be closed.");
         }
-        catch (MongoSocketException e)
+        catch (IllegalStateException e)
         {
             // Expected
         }
