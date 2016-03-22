@@ -946,10 +946,11 @@ public class TestRestAPI extends AbstractRestResource
             throwAndLogException(Status.BAD_REQUEST, "No test name supplied.");
         }
         
+        /* Dead code ... version can never be null: testRunDetails.getVersion() returns int
         if (version == null)
         {
             throwAndLogException(Status.BAD_REQUEST, "A 'version' must be supplied to update a test run.");
-        }
+        }*/
         if (oldName == null)
         {
             throwAndLogException(Status.BAD_REQUEST, "Test run 'oldName' must be supplied.");
