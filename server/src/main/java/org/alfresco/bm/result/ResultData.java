@@ -18,4 +18,10 @@ public interface ResultData extends Serializable
     
     /** conversion to JSON string */
     String toJSON();
+    
+    /** gets the operation result */
+    ResultOperation getResultOperation();
+    
+    /** sets the operation result */
+    void setResultOperation(ResultOperation operation);
 }
