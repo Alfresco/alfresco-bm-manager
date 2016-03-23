@@ -2,7 +2,7 @@ MongoDB schema
 ==============
 
 A benchmark application (server or test) requires basic MongoDB connection properties (defaults shown):
-    mongo.URI                   mongodb://127.0.0.1:27017/bm20
+    mongo.URI                   mongodb://127.0.0.1:27017/
     mongo.autoConnectRetry      true
     mongo.connectionsPerHost    1024
     mongo.socketTimeout         600000

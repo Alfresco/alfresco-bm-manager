@@ -26,7 +26,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.alfresco.bm.api.v1.RestAPITest;
 import org.alfresco.bm.event.mongo.MongoEventService;
 import org.alfresco.bm.event.mongo.MongoResultService;
 import org.alfresco.bm.event.producer.EventProducerRegistry;

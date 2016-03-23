@@ -77,6 +77,10 @@ public class MongoFactoriesTest
         {
             // Expected
         }
+		catch (MongoSocketException e)
+        {
+            // Expected before 3.2
+        }
     }
     
     @Test
