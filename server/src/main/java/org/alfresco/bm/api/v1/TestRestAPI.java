@@ -198,7 +198,7 @@ public class TestRestAPI extends AbstractRestResource
         if (!copy)
         {
             // Get the definition and make sure that we have details to play with
-            // Note that it will throw an exception if the defintion does not exist
+            // Note that it will throw an exception if the definition does not exist
             DBObject testDefObj = testDAO.getTestDef(release, schema);
             if (testDefObj == null)
             {
