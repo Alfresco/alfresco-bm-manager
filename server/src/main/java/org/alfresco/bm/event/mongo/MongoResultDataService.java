@@ -2,6 +2,7 @@ package org.alfresco.bm.event.mongo;
 
 import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.AbstractResultDataService;
+import org.alfresco.bm.result.data.ResultData;
 import org.alfresco.bm.result.defs.BenchmarkV2DataFields;
 import org.alfresco.bm.result.defs.ResultDBDataFields;
 import org.alfresco.bm.util.ArgumentCheck;
@@ -13,6 +14,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.UpdateOptions;
 
 /**
  * MongoDB specific implementation of the result data service.
@@ -159,5 +161,30 @@ public class MongoResultDataService extends AbstractResultDataService
         {
             colDefs = db.getCollection(bmDefsCollectionName);
         }
+    }
+
+    @Override
+    protected void writeData(ResultData data, String bmId, String driverId, String testName, String runName)
+    {
+        Document writeDoc = data.toDocumentBSON()
+                .append(FIELD_BM_ID, bmId)
+                .append(FIELD_DRIVER_ID, driverId)
+                .append(FIELD_TEST_NAME, testName)
+                .append(FIELD_TEST_RUN_NAME, runName)
+                .append(FIELD_TIMESTAMP, System.currentTimeMillis());
+
+        Document queryDoc = new Document(FIELD_BM_ID, bmId)
+                .append(FIELD_DRIVER_ID, driverId)
+                .append(FIELD_TEST_NAME, testName)
+                .append(FIELD_TEST_RUN_NAME, runName);
+        // makes query unique
+        data.appendQuery(queryDoc);
+        
+        // insert of not exists
+        UpdateOptions updateOption = new UpdateOptions();
+        updateOption.upsert(true);
+
+        // do update (insert) 
+        this.colResults.updateOne(queryDoc, writeDoc, updateOption);
     }
 }

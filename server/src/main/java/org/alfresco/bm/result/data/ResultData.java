@@ -2,6 +2,7 @@ package org.alfresco.bm.result.data;
 
 import java.io.Serializable;
 
+import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.defs.ResultOperation;
 import org.bson.Document;
 
@@ -13,6 +14,10 @@ import org.bson.Document;
  */
 public interface ResultData extends Serializable
 {
+    public final static String FIELD_RESULT_OP = "resultOperation"; 
+    public static final String FIELD_DESCRIPTION = "description";
+    public static final String FIELD_DATA_TYPE = "dataType";
+    
     /** gets the BSON description field */
     Document getDescription();
     
@@ -27,4 +32,36 @@ public interface ResultData extends Serializable
     
     /** sets the operation result */
     void setResultOperation(ResultOperation operation);
+    
+    /** returns the data type */ 
+    String getDataType();
+    
+    /** appends the params that makes the query unique */
+    void appendQuery(Document queryDoc);
+    
+    /**
+     * Creates a new instance from a BSON document
+     * 
+     * @param doc (BSON Document, mandatory)
+     * 
+     * @return ResultData
+     */
+    public static ResultData create(Document doc) throws BenchmarkResultException
+    {
+        String dataType = doc.getString(FIELD_DATA_TYPE);
+        switch (dataType)
+        {
+            case ObjectsPerSecondResultData.DATA_TYPE:
+                return new ObjectsPerSecondResultData(doc);
+
+            case ObjectsResultData.DATA_TYPE:
+                return new ObjectsResultData(doc);
+                
+            case RuntimeResultData.DATA_TYPE:
+                return new RuntimeResultData(doc);
+                
+            default:
+                throw new BenchmarkResultException("Unknown data type: '" + dataType + "'");
+        }
+    }
 }

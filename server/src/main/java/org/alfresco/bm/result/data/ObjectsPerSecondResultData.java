@@ -16,6 +16,12 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
     /** Serialization ID */
     private static final long serialVersionUID = 8396315103810117490L;
 
+    public static final String FIELD_OBJECTS_PER_SECOND = "objPerSec";
+    public static final String FIELD_OBJECT_TYPE = "objType";
+
+    /** data type */
+    public static final String DATA_TYPE = "OPS";
+
     double objectsPerSecond;
     ResultObjectType objectType;
 
@@ -27,6 +33,14 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
         super(description, resultOperation);
         setObjectType(objectType);
         setObjectsPerSecond(objectsPerSecond);
+    }
+    
+    /** Constructor */
+    public ObjectsPerSecondResultData(Document doc) throws BenchmarkResultException
+    {
+        super(doc);
+        setObjectsPerSecond(doc.getDouble(FIELD_OBJECTS_PER_SECOND));
+        setObjectType(ResultObjectType.valueOf(doc.getString(FIELD_OBJECT_TYPE)));
     }
 
     /**
@@ -120,9 +134,21 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
     public Document toDocumentBSON()
     {
         Document doc = getDocumentBSON()
-                .append("objectsPerSecond", this.objectsPerSecond)
-                .append("objectType", this.objectType);
+                .append(FIELD_OBJECTS_PER_SECOND, this.objectsPerSecond)
+                .append(FIELD_OBJECT_TYPE, this.objectType.toString());
 
         return doc;
+    }
+
+    @Override
+    public String getDataType()
+    {
+        return DATA_TYPE;
+    }
+
+    @Override
+    protected void appendQueryParams(Document queryDoc)
+    {
+        queryDoc.append(FIELD_OBJECT_TYPE, this.objectType);
     }
 }

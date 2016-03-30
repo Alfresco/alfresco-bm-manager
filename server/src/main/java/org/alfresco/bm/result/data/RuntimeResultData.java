@@ -10,11 +10,15 @@ import org.bson.Document;
  * @author Frank Becker
  * @since 2.1.2
  */
-public class RuntimeResultData extends AbstractResultData
+public final class RuntimeResultData extends AbstractResultData
 {
     /** Serialization ID */
     private static final long serialVersionUID = -8392430619747398391L;
 
+    /** data type */
+    public static final String DATA_TYPE = "RT";
+    public static final String FIELD_RUN_TICKS = "runTck";
+    
     private long runtimeTicks;
 
     public RuntimeResultData(long runtime, Document description, ResultOperation resultOperation)
@@ -22,6 +26,12 @@ public class RuntimeResultData extends AbstractResultData
     {
         super(description, resultOperation);
         setRuntimeTicks(runtime);
+    }
+    
+    public RuntimeResultData(Document doc) throws BenchmarkResultException
+    {
+        super(doc);
+        setRuntimeTicks(doc.getLong(FIELD_RUN_TICKS));
     }
 
     public long getRuntimeTicks()
@@ -87,8 +97,20 @@ public class RuntimeResultData extends AbstractResultData
     public Document toDocumentBSON()
     {
         Document doc = getDocumentBSON()
-                .append("runtimeTicks", this.runtimeTicks);
+                .append(FIELD_RUN_TICKS, this.runtimeTicks);
 
         return doc;
+    }
+
+    @Override
+    public String getDataType()
+    {
+        return DATA_TYPE;
+    }
+
+    @Override
+    protected void appendQueryParams(Document quDocument)
+    {
+        // nothing to do
     }
 }

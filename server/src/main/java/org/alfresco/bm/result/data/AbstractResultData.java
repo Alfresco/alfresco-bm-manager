@@ -1,6 +1,8 @@
 package org.alfresco.bm.result.data;
 
+import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.defs.ResultOperation;
+import org.alfresco.bm.util.ArgumentCheck;
 import org.bson.Document;
 
 /**
@@ -26,6 +28,20 @@ public abstract class AbstractResultData implements ResultData
         setResultOperation(resultOperation);
     }
 
+    /** Constructor */
+    public AbstractResultData(Document doc) throws BenchmarkResultException
+    {
+        try
+        {
+            setDescription((Document) doc.get(FIELD_DESCRIPTION));
+            setResultOperation(ResultOperation.valueOf(doc.getString(FIELD_RESULT_OP)));
+        }
+        catch (Exception ex)
+        {
+            throw new BenchmarkResultException("Unable to parse ResultData from Document '" + doc.toJson() + "'.", ex);
+        }
+    }
+
     @Override
     public Document getDescription()
     {
@@ -48,8 +64,9 @@ public abstract class AbstractResultData implements ResultData
      */
     protected Document getDocumentBSON()
     {
-        return new Document("resultOperation", this.resultOperation)
-                .append("description", this.description);
+        return new Document(FIELD_RESULT_OP, this.resultOperation.toString())
+                .append(FIELD_DESCRIPTION, this.description)
+                .append(FIELD_DATA_TYPE, getDataType());
     }
 
     @Override
@@ -69,4 +86,17 @@ public abstract class AbstractResultData implements ResultData
     {
         this.resultOperation = operation;
     }
+
+    @Override
+    public void appendQuery(Document queryDoc)
+    {
+        ArgumentCheck.checkMandatoryObject(queryDoc, "queryDoc");
+        queryDoc.append(FIELD_RESULT_OP, this.resultOperation)
+                .append(FIELD_DESCRIPTION, this.description)
+                .append(FIELD_DATA_TYPE, getDataType());
+
+    }
+
+    /** appends the class-specific query params */
+    protected abstract void appendQueryParams(Document quDocument);
 }

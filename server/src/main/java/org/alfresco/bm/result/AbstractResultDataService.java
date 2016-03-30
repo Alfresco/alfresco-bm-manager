@@ -1,5 +1,6 @@
 package org.alfresco.bm.result;
 
+import org.alfresco.bm.result.data.ResultData;
 import org.alfresco.bm.result.defs.ResultObjectType;
 import org.alfresco.bm.result.defs.ResultOperation;
 import org.alfresco.bm.test.LifecycleListener;
@@ -18,20 +19,19 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
     protected Log logger = LogFactory.getLog(this.getClass());
 
     // TODO add cache!
-    
+
     @Override
     public void start() throws Exception
     {
-        initializeCache();
         initializeDB();
     }
-    
+
     @Override
     public void stop() throws Exception
     {
-        
+
     }
-    
+
     @Override
     public synchronized void notifyData(String bmId, String driverId,
             String testRunName,
@@ -42,16 +42,25 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
     }
 
     /**
-     * Initializes the local cache
+     * Persists the data
+     * 
+     * @param data
+     *        (ResultData, mandatory)
+     * @param bmId
+     *        (String, mandatory) benchmark ID
+     * @param driverId
+     *        (String, mandatory) driver ID
+     * @param testName
+     *        (String, mandatory) test name
+     * @param runName
+     *        (String, mandatory) test run name
      */
-    protected void initializeCache()
-    {
-        // TODO
-    }
-    
+    protected abstract void writeData(ResultData data, String bmId, String driverId, String testName, String runName);
+
+
     /**
      * Initializes the database
      */
     protected abstract void initializeDB();
-    
+
 }
