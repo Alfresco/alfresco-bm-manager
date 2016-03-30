@@ -1,4 +1,4 @@
-package org.alfresco.bm.result;
+package org.alfresco.bm.result.defs;
 
 /**
  * Object types in the result data service to collect data for.

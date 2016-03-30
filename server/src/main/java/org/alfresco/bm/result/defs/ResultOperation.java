@@ -1,4 +1,4 @@
-package org.alfresco.bm.result;
+package org.alfresco.bm.result.defs;
 
 /**
  * Benchmark result operation 

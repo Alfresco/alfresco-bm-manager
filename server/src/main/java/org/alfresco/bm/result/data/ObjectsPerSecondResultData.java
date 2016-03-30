@@ -1,6 +1,9 @@
-package org.alfresco.bm.result;
+package org.alfresco.bm.result.data;
 
 import org.alfresco.bm.exception.BenchmarkResultException;
+import org.alfresco.bm.result.defs.ResultObjectType;
+import org.alfresco.bm.result.defs.ResultOperation;
+import org.bson.Document;
 
 /**
  * Objects per second as benchmark result data
@@ -18,7 +21,7 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
 
     /** Constructor */
     public ObjectsPerSecondResultData(double objectsPerSecond,
-            ResultObjectType objectType, String description, ResultOperation resultOperation)
+            ResultObjectType objectType, Document description, ResultOperation resultOperation)
             throws BenchmarkResultException
     {
         super(description, resultOperation);
@@ -102,10 +105,10 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
                     "Data objects must have the same descriptive type!");
         }
         if (data1.getResultOperation() != data2.getResultOperation())
-		{
-			throw new BenchmarkResultException(
-					"Data objects must have the same result operation type!");
-		}
+        {
+            throw new BenchmarkResultException(
+                    "Data objects must have the same result operation type!");
+        }
 
         double value = (data1.getObjectsPerSecond()
                 + data2.getObjectsPerSecond()) / 2;
@@ -114,13 +117,12 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
     }
 
     @Override
-    public String toJSON()
+    public Document toDocumentBSON()
     {
-        return "ObjectsPerSecondResultData [objectsPerSecond="
-                + this.objectsPerSecond
-                + ", objectType="
-                + this.objectType
-                + ", description="
-                + getDescription() + "]";
+        Document doc = getDocumentBSON()
+                .append("objectsPerSecond", this.objectsPerSecond)
+                .append("objectType", this.objectType);
+
+        return doc;
     }
 }

@@ -1,6 +1,8 @@
-package org.alfresco.bm.result;
+package org.alfresco.bm.result.data;
 
 import org.alfresco.bm.exception.BenchmarkResultException;
+import org.alfresco.bm.result.defs.ResultOperation;
+import org.bson.Document;
 
 /**
  * Runtime data result object
@@ -15,7 +17,7 @@ public class RuntimeResultData extends AbstractResultData
 
     private long runtimeTicks;
 
-    public RuntimeResultData(long runtime, String description, ResultOperation resultOperation)
+    public RuntimeResultData(long runtime, Document description, ResultOperation resultOperation)
             throws BenchmarkResultException
     {
         super(description, resultOperation);
@@ -82,9 +84,11 @@ public class RuntimeResultData extends AbstractResultData
     }
 
     @Override
-    public String toJSON()
+    public Document toDocumentBSON()
     {
-        return "RuntimeResultData [runtimeTicks=" + this.runtimeTicks
-                + ", description=" + getDescription() + "]";
+        Document doc = getDocumentBSON()
+                .append("runtimeTicks", this.runtimeTicks);
+
+        return doc;
     }
 }

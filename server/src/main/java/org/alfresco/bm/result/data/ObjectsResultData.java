@@ -1,6 +1,9 @@
-package org.alfresco.bm.result;
+package org.alfresco.bm.result.data;
 
 import org.alfresco.bm.exception.BenchmarkResultException;
+import org.alfresco.bm.result.defs.ResultObjectType;
+import org.alfresco.bm.result.defs.ResultOperation;
+import org.bson.Document;
 
 /**
  * Number of objects result data object
@@ -26,7 +29,7 @@ public class ObjectsResultData extends AbstractResultData {
 	 *            descriptive field (JSON)
 	 */
 	public ObjectsResultData(long count, ResultObjectType objectType,
-			String description, ResultOperation resultOp)
+			Document description, ResultOperation resultOp)
 			throws BenchmarkResultException {
 		super(description, resultOp);
 		setObjectType(objectType);
@@ -112,11 +115,12 @@ public class ObjectsResultData extends AbstractResultData {
 	}
 
 	@Override
-	public String toJSON() {
-		return "ObjectsResultData [numberOfObjects=" + this.numberOfObjects
-				+ ", objectType=" + this.objectType + ", description="
-				+ getDescription() + "]";
-	}
+    public Document toDocumentBSON()
+    {
+        Document doc = getDocumentBSON()
+                .append("numberOfObjects", this.numberOfObjects)
+                .append("objectType", this.objectType);
 
-	
+        return doc;
+    }
 }

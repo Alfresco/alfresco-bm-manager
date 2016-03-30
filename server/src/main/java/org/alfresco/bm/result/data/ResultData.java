@@ -1,6 +1,9 @@
-package org.alfresco.bm.result;
+package org.alfresco.bm.result.data;
 
 import java.io.Serializable;
+
+import org.alfresco.bm.result.defs.ResultOperation;
+import org.bson.Document;
 
 /**
  * Benchmark result data to serialize/de-serialize to/from MongoDB
@@ -10,14 +13,14 @@ import java.io.Serializable;
  */
 public interface ResultData extends Serializable
 {
-    /** gets the JSON description field */
-    String getDescription();
+    /** gets the BSON description field */
+    Document getDescription();
     
-    /** sets the JSON description field */
-    void setDescription(String description);
+    /** sets the BSON description field */
+    void setDescription(Document description);
     
-    /** conversion to JSON string */
-    String toJSON();
+    /** conversion to BSON document */
+    Document toDocumentBSON();
     
     /** gets the operation result */
     ResultOperation getResultOperation();
