@@ -1,5 +1,8 @@
 package org.alfresco.bm.event.mongo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.AbstractResultDataService;
 import org.alfresco.bm.result.data.ResultData;
@@ -164,18 +167,16 @@ public class MongoResultDataService extends AbstractResultDataService
     }
 
     @Override
-    protected void writeData(ResultData data, String bmId, String driverId, String testName, String runName)
+    protected void writeData(ResultData data, String bmId, String driverId, String runName)
     {
         Document writeDoc = data.toDocumentBSON()
                 .append(FIELD_BM_ID, bmId)
                 .append(FIELD_DRIVER_ID, driverId)
-                .append(FIELD_TEST_NAME, testName)
                 .append(FIELD_TEST_RUN_NAME, runName)
                 .append(FIELD_TIMESTAMP, System.currentTimeMillis());
 
         Document queryDoc = new Document(FIELD_BM_ID, bmId)
                 .append(FIELD_DRIVER_ID, driverId)
-                .append(FIELD_TEST_NAME, testName)
                 .append(FIELD_TEST_RUN_NAME, runName);
         // makes query unique
         data.appendQuery(queryDoc);
@@ -186,5 +187,19 @@ public class MongoResultDataService extends AbstractResultDataService
 
         // do update (insert) 
         this.colResults.updateOne(queryDoc, writeDoc, updateOption);
+    }
+
+    @Override
+    protected List<ResultData> readData(Document queryDoc) throws BenchmarkResultException
+    {        
+        List<ResultData>list = new ArrayList<ResultData>();
+        
+        for (final Document doc : this.colResults.find(queryDoc))
+        {
+            ResultData data = ResultData.create(doc);
+            list.add(data);
+        }
+        
+        return list;
     }
 }

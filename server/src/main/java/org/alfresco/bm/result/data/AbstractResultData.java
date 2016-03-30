@@ -94,7 +94,7 @@ public abstract class AbstractResultData implements ResultData
         queryDoc.append(FIELD_RESULT_OP, this.resultOperation)
                 .append(FIELD_DESCRIPTION, this.description)
                 .append(FIELD_DATA_TYPE, getDataType());
-
+        appendQueryParams(queryDoc);
     }
 
     /** appends the class-specific query params */

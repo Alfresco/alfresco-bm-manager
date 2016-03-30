@@ -1,8 +1,12 @@
 package org.alfresco.bm.result;
 
+import java.util.List;
+
 import org.alfresco.bm.exception.BenchmarkResultException;
+import org.alfresco.bm.result.data.ResultData;
 import org.alfresco.bm.result.defs.ResultObjectType;
 import org.alfresco.bm.result.defs.ResultOperation;
+import org.bson.Document;
 
 /**
  * Benchmark result data service.
@@ -49,8 +53,8 @@ public interface ResultDataService
      *        (int, > 0) number of objects affected
      * @param durationMs
      *        (long, > 0) duration of operation in [ms]
-     * @param JSONDescription
-     *        (String, optional) JSON description data field for result data
+     * @param bsonDescription
+     *        (BSON Document, optional) description data field for result data
      */
     void notifyData(
             String bmId,
@@ -60,7 +64,20 @@ public interface ResultDataService
             ResultOperation operation,
             int numberOfObjects,
             long durationMs,
-            String JSONDescription);
+            Document bsonDescription) throws BenchmarkResultException;
+
+    /**
+     * Query persisted results
+     * 
+     * @param queryDoc
+     *        (BSON Document, mandatory) the query key/value pairs
+     * @param compress
+     *        (boolean) if true the results from different drivers will be
+     *        compressed to one "final" ResulData object
+     * 
+     * @return (List<ResultData>) Collection of result data
+     */
+    List<ResultData> queryData(Document queryDoc, boolean compress) throws BenchmarkResultException;
 
     /**
      * Gets a benchmark ID for V2 of the benchmarks.
@@ -85,4 +102,9 @@ public interface ResultDataService
      * @throws BenchmarkResultException
      */
     String getBenchmarkIdV2(String testName, String release, Integer schema) throws BenchmarkResultException;
+    
+    /**
+     * Clears the cached values from memory. 
+     */
+    void flushCache();
 }
