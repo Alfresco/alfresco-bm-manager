@@ -42,6 +42,8 @@ public interface ResultDataService
      *        data
      * @param driverId
      *        (String, mandatory) Driver ID that created the result data
+     * @param testName
+     *        (String, mandatory) test name
      * @param testRunName
      *        (String, mandatory) Test run name that created the result data
      * @param objectType
@@ -59,6 +61,7 @@ public interface ResultDataService
     void notifyData(
             String bmId,
             String driverId,
+            String testName,
             String testRunName,
             ResultObjectType objectType,
             ResultOperation operation,
@@ -102,9 +105,9 @@ public interface ResultDataService
      * @throws BenchmarkResultException
      */
     String getBenchmarkIdV2(String testName, String release, Integer schema) throws BenchmarkResultException;
-    
+
     /**
-     * Clears the cached values from memory. 
+     * Clears the cached values from memory.
      */
     void flushCache();
 }

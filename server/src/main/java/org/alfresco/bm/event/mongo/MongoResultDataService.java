@@ -5,9 +5,14 @@ import java.util.List;
 
 import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.AbstractResultDataService;
+import org.alfresco.bm.result.data.ObjectsPerSecondResultData;
+import org.alfresco.bm.result.data.ObjectsResultData;
 import org.alfresco.bm.result.data.ResultData;
+import org.alfresco.bm.result.data.RuntimeResultData;
 import org.alfresco.bm.result.defs.BenchmarkV2DataFields;
 import org.alfresco.bm.result.defs.ResultDBDataFields;
+import org.alfresco.bm.result.defs.ResultObjectType;
+import org.alfresco.bm.result.defs.ResultOperation;
 import org.alfresco.bm.util.ArgumentCheck;
 
 import org.bson.Document;
@@ -167,16 +172,18 @@ public class MongoResultDataService extends AbstractResultDataService
     }
 
     @Override
-    protected void writeData(ResultData data, String bmId, String driverId, String runName)
+    protected void writeData(ResultData data, String bmId, String driverId, String testName, String runName)
     {
         Document writeDoc = data.toDocumentBSON()
                 .append(FIELD_BM_ID, bmId)
                 .append(FIELD_DRIVER_ID, driverId)
+                .append(FIELD_TEST_NAME, testName)
                 .append(FIELD_TEST_RUN_NAME, runName)
                 .append(FIELD_TIMESTAMP, System.currentTimeMillis());
 
         Document queryDoc = new Document(FIELD_BM_ID, bmId)
                 .append(FIELD_DRIVER_ID, driverId)
+                .append(FIELD_TEST_NAME, testName)
                 .append(FIELD_TEST_RUN_NAME, runName);
         // makes query unique
         data.appendQuery(queryDoc);
@@ -190,8 +197,13 @@ public class MongoResultDataService extends AbstractResultDataService
     }
 
     @Override
-    protected List<ResultData> readData(Document queryDoc) throws BenchmarkResultException
-    {        
+    protected List<ResultData> readData(Document queryDoc, boolean compress) throws BenchmarkResultException
+    { 
+        if (compress)
+        {
+            throw new BenchmarkResultException("Compression currently not implemented!");
+        }
+        
         List<ResultData>list = new ArrayList<ResultData>();
         
         for (final Document doc : this.colResults.find(queryDoc))
@@ -201,5 +213,52 @@ public class MongoResultDataService extends AbstractResultDataService
         }
         
         return list;
+    }
+
+    @Override
+    protected ResultData readData(String bmId, String driverId, String testName, String testRunName,
+            ResultObjectType objectType, ResultOperation operation, Document bsonDesc, String dataType)
+            throws BenchmarkResultException
+    {
+        // create query document 
+        Document queryDoc = new Document(FIELD_BM_ID, bmId)
+                .append(FIELD_DRIVER_ID, driverId)
+                .append(FIELD_TEST_NAME, testName)
+                .append(FIELD_TEST_RUN_NAME, testRunName)
+                .append(ResultData.FIELD_DATA_TYPE, dataType)
+                .append(ResultData.FIELD_DESCRIPTION, bsonDesc)
+                .append(ResultData.FIELD_RESULT_OP, operation.toString());
+        switch(dataType)
+        {
+            case ObjectsPerSecondResultData.DATA_TYPE:
+            case ObjectsResultData.DATA_TYPE:
+                queryDoc.append(ObjectsPerSecondResultData.FIELD_OBJECT_TYPE, objectType.toString());
+                break;
+                
+            case RuntimeResultData.DATA_TYPE:
+                // nothing to do 
+                break;
+                
+            default:
+                throw new BenchmarkResultException("Unknown ResultData type '" + dataType + "'!");
+        }
+        
+        // execute query 
+        List<ResultData>list = readData(queryDoc, false);
+        
+        // if unique return result
+        if (list.size() == 1)
+        {
+            return list.get(0);
+        }
+        
+        // if not unique throw exception
+        if (list.size() > 1)
+        {
+            throw new BenchmarkResultException("Query returned more than one result ... Query document '" + queryDoc.toJson() + "'.");
+        }
+        
+        // no result - return null
+        return null;
     }
 }

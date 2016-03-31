@@ -8,7 +8,6 @@ import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.data.ObjectsPerSecondResultData;
 import org.alfresco.bm.result.data.ObjectsResultData;
 import org.alfresco.bm.result.data.ResultData;
-import org.alfresco.bm.result.data.ResultDataCache;
 import org.alfresco.bm.result.data.RuntimeResultData;
 import org.alfresco.bm.result.defs.ResultObjectType;
 import org.alfresco.bm.result.defs.ResultOperation;
@@ -30,7 +29,9 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
     protected Log logger = LogFactory.getLog(this.getClass());
 
     /** cache: ResultData */
-    private Map<String, ResultDataCache> cacheResultData = new HashMap<String, ResultDataCache>();
+    private Map<String, ObjectsPerSecondResultData> cacheObjPerSec = new HashMap<String, ObjectsPerSecondResultData>();
+    private Map<String, ObjectsResultData> cacheObjRes = new HashMap<String, ObjectsResultData>();
+    private Map<String, RuntimeResultData> cacheRt = new HashMap<String, RuntimeResultData>();
 
     @Override
     public void start() throws Exception
@@ -48,139 +49,138 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
     public synchronized void notifyData(
             String bmId,
             String driverId,
+            String testName,
             String testRunName,
             ResultObjectType objectType,
             ResultOperation operation,
             int numberOfObjects,
             long durationMs,
-            Document bsonDescription) throws BenchmarkResultException
+            Document bsonDesc) throws BenchmarkResultException
     {
         ArgumentCheck.checkMandatoryString(bmId, "bmId");
         ArgumentCheck.checkMandatoryString(driverId, "driverId");
+        ArgumentCheck.checkMandatoryString(testName, "testName");
         ArgumentCheck.checkMandatoryString(testRunName, "testRunName");
-
-        String key = bmId + "-"
-                + driverId + "-"
-                + testRunName + "-"
-                + objectType.toString() + "-"
-                + operation.toString();
-        if (null != bsonDescription)
+        if (numberOfObjects < 1 || durationMs < 1)
         {
-            key += "-" + bsonDescription.toJson();
+            throw new IllegalArgumentException("'numberOfObjects' and 'durationMs' must be positive!");
         }
 
-        double objectsPerSecond = (double) numberOfObjects / ((double) durationMs / Double.valueOf(1000.0));
-
-        // create initial ResultDataCache object
-        ObjectsPerSecondResultData ops = new ObjectsPerSecondResultData(objectsPerSecond, objectType, bsonDescription,
-                operation);
-        ObjectsResultData obj = new ObjectsResultData(numberOfObjects, objectType, bsonDescription, operation);
-        RuntimeResultData rt = new RuntimeResultData(durationMs, bsonDescription, operation);
-        ResultDataCache cacheObj = new ResultDataCache(ops, obj, rt);
-
-        // check if object exists in cache
-        if (this.cacheResultData.containsKey(key))
+        String keyRT = bmId + "-"
+                + driverId + "-"
+                + testRunName + "-"
+                + operation.toString();
+        String keyORS = keyRT
+                + "-" + objectType.toString();
+        if (null != bsonDesc)
         {
-            ResultDataCache cachedObj = this.cacheResultData.get(key);
-            cachedObj.combine(cacheObj);
-            cacheObj = cachedObj;
+            keyRT += "-" + bsonDesc.toJson();
+            keyORS += "-" + bsonDesc.toJson();
+        }
+
+        double objPerSecond = (double) numberOfObjects / ((double) durationMs / Double.valueOf(1000.0));
+
+        // create initial ResultData objects
+        ObjectsPerSecondResultData ops = new ObjectsPerSecondResultData(objPerSecond, objectType, bsonDesc, operation);
+        ObjectsResultData obj = new ObjectsResultData(numberOfObjects, objectType, bsonDesc, operation);
+        RuntimeResultData rt = new RuntimeResultData(durationMs, bsonDesc, operation);
+        // create a RTAll object if operation != None
+        RuntimeResultData rtAll = null;
+        if (operation != ResultOperation.None)
+        {
+            rtAll = new RuntimeResultData(durationMs, bsonDesc, ResultOperation.None);
+        }
+        // check if object exists in cache
+        if (this.cacheObjPerSec.containsKey(keyORS))
+        {
+            ObjectsPerSecondResultData cacheOps = this.cacheObjPerSec.get(keyORS);
+            ops = ObjectsPerSecondResultData.combine(cacheOps, ops);
+            this.cacheObjPerSec.replace(keyORS, ops);
         }
         else
         {
-            ResultDataCache cachedObj = queryResultDataCache(bmId, driverId, testRunName, objectType, operation,
-                    bsonDescription);
-            cacheObj.combine(cachedObj);
-            this.cacheResultData.put(key, cacheObj);
-        }
-
-        // persist data
-        writeData(cacheObj.getObjectsPerSecondResultData(), bmId, driverId, testRunName);
-        writeData(cacheObj.getObjectsResultData(), bmId, driverId, testRunName);
-        writeData(cacheObj.getRuntimeResultData(), bmId, driverId, testRunName);
-    }
-
-    /**
-     * Try to get object to cache from persisted data
-     * 
-     * @param bmId
-     *        (String, mandatory) Benchmark ID executed to create the result
-     *        data
-     * @param driverId
-     *        (String, mandatory) Driver ID that created the result data
-     * @param testRunName
-     *        (String, mandatory) Test run name that created the result data
-     * @param objectType
-     *        (ResultObjectType, mandatory) type of objects affected
-     * @param operation
-     *        (ResultOperation, mandatory) operation executed with the object
-     *        type
-     * @param bsonDescription
-     *        (BSON Document, optional) description data field for result data
-     * 
-     * @return (ResultDataCache or null)
-     * 
-     * @throws BenchmarkResultException
-     */
-    private ResultDataCache queryResultDataCache(
-            String bmId,
-            String driverId,
-            String testRunName,
-            ResultObjectType objectType,
-            ResultOperation operation,
-            Document bsonDescription) throws BenchmarkResultException
-    {
-        Document queryDoc = new Document();
-        List<ResultData> list = readData(queryDoc);
-        if (!list.isEmpty())
-        {
-            if (list.size() == 3)
+            // query persisted data and store to cache
+            ResultData res = readData(bmId, driverId, testName, testRunName, objectType, operation, bsonDesc, ObjectsPerSecondResultData.DATA_TYPE);
+            if (null != res)
             {
-                ObjectsPerSecondResultData ops = null;
-                ObjectsResultData obj = null;
-                RuntimeResultData rt = null;
-                for (final ResultData data : list)
-                {
-                    switch (data.getDataType())
-                    {
-                        case ObjectsPerSecondResultData.DATA_TYPE:
-                            ops = (ObjectsPerSecondResultData)data;
-                            break;
-                            
-                        case ObjectsResultData.DATA_TYPE:
-                            obj = (ObjectsResultData)data;
-                            break;
-
-                        case RuntimeResultData.DATA_TYPE:
-                            rt = (RuntimeResultData)data;
-                            break;
-                        default:
-                            throw new BenchmarkResultException("Unknown data type '" + data.getDataType() + "'.");
-                    }
-                }
-                
-                return new ResultDataCache(ops, obj, rt);
+                ops = ObjectsPerSecondResultData.combine((ObjectsPerSecondResultData)res, ops);
+            }
+            this.cacheObjPerSec.put(keyORS, ops);
+        }
+        if (this.cacheObjRes.containsKey(keyORS))
+        {
+            ObjectsResultData cacheObj = this.cacheObjRes.get(keyORS);
+            obj = ObjectsResultData.combine(obj, cacheObj);
+            this.cacheObjRes.replace(keyORS, obj);
+        }
+        else
+        {
+            // query persisted data and store to cache
+            ResultData res = readData(bmId, driverId, testName, testRunName, objectType, operation, bsonDesc, ObjectsResultData.DATA_TYPE);
+            if (null != res)
+            {
+                obj = ObjectsResultData.combine((ObjectsResultData)res, obj);
+            }
+            this.cacheObjRes.put(keyORS, obj);
+        }
+        if (this.cacheRt.containsKey(keyRT))
+        {
+            RuntimeResultData cacheRt = this.cacheRt.get(keyRT);
+            rt = RuntimeResultData.combine(cacheRt, rt);
+            this.cacheRt.replace(keyRT, rt);
+        }
+        else
+        {
+            // query persisted data and store to cache
+            ResultData res = readData(bmId, driverId, testName, testRunName, objectType, operation, bsonDesc, RuntimeResultData.DATA_TYPE);
+            if (null != res)
+            {
+                rt = RuntimeResultData.combine((RuntimeResultData)res, rt);
+            }
+            this.cacheRt.put(keyRT, rt);
+        }
+        if (null != rtAll)
+        {
+            String keyRtAll = bmId + "-"
+                    + driverId + "-"
+                    + testRunName + "-"
+                    + ResultOperation.None.toString();
+            if (null != bsonDesc)
+            {
+                keyRtAll += "-" + bsonDesc.toJson();
+            }
+            if (this.cacheRt.containsKey(keyRtAll))
+            {
+                RuntimeResultData cacheRt = this.cacheRt.get(keyRtAll);
+                rtAll = RuntimeResultData.combine(cacheRt, rtAll);
+                this.cacheRt.replace(keyRtAll, rtAll);
             }
             else
             {
-                throw new BenchmarkResultException("Query '"
-                        + queryDoc.toJson()
-                        + "' returned "
-                        + list.size()
-                        + " ResultData objects - expected 3 results!");
+                // query persisted data and store to cache
+                ResultData res = readData(bmId, driverId, testName, testRunName, objectType, ResultOperation.None, bsonDesc, RuntimeResultData.DATA_TYPE);
+                if (null != res)
+                {
+                    rtAll = RuntimeResultData.combine((RuntimeResultData)res, rtAll);
+                }
+                this.cacheRt.put(keyRtAll, rtAll);
             }
         }
-        return null;
+
+        // persist data
+        writeData(ops, bmId, driverId, testName, testRunName);
+        writeData(obj, bmId, driverId, testName, testRunName);
+        writeData(rt, bmId, driverId, testName, testRunName);
+        if (null != rtAll)
+        {
+            writeData(rtAll, bmId, driverId, testName, testRunName);
+        }
     }
 
     @Override
     public List<ResultData> queryData(Document queryDoc, boolean compress) throws BenchmarkResultException
     {
-        // TODO compression
-        if (compress)
-        {
-            throw new BenchmarkResultException("Compression currently not implemented!");
-        }
-        return readData(queryDoc);
+        return readData(queryDoc, compress);
     }
 
     /**
@@ -192,10 +192,12 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
      *        (String, mandatory) benchmark ID
      * @param driverId
      *        (String, mandatory) driver ID
+     * @param testName
+     *        (String, mandatory) test name
      * @param runName
      *        (String, mandatory) test run name
      */
-    protected abstract void writeData(ResultData data, String bmId, String driverId, String runName);
+    protected abstract void writeData(ResultData data, String bmId, String driverId, String testName, String runName);
 
     /**
      * reads persisted ResultData
@@ -203,11 +205,50 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
      * @param queryDoc
      *        (BSON Document, mandatory)
      * 
+     * @param compress
+     *        (boolean) if true the results from different drivers will be
+     *        compressed to one "final" ResulData object
+     * 
      * @return List<ResultData>
      * 
      * @throws BenchmarkResultException
      */
-    protected abstract List<ResultData> readData(Document queryDoc) throws BenchmarkResultException;
+    protected abstract List<ResultData> readData(Document queryDoc, boolean compression)
+            throws BenchmarkResultException;
+
+    /**
+     * Reads persisted data
+     * 
+     * @param bmId
+     *        (String, mandatory) benchmark ID
+     * @param driverId
+     *        (String, mandatory) driver ID
+     * @param testName
+     *        (String, mandatory) test name
+     * @param testRunName
+     *        (String, mandatory) test run name
+     * @param objectType
+     *        (ResultObjectType) object type
+     * @param operation
+     *        (ResultOperation) result operation
+     * @param bsonDesc
+     *        (BSON Document, optional)
+     * @param dataType
+     *        (String, mandatory) type of ResultData to return
+     *        
+     * @return (ResultData) or null if no entry
+     * 
+     * @throws BenchmarkResultException
+     *         if entry not unique
+     */
+    protected abstract ResultData readData(String bmId,
+            String driverId,
+            String testName,
+            String testRunName,
+            ResultObjectType objectType,
+            ResultOperation operation,
+            Document bsonDesc,
+            String dataType) throws BenchmarkResultException;
 
     /**
      * Initializes the database
@@ -217,6 +258,8 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
     @Override
     public void flushCache()
     {
-        cacheResultData = new HashMap<String, ResultDataCache>();
+        this.cacheObjPerSec = new HashMap<String, ObjectsPerSecondResultData>();
+        this.cacheObjRes = new HashMap<String, ObjectsResultData>();
+        this.cacheRt = new HashMap<String, RuntimeResultData>();
     }
 }
