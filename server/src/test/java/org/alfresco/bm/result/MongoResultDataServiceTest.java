@@ -1,12 +1,21 @@
 package org.alfresco.bm.result;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.alfresco.bm.event.mongo.Mongo3Helper;
 import org.alfresco.bm.event.mongo.MongoResultDataService;
 import org.alfresco.bm.exception.BenchmarkResultException;
+import org.alfresco.bm.result.data.ObjectsPerSecondResultData;
+import org.alfresco.bm.result.data.ObjectsResultData;
+import org.alfresco.bm.result.data.ResultData;
+import org.alfresco.bm.result.data.RuntimeResultData;
+import org.alfresco.bm.result.defs.ResultObjectType;
+import org.alfresco.bm.result.defs.ResultOperation;
 import org.alfresco.mongo.MongoDatabaseForTestsFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -115,5 +124,75 @@ public class MongoResultDataServiceTest
                 .append(MongoResultDataService.FIELD_V2_RELEASE, FIELD_VALUE_RELEASE)
                 .append(MongoResultDataService.FIELD_V2_SCHEMA, FIELD_VALUE_SCHEMA);
         return doc;
+    }
+    
+    @Test
+    public void testStoreData() throws BenchmarkResultException
+    {
+        String bmId = "test-bm-id";
+        String driverId = "test-driver-id";
+        String testName = "test-test-name";
+        String testRunName = "test-test-run-name";
+        ResultObjectType objectType = ResultObjectType.Document;
+        ResultOperation operation = ResultOperation.Created;
+        int numberOfObjects = 1;
+        long durationMs = 10;
+        Document bsonDesc = null;
+        
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        
+        // should now contain 10 objects / documents created 
+        // should have 100 documents/second 
+        // should have 100ms runtime in all and 100ms runtime with created objects
+        
+        // query document ...
+        Document queryDoc = new Document(MongoResultDataService.FIELD_BM_ID, bmId);
+        
+        List<ResultData>results = this.service.queryData(queryDoc, false);
+        assertEquals(4, results.size());
+        
+        for(final ResultData data : results)
+        {
+            switch (data.getDataType())
+            {
+                case ObjectsPerSecondResultData.DATA_TYPE:
+                    ObjectsPerSecondResultData ops = (ObjectsPerSecondResultData)data;
+                    assertEquals(100.0, ops.getObjectsPerSecond(),0.0);
+                    assertEquals(ResultObjectType.Document, ops.getObjectType());
+                    assertEquals(ResultOperation.Created, ops.getResultOperation());
+                    assertEquals(null, ops.getDescription());
+                    break;
+
+                case ObjectsResultData.DATA_TYPE:
+                    ObjectsResultData obj = (ObjectsResultData)data;
+                    assertEquals(10, obj.getNumberOfObjects());
+                    assertEquals(ResultObjectType.Document, obj.getObjectType());
+                    assertEquals(ResultOperation.Created, obj.getResultOperation());
+                    assertEquals(null, obj.getDescription());
+                    break;
+                    
+                case RuntimeResultData.DATA_TYPE:
+                    RuntimeResultData rt = (RuntimeResultData)data;
+                    assertEquals(100, rt.getRuntimeTicks());
+                    assertEquals(null, rt.getDescription());
+                    if (rt.getResultOperation() != ResultOperation.None)
+                    {
+                        // must be created than
+                        assertEquals(ResultOperation.Created, rt.getResultOperation());
+                    }
+                    break;
+                default:
+                    throw new BenchmarkResultException("Unknown data type '" + data.getDataType() + "'!");
+            }
+        }
     }
 }

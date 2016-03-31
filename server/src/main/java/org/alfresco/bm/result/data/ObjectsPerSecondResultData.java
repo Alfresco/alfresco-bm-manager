@@ -113,7 +113,7 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
             throw new BenchmarkResultException(
                     "Data objects must have the same object type!");
         }
-        if (!data1.getDescription().equals(data2.getDescription()))
+        if (null != data1.getDescription() && !data1.getDescription().equals(data2.getDescription()))
         {
             throw new BenchmarkResultException(
                     "Data objects must have the same descriptive type!");
@@ -149,6 +149,6 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
     @Override
     protected void appendQueryParams(Document queryDoc)
     {
-        queryDoc.append(FIELD_OBJECT_TYPE, this.objectType);
+        queryDoc.append(FIELD_OBJECT_TYPE, this.objectType.toString());
     }
 }

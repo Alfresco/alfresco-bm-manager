@@ -78,7 +78,7 @@ public final class RuntimeResultData extends AbstractResultData
         {
             throw new BenchmarkResultException("Data objects are mandatory!");
         }
-        if (!data1.getDescription().equals(data2.getDescription()))
+        if (null != data1.getDescription() && !data1.getDescription().equals(data2.getDescription()))
         {
             throw new BenchmarkResultException(
                     "Data objects must have the same descriptive type!");

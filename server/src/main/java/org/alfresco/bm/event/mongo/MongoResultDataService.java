@@ -172,7 +172,7 @@ public class MongoResultDataService extends AbstractResultDataService
     }
 
     @Override
-    protected void writeData(ResultData data, String bmId, String driverId, String testName, String runName)
+    protected void writeData(ResultData data, String bmId, String driverId, String testName, String runName) throws BenchmarkResultException
     {
         Document writeDoc = data.toDocumentBSON()
                 .append(FIELD_BM_ID, bmId)
@@ -192,8 +192,22 @@ public class MongoResultDataService extends AbstractResultDataService
         UpdateOptions updateOption = new UpdateOptions();
         updateOption.upsert(true);
 
-        // do update (insert) 
-        this.colResults.updateOne(queryDoc, writeDoc, updateOption);
+        // DEBUG ----->>>>> TODO remove 
+        logger.debug("Query Document: '" + queryDoc.toJson() + "'.");
+        logger.debug("Upsert Document: '" + writeDoc.toJson() + "'.");
+        
+        // do update (insert)
+        long num = this.colResults.count(queryDoc);
+        if (num > 1)
+        {
+            throw new BenchmarkResultException("Query is not unique, returned " + num + " records. Query: '" + queryDoc.toJson() + "'.");
+        }
+        else if (num == 1)
+        {
+            this.colResults.deleteOne(queryDoc);
+        }
+        
+        this.colResults.insertOne(writeDoc);        
     }
 
     @Override

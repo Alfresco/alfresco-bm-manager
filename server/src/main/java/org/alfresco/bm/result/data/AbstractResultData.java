@@ -91,7 +91,7 @@ public abstract class AbstractResultData implements ResultData
     public void appendQuery(Document queryDoc)
     {
         ArgumentCheck.checkMandatoryObject(queryDoc, "queryDoc");
-        queryDoc.append(FIELD_RESULT_OP, this.resultOperation)
+        queryDoc.append(FIELD_RESULT_OP, this.resultOperation.toString())
                 .append(FIELD_DESCRIPTION, this.description)
                 .append(FIELD_DATA_TYPE, getDataType());
         appendQueryParams(queryDoc);

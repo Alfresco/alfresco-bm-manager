@@ -57,7 +57,6 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
             long durationMs,
             Document bsonDesc) throws BenchmarkResultException
     {
-        ArgumentCheck.checkMandatoryString(bmId, "bmId");
         ArgumentCheck.checkMandatoryString(driverId, "driverId");
         ArgumentCheck.checkMandatoryString(testName, "testName");
         ArgumentCheck.checkMandatoryString(testRunName, "testRunName");
@@ -197,7 +196,7 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
      * @param runName
      *        (String, mandatory) test run name
      */
-    protected abstract void writeData(ResultData data, String bmId, String driverId, String testName, String runName);
+    protected abstract void writeData(ResultData data, String bmId, String driverId, String testName, String runName) throws BenchmarkResultException;
 
     /**
      * reads persisted ResultData

@@ -131,7 +131,7 @@ public final class ObjectsResultData extends AbstractResultData
         {
             throw new BenchmarkResultException("Data object types must match!");
         }
-        if (!data1.getDescription().equals(data2.getDescription()))
+        if (null != data1.getDescription() && !data1.getDescription().equals(data2.getDescription()))
         {
             throw new BenchmarkResultException(
                     "Data objects must have the same descriptive type!");
