@@ -22,7 +22,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.UpdateOptions;
 
 /**
  * MongoDB specific implementation of the result data service.
@@ -191,15 +190,7 @@ public class MongoResultDataService extends AbstractResultDataService
         // makes query unique
         data.appendQuery(queryDoc);
         
-        // insert of not exists
-        UpdateOptions updateOption = new UpdateOptions();
-        updateOption.upsert(true);
-
-        // DEBUG ----->>>>> TODO remove 
-        logger.debug("Query Document: '" + queryDoc.toJson() + "'.");
-        logger.debug("Upsert Document: '" + writeDoc.toJson() + "'.");
-        
-        // do update (insert)
+        // persist data to mongo 
         long num = this.colResults.count(queryDoc);
         if (num > 1)
         {
