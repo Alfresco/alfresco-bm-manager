@@ -12,5 +12,6 @@ public enum ResultOperation
     Created,
     Deleted,
     Updated,
-    Unchanged
+    Unchanged,
+    Failed
 }

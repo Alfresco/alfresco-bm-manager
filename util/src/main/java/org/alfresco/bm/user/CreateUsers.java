@@ -25,6 +25,7 @@ import org.alfresco.bm.data.DataCreationState;
 import org.alfresco.bm.event.AbstractEventProcessor;
 import org.alfresco.bm.event.Event;
 import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.util.ArgumentCheck;
 
 /**
  * <h1>Input</h1>
@@ -69,6 +70,8 @@ public class CreateUsers extends AbstractEventProcessor
      */
     public CreateUsers(UserDataService userDataService, long numberOfUsers)
     {
+        ArgumentCheck.checkMandatoryObject(userDataService, "userDataService");
+        
         this.userDataService = userDataService;
         this.numberOfUsers = numberOfUsers;
         
