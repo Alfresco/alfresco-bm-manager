@@ -83,6 +83,31 @@ public interface ResultDataService
     List<ResultData> queryData(Document queryDoc, boolean compress) throws BenchmarkResultException;
 
     /**
+     * Returns the Benchmark ID
+     * 
+     * @param platformId
+     *        (String) if both platformId and userId is null, V2 BM ID is
+     *        returned!
+     * @param userId
+     *        (String) if both platformId and userId is null, V2 BM ID is
+     *        returned!
+     * @param testName
+     *        (String, mandatory) name of the test
+     * @param testRunName
+     *        (String, mandatory) name of the test run
+     * @param release
+     *        (String, mandatory) test release name
+     * @param schema
+     *        (Integer) schema version number
+     * 
+     * @return Benchmark ID for V2 or V3 of the framework
+     * 
+     * @throws BenchmarkResultException
+     */
+    String getBenchmarkId(String platformId, String userId, String testName, String testRunName, String release,
+            Integer schema) throws BenchmarkResultException;
+
+    /**
      * Gets a benchmark ID for V2 of the benchmarks.
      * 
      * Note: the method will be called when a driver registers itself and needs

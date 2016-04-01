@@ -94,7 +94,10 @@ public class MongoResultDataService extends AbstractResultDataService
                 if (null != resultEx)
                 {
                     bmId = Mongo3Helper.objectIdToString(resultEx.getObjectId(FIELD_V2_BM_ID));
+                    return bmId;
                 }
+                // ... if not, re-throw exception
+                throw ex;
             }
             results = this.colDefs.find(query);
             result = results.first();

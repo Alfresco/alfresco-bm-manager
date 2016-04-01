@@ -181,6 +181,19 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
     {
         return readData(queryDoc, compress);
     }
+    
+    @Override
+    public String getBenchmarkId(
+            String platformId, 
+            String userId, 
+            String testName, 
+            String testRunName, 
+            String release,
+            Integer schema) throws BenchmarkResultException
+    {
+        // only V2 implemented, yet!
+        return getBenchmarkIdV2(testName, release, schema);
+    }
 
     /**
      * Persists the data

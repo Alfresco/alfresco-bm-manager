@@ -19,6 +19,8 @@
 package org.alfresco.bm.log;
 
 import org.alfresco.bm.log.LogService.LogLevel;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Concrete implementation of a log service that always logs data specific to a given drive-test-testrun combination.
@@ -31,7 +33,10 @@ import org.alfresco.bm.log.LogService.LogLevel;
  * @since 2.0.3
  */
 public class TestRunLogService
-{
+{ 
+    /** logger */
+    protected Log logger = LogFactory.getLog(TestRunLogService.class);
+    
     /** Stores the log service to use */
     private final LogService logService;
     
@@ -60,6 +65,11 @@ public class TestRunLogService
         this.driverId = driverId;
         this.test = test;
         this.testRun = testRun;
+        
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("DriverId: '" + driverId + "', Test Name: '" + test + ", Test Run Name: '" + testRun + "'.");
+        }
     }
 
     /**
