@@ -16,10 +16,10 @@ import org.bson.Document;
  * @author Frank Becker
  * @since 2.1.2
  */
-public class TestRunServices
+public class TestRunService
 {
     /** logger */
-    protected Log logger = LogFactory.getLog(TestRunServices.class);
+    protected Log logger = LogFactory.getLog(TestRunService.class);
     
     /** Stores the log service */
     private final LogService logService;
@@ -52,7 +52,7 @@ public class TestRunServices
      * 
      * @throws BenchmarkResultException
      */
-    public TestRunServices(
+    public TestRunService(
             LogService logService, 
             ResultDataService resultDataService,
             String driverId,

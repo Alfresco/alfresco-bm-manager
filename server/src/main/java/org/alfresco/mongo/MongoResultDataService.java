@@ -1,8 +1,9 @@
-package org.alfresco.bm.event.mongo;
+package org.alfresco.mongo;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.alfresco.bm.event.mongo.Mongo3Helper;
 import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.AbstractResultDataService;
 import org.alfresco.bm.result.data.ObjectsPerSecondResultData;

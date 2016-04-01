@@ -31,7 +31,7 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author Derek Hulley
  * @since 2.0.3
- * @deprecated Use {@link org.alfresco.bm.test.TestRunServices} instead
+ * @deprecated Use {@link org.alfresco.bm.test.TestRunService} instead
  */
 @Deprecated
 public class TestRunLogService

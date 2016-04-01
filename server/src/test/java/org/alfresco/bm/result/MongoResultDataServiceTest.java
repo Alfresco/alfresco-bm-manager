@@ -8,7 +8,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.alfresco.bm.event.mongo.Mongo3Helper;
-import org.alfresco.bm.event.mongo.MongoResultDataService;
 import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.data.ObjectsPerSecondResultData;
 import org.alfresco.bm.result.data.ObjectsResultData;
@@ -17,6 +16,7 @@ import org.alfresco.bm.result.data.RuntimeResultData;
 import org.alfresco.bm.result.defs.ResultObjectType;
 import org.alfresco.bm.result.defs.ResultOperation;
 import org.alfresco.mongo.MongoDatabaseForTestsFactory;
+import org.alfresco.mongo.MongoResultDataService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bson.Document;
