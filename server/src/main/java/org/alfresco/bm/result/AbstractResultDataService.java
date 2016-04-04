@@ -181,28 +181,10 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
     {
         return readData(queryDoc, compress);
     }
-    /*
+    
     @Override
-    public String getBenchmarkId(
-            String platformId, 
-            String userId, 
-            String testName, 
-            String testRunName, 
-            String release,
-            Integer schema) throws BenchmarkResultException
-    {
-        ArgumentCheck.checkMandatoryString(testName, "testName");
-        ArgumentCheck.checkMandatoryString(release, "release");
-        
-        // only V2 implemented, yet!
-        return getBenchmarkIdV2(testName, release, schema);
-    }
-
-    protected abstract String getBenchmarkIdV2(
-            String testName,
-            String release,
-            Integer schema) throws BenchmarkResultException;
-    */
+    public abstract List<Document> queryDocuments(Document queryDoc) throws BenchmarkResultException;
+    
     /**
      * Persists the data
      * 

@@ -19,10 +19,6 @@ public final class ObjectsResultData extends AbstractResultData
     /** data type */
     public static final String DATA_TYPE = "OBJ";
 
-    /** field names */
-    public static final String FIELD_OBJECT_TYPE = "objType";
-    public static final String FIELD_NUMBER_OF_OBJECTS = "numObj";
-
     private long numberOfObjects;
     private ResultObjectType objectType;
 

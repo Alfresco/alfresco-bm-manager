@@ -16,9 +16,6 @@ public final class ObjectsPerSecondResultData extends AbstractResultData
     /** Serialization ID */
     private static final long serialVersionUID = 8396315103810117490L;
 
-    public static final String FIELD_OBJECTS_PER_SECOND = "objPerSec";
-    public static final String FIELD_OBJECT_TYPE = "objType";
-
     /** data type */
     public static final String DATA_TYPE = "OPS";
 

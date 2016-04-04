@@ -3,6 +3,7 @@ package org.alfresco.bm.result.data;
 import java.io.Serializable;
 
 import org.alfresco.bm.exception.BenchmarkResultException;
+import org.alfresco.bm.result.defs.ResultDBDataFields;
 import org.alfresco.bm.result.defs.ResultOperation;
 import org.bson.Document;
 
@@ -12,12 +13,8 @@ import org.bson.Document;
  * @author Frank Becker
  * @since 2.1.2
  */
-public interface ResultData extends Serializable
-{
-    public final static String FIELD_RESULT_OP = "resultOperation"; 
-    public static final String FIELD_DESCRIPTION = "description";
-    public static final String FIELD_DATA_TYPE = "dataType";
-    
+public interface ResultData extends Serializable, ResultDBDataFields
+{    
     /** gets the BSON description field */
     Document getDescription();
     

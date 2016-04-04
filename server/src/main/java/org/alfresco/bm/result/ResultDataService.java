@@ -81,31 +81,16 @@ public interface ResultDataService
      * @return (List<ResultData>) Collection of result data
      */
     List<ResultData> queryData(Document queryDoc, boolean compress) throws BenchmarkResultException;
-
+    
     /**
-     * Returns the Benchmark ID
+     * Query persisted results
      * 
-     * @param platformId
-     *        (String) if both platformId and userId is null, V2 BM ID is
-     *        returned!
-     * @param userId
-     *        (String) if both platformId and userId is null, V2 BM ID is
-     *        returned!
-     * @param testName
-     *        (String, mandatory) name of the test
-     * @param testRunName
-     *        (String, mandatory) name of the test run
-     * @param release
-     *        (String, mandatory) test release name
-     * @param schema
-     *        (Integer) schema version number
+     * @param queryDoc
+     *        (BSON Document, mandatory) the query key/value pairs
      * 
-     * @return Benchmark ID for V2 or V3 of the framework
-     * 
-     * @throws BenchmarkResultException
+     * @return (List<Document>) Document result collection
      */
- /*   String getBenchmarkId(String platformId, String userId, String testName, String testRunName, String release,
-            Integer schema) throws BenchmarkResultException; */
+    List<Document> queryDocuments(Document queryDoc) throws BenchmarkResultException;
 
     /**
      * Clears the cached values from memory.

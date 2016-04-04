@@ -17,7 +17,6 @@ public final class RuntimeResultData extends AbstractResultData
 
     /** data type */
     public static final String DATA_TYPE = "RT";
-    public static final String FIELD_RUN_TICKS = "runTck";
     
     private long runtimeTicks;
 
