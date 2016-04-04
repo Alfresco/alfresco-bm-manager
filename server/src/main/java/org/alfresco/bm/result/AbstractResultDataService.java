@@ -57,12 +57,28 @@ public abstract class AbstractResultDataService implements ResultDataService, Li
             long durationMs,
             Document bsonDesc) throws BenchmarkResultException
     {
+        ArgumentCheck.checkMandatoryString(bmId, "bmId");
         ArgumentCheck.checkMandatoryString(driverId, "driverId");
         ArgumentCheck.checkMandatoryString(testName, "testName");
         ArgumentCheck.checkMandatoryString(testRunName, "testRunName");
         if (numberOfObjects < 1 || durationMs < 1)
         {
             throw new IllegalArgumentException("'numberOfObjects' and 'durationMs' must be positive!");
+        }
+        
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "notifyData(\r\n" 
+                    + "bmId=" + bmId + "\r\n"
+                    + "driverId=" + driverId + "\r\n"
+                    + "testName=" + testName + "\r\n"
+                    + "testRunName=" + testRunName + "\r\n"
+                    + "objectType=" + objectType.toString() + "\r\n"
+                    + "operation=" + operation.toString() + "\r\n"
+                    + "numberOfObjects=" + numberOfObjects + "\r\n"
+                    + "durationMs=" + durationMs + "\r\n"
+                    + "bsonDesc=" + ((null == bsonDesc) ? "null" : bsonDesc.toJson()) + ")");
         }
 
         String keyRT = bmId + "-"

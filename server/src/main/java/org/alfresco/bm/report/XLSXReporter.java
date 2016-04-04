@@ -38,6 +38,7 @@ import org.alfresco.bm.result.data.ObjectsResultData;
 import org.alfresco.bm.result.data.ResultData;
 import org.alfresco.bm.result.data.RuntimeResultData;
 import org.alfresco.bm.result.defs.ResultDBDataFields;
+import org.alfresco.bm.result.defs.ResultOperation;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.NotFoundException;
@@ -145,7 +146,7 @@ public class XLSXReporter extends AbstractEventReporter
     private void createResultDataSheet(XSSFWorkbook workbook)
     {
         // get the service
-        ResultDataService resultDataService = this.services.getResultDataService(this.test, this.run);
+        ResultDataService resultDataService = this.services.getTestDAO().getResultDataService();
         if (null == resultDataService)
         {
             if (logger.isDebugEnabled())
@@ -192,8 +193,10 @@ public class XLSXReporter extends AbstractEventReporter
         fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
 
         // Create the styles we need
-        XSSFCellStyle dataStyle = sheet.getWorkbook().createCellStyle();
-        dataStyle.setAlignment(HorizontalAlignment.RIGHT);
+        XSSFCellStyle rightDataStyle = sheet.getWorkbook().createCellStyle();
+        rightDataStyle.setAlignment(HorizontalAlignment.RIGHT);
+        XSSFCellStyle leftDataStyle = sheet.getWorkbook().createCellStyle();
+        rightDataStyle.setAlignment(HorizontalAlignment.LEFT);
         XSSFCellStyle headerStyle = sheet.getWorkbook().createCellStyle();
         headerStyle.setAlignment(HorizontalAlignment.RIGHT);
         headerStyle.setFont(fontBold);
@@ -216,20 +219,22 @@ public class XLSXReporter extends AbstractEventReporter
                 {
                     case RuntimeResultData.DATA_TYPE:
                         long runticks = doc.getLong(ResultDBDataFields.FIELD_RUN_TICKS);
-                        row.getCell(1).setCellValue((double)runticks/1000.0);
-                        row.getCell(1).setCellStyle(dataStyle);
+                        row.getCell(1).setCellValue((double)runticks);
+                        row.getCell(1).setCellStyle(rightDataStyle);
+                        row.getCell(2).setCellValue("ms");
+                        row.getCell(2).setCellStyle(leftDataStyle);
                         break;
 
                     case ObjectsPerSecondResultData.DATA_TYPE:
                         double objectsPerSecond = doc.getDouble(ResultDBDataFields.FIELD_OBJECTS_PER_SECOND);
                         row.getCell(1).setCellValue(objectsPerSecond);
-                        row.getCell(1).setCellStyle(dataStyle);
+                        row.getCell(1).setCellStyle(rightDataStyle);
                         break;
 
                     case ObjectsResultData.DATA_TYPE:
                         long number = doc.getLong(ResultDBDataFields.FIELD_NUMBER_OF_OBJECTS);
                         row.getCell(1).setCellValue((double)number);
-                        row.getCell(1).setCellStyle(dataStyle);
+                        row.getCell(1).setCellStyle(rightDataStyle);
                         break;
 
                     default:
@@ -240,6 +245,7 @@ public class XLSXReporter extends AbstractEventReporter
         // Auto-size the columns
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
+        sheet.autoSizeColumn(2);
 
         // Printing
         PrintSetup ps = sheet.getPrintSetup();
@@ -257,6 +263,10 @@ public class XLSXReporter extends AbstractEventReporter
         String objectType = "";
         if (type.equals(RuntimeResultData.DATA_TYPE))
         {
+            if (ResultOperation.None.toString().equals(resOp))
+            {
+                resOp = "Overall";
+            }
             headline = "Runtime (" + resOp + "):";
         }
         else
@@ -264,7 +274,7 @@ public class XLSXReporter extends AbstractEventReporter
             objectType = doc.getString(ResultDBDataFields.FIELD_OBJECT_TYPE);
             if (type.equals(ObjectsPerSecondResultData.DATA_TYPE))
             {
-                headline = objectType + " / sec :"; 
+                headline = objectType + "(s)/sec :"; 
             }
             else if (type.equals(ObjectsResultData.DATA_TYPE))
             {
