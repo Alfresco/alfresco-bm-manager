@@ -15,7 +15,8 @@ import org.alfresco.bm.result.defs.ResultDBDataFields;
 import org.alfresco.bm.result.defs.ResultObjectType;
 import org.alfresco.bm.result.defs.ResultOperation;
 import org.alfresco.bm.util.ArgumentCheck;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bson.Document;
 
 import com.mongodb.MongoException;
@@ -33,6 +34,9 @@ import com.mongodb.client.model.IndexOptions;
 public class MongoResultDataService extends AbstractResultDataService
         implements BenchmarkV2DataFields, ResultDBDataFields
 {
+    /** logger */
+    protected Log logger = LogFactory.getLog(MongoResultDataService.class);
+    
     /** name of the collection that stores the benchmark results */
     private final String bmResultsCollectionName;
     /** DB that stores the collections */
@@ -96,6 +100,17 @@ public class MongoResultDataService extends AbstractResultDataService
     protected void writeData(ResultData data, String bmId, String driverId, String testName, String runName)
             throws BenchmarkResultException
     {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "writeData(\r\n" 
+                    + "data=" + data.toDocumentBSON().toJson() + "\r\n" 
+                    + "bmId=" + bmId + "\r\n"
+                    + "driverId=" + driverId + "\r\n"
+                    + "testName=" + testName + "\r\n"
+                    + "runName=" + runName + ")");
+        }
+        
         Document writeDoc = data.toDocumentBSON()
                 .append(FIELD_BM_ID, bmId)
                 .append(FIELD_DRIVER_ID, driverId)

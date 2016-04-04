@@ -26,8 +26,8 @@ import org.bson.Document;
 public abstract class AbstractResultDataService implements ResultDataService, LifecycleListener
 {
     /** logger */
-    protected Log logger = LogFactory.getLog(this.getClass());
-
+    protected Log logger = LogFactory.getLog(AbstractResultDataService.class);
+    
     /** cache: ResultData */
     private Map<String, ObjectsPerSecondResultData> cacheObjPerSec = new HashMap<String, ObjectsPerSecondResultData>();
     private Map<String, ObjectsResultData> cacheObjRes = new HashMap<String, ObjectsResultData>();
