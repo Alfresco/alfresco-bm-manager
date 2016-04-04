@@ -274,11 +274,11 @@ public class XLSXReporter extends AbstractEventReporter
             objectType = doc.getString(ResultDBDataFields.FIELD_OBJECT_TYPE);
             if (type.equals(ObjectsPerSecondResultData.DATA_TYPE))
             {
-                headline = objectType + "(s)/sec :"; 
+                headline = objectType + "(s)/sec, " + resOp + ":"; 
             }
             else if (type.equals(ObjectsResultData.DATA_TYPE))
             {
-                headline = "Number of " + objectType + "(s):";
+                headline = "Number of " + objectType + "(s), " + resOp + ":";
             }
             else 
             {
