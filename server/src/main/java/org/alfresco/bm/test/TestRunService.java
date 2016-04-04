@@ -6,6 +6,7 @@ import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.result.ResultDataService;
 import org.alfresco.bm.result.defs.ResultObjectType;
 import org.alfresco.bm.result.defs.ResultOperation;
+import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.alfresco.bm.util.ArgumentCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,7 +26,7 @@ public class TestRunService
     private final LogService logService;
     
     /** Stores the result data service */
-    private ResultDataService resultDataService;
+    private MongoTestDAO testDAO;
     
     /** Stores the benchmark ID */
     private  String bmId;
@@ -43,7 +44,7 @@ public class TestRunService
      * Constructor 
      * 
      * @param logService (LogService, mandatory) the global log service to use
-     * @param resultDataService (ResultDataService, mandatory) the global result data service to use
+     * @param testDAO (MongoTestDAO, mandatory) the MongoTestDAO
      * @param driverId (String, mandatory) driver ID (${driverId}) 
      * @param testName (String, mandatory) test name (${test})
      * @param testRunName (String, mandatory) test run name (${testRun})
@@ -54,30 +55,27 @@ public class TestRunService
      */
     public TestRunService(
             LogService logService, 
-            ResultDataService resultDataService,
+            MongoTestDAO testDAO,
             String driverId,
             String testName,
-            String testRunName,
-            String release,
-            Integer schema) throws BenchmarkResultException
+            String testRunName) throws BenchmarkResultException
     {
         ArgumentCheck.checkMandatoryObject(logService, "logService");
-        ArgumentCheck.checkMandatoryObject(resultDataService, "resultDataService");
+        ArgumentCheck.checkMandatoryObject(testDAO, "testDAO");
         ArgumentCheck.checkMandatoryString(driverId, "driverId");
         ArgumentCheck.checkMandatoryString(testName, "testName");
         ArgumentCheck.checkMandatoryString(testRunName, "testRunName");
-        ArgumentCheck.checkMandatoryString(release, "release");
 
         this.logService = logService;
-        this.resultDataService = resultDataService;
+        this.testDAO = testDAO;
         this.driverId = driverId;
         this.testName = testName;
         this.testRunName = testRunName;
-        this.bmId = this.resultDataService.getBenchmarkId(null, null, testName, testRunName, release, schema);
+        this.bmId = this.testDAO.getBenchmarkID(testName); 
         
         if (logger.isDebugEnabled())
         {
-            logger.debug("[" + release + "." + schema +  ".TestRunServices] initialized with driver ID: '" + driverId + "', test name: '" + testName + ", test run name: '" + testRunName + "'.");
+            logger.debug("[TestRunService] initialized with driver ID: '" + driverId + "', test name: '" + testName + ", test run name: '" + testRunName + "'.");
         }
     }
 
@@ -104,7 +102,7 @@ public class TestRunService
            long durationMs,
            Document bsonDescription) throws BenchmarkResultException
    {
-       this.resultDataService.notifyData(this.bmId, this.driverId, this.testName, this.testRunName, objectType, operation, numberOfObjects, durationMs, bsonDescription);
+       this.testDAO.getResultDataService().notifyData(this.bmId, this.driverId, this.testName, this.testRunName, objectType, operation, numberOfObjects, durationMs, bsonDescription);
    }
     
     /**

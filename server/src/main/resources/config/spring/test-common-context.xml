@@ -34,12 +34,10 @@
 
     <bean id="testRunService" class="org.alfresco.bm.test.TestRunService">
         <constructor-arg name="logService" ref="logService" />
-        <constructor-arg name="resultDataService" ref="resultDataService" />
+        <constructor-arg name="testDAO" ref="testDAO" />
         <constructor-arg name="driverId" value="${driverId}" />
         <constructor-arg name="testName" value="${test}" />
         <constructor-arg name="testRunName" value="${testRun}" />
-        <constructor-arg name="release" value="${app.release}" />
-        <constructor-arg name="schema" value="${app.schema}" />
     </bean>
 
     <!-- DEPRECATED from 2.1.2 on! Please use testRunService instead -->

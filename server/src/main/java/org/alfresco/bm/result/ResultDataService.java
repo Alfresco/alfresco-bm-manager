@@ -104,32 +104,8 @@ public interface ResultDataService
      * 
      * @throws BenchmarkResultException
      */
-    String getBenchmarkId(String platformId, String userId, String testName, String testRunName, String release,
-            Integer schema) throws BenchmarkResultException;
-
-    /**
-     * Gets a benchmark ID for V2 of the benchmarks.
-     * 
-     * Note: the method will be called when a driver registers itself and needs
-     * to
-     * be synchronized with all drivers!
-     * 
-     * @param testName
-     *        (String, mandatory) name of the test that is registered by a
-     *        driver
-     * @param release
-     *        (String, mandatory) version of the test registered by a driver
-     * @param schema
-     *        (Integer, mandatory) schema number of the test registered by a
-     *        driver
-     * 
-     * @return (String) a unique identifier for the test - the same value for
-     *         all drivers that register the same test name, version and schema
-     *         number
-     * 
-     * @throws BenchmarkResultException
-     */
-    String getBenchmarkIdV2(String testName, String release, Integer schema) throws BenchmarkResultException;
+ /*   String getBenchmarkId(String platformId, String userId, String testName, String testRunName, String release,
+            Integer schema) throws BenchmarkResultException; */
 
     /**
      * Clears the cached values from memory.

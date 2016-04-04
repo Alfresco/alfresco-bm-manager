@@ -34,12 +34,15 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import org.alfresco.bm.result.MongoResultDataServiceTest;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.prop.TestProperty;
 import org.alfresco.bm.test.prop.TestPropertyFactory;
 import org.alfresco.bm.test.prop.TestPropertyOrigin;
 import org.alfresco.mongo.MongoDBForTestsFactory;
+import org.alfresco.mongo.MongoDatabaseForTestsFactory;
+import org.alfresco.mongo.MongoResultDataService;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Assert;
@@ -53,6 +56,7 @@ import com.mongodb.BasicDBList;
 import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * @see MongoTestDAO
@@ -70,6 +74,10 @@ public class MongoTestDAOTest implements TestConstants
     private MongoDBForTestsFactory mongoFactory;
     private MongoTestDAO dao;
     private DB db;
+    
+    MongoDatabase mongoDatabase;
+    MongoDatabaseForTestsFactory mongoDatabaseForTestsFactory;
+    MongoResultDataService mongoResultDataService;
 
     @BeforeClass
     public static void setUpProperties() throws Exception
@@ -90,9 +98,14 @@ public class MongoTestDAOTest implements TestConstants
     @Before
     public void setUp() throws Exception
     {
+        this.mongoDatabaseForTestsFactory = new MongoDatabaseForTestsFactory();
+        this.mongoDatabase = mongoDatabaseForTestsFactory.getObject();
+        this.mongoResultDataService = new MongoResultDataService(this.mongoDatabase, MongoResultDataServiceTest.COL_NAME_RESULTS);
+        this.mongoResultDataService.start();
+        
         mongoFactory = new MongoDBForTestsFactory();
         db = mongoFactory.getObject();
-        dao = new MongoTestDAO(db);
+        dao = new MongoTestDAO(db, this.mongoResultDataService);
         dao.start();
     }
     
@@ -102,9 +115,16 @@ public class MongoTestDAOTest implements TestConstants
         dao.stop();
         mongoFactory.destroy();
         
-        mongoFactory = null;
-        db = null;
-        dao = null;
+        this.mongoResultDataService.stop();
+        this.mongoDatabaseForTestsFactory.destroy();
+        
+        this.mongoFactory = null;
+        this.db = null;
+        this.dao = null;
+        
+        this.mongoDatabase = null;
+        this.mongoDatabaseForTestsFactory = null;
+        this.mongoResultDataService = null;
     }
     
     @Test

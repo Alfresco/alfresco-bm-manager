@@ -65,11 +65,11 @@
             <array>
                 <ref bean="logWatcher" />
                 <ref bean="logService" />
+                <ref bean="resultDataService" />
                 <ref bean="testDAO" />
                 <ref bean="testDefaults" />
                 <ref bean="test" />
                 <ref bean="testRunServices" />
-                <ref bean="resultDataService" />
             </array>
         </constructor-arg>
     </bean>
@@ -166,12 +166,12 @@
 
     <bean id="testDAO" class="org.alfresco.bm.test.mongo.MongoTestDAO">
         <constructor-arg name="db" ref="configMongoDB" />
+        <constructor-arg name="resultDataService" ref="resultDataService" />
     </bean>
 
     <bean id="resultDataService" class="org.alfresco.mongo.MongoResultDataService">
         <constructor-arg name="db" ref="resultDataMongoDatabase" />
-        <constructor-arg name="bmDefsCollectionName" value="${mongo.result.data.collection.name.defs}" />
-        <constructor-arg name="bmResultsCollectionName" value="${mongo.result.data.collection.name.results}" />
+        <constructor-arg name="bmResultsCollectionName" value="${mongo.result.data.collection}" />
     </bean>
     
     <bean id="testService" class="org.alfresco.bm.test.TestServiceImpl">

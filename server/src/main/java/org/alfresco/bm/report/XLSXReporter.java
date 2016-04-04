@@ -31,6 +31,7 @@ import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.event.ResultService.ResultHandler;
+import org.alfresco.bm.result.ResultDataService;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.NotFoundException;
@@ -82,7 +83,7 @@ public class XLSXReporter extends AbstractEventReporter
     private static Log logger = LogFactory.getLog(XLSXReporter.class);
 
     private final String title;
-
+    
     public XLSXReporter(TestRunServicesCache services, String test, String run)
     {
         super(services, test, run);
@@ -125,6 +126,27 @@ public class XLSXReporter extends AbstractEventReporter
         createPropertiesSheet(workbook);
         createEventSheets(workbook);
         createExtraDataSheet(workbook);
+        createResultDataSheet(workbook);
+    }
+
+    /**
+     * Creates the sheet with the result data from the {@see org.alfresco.bm.result.ResultDataService}
+     * @param workbook
+     */
+    private void createResultDataSheet(XSSFWorkbook workbook)
+    {
+     // get the service
+        ResultDataService resultDataService = this.services.getResultDataService(this.test, this.run);
+        if (null == resultDataService)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("No 'ResultDataService' available - no result sheet will be generated ...");
+            }
+            return;            
+        }
+        // TODO Auto-generated method stub
+        
     }
 
     /**
@@ -143,7 +165,7 @@ public class XLSXReporter extends AbstractEventReporter
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("No 'DataReportService' available - quitting ...");
+                logger.debug("No 'DataReportService' available - no 'extra data' sheet will be generated ...");
             }
             return;
         }

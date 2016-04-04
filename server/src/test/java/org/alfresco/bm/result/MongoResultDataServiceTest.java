@@ -1,13 +1,9 @@
 package org.alfresco.bm.result;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.alfresco.bm.event.mongo.Mongo3Helper;
 import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.result.data.ObjectsPerSecondResultData;
 import org.alfresco.bm.result.data.ObjectsResultData;
@@ -26,8 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 /**
@@ -42,15 +36,11 @@ public class MongoResultDataServiceTest
     /** logger */
     private final Log logger = LogFactory.getLog(this.getClass());
     
-    private final static String COL_NAME_DEFS = "bm.v21.defs";
-    private final static String COL_NAME_RESULTS = "bm21-results";
-    private final static String FIELD_VALUE_TEST_NAME = "test";
-    private final static String FIELD_VALUE_RELEASE = "V1.0";
-    private final static Integer FIELD_VALUE_SCHEMA = 1;
+    public final static String COL_NAME_RESULTS = "bm21.results";
 
-    MongoDatabase db;
-    MongoDatabaseForTestsFactory factory;
-    MongoResultDataService service;
+    MongoDatabase mongoDatabase;
+    MongoDatabaseForTestsFactory mongoDatabaseForTestsFactory;
+    MongoResultDataService mongoResultDataService;
 
     /**
      * Creates test mongo factory and starts data result services
@@ -60,10 +50,10 @@ public class MongoResultDataServiceTest
     @Before
     public void setUp() throws Exception
     {
-        this.factory = new MongoDatabaseForTestsFactory();
-        this.db = factory.getObject();
-        this.service = new MongoResultDataService(this.db, COL_NAME_DEFS, COL_NAME_RESULTS);
-        this.service.start();
+        this.mongoDatabaseForTestsFactory = new MongoDatabaseForTestsFactory();
+        this.mongoDatabase = mongoDatabaseForTestsFactory.getObject();
+        this.mongoResultDataService = new MongoResultDataService(this.mongoDatabase, COL_NAME_RESULTS);
+        this.mongoResultDataService.start();
     }
 
     /**
@@ -74,56 +64,12 @@ public class MongoResultDataServiceTest
     @After
     public void tearDown() throws Exception
     {
-        this.service.stop();
-        this.factory.destroy();
-    }
-
-    /**
-     * Makes sure a unique index is set on test name/version/schema
-     */
-    @Test(expected = MongoException.class)
-    public void ensureIndexesDefs()
-    {
-        // make sure collection exists
-        assertTrue(Mongo3Helper.collectionExists(this.db, COL_NAME_DEFS));
-
-        // get collection and create test document
-        MongoCollection<Document> colDefs = db.getCollection(COL_NAME_DEFS);
-        Document doc = createTestDefsDocument();
-
-        // insert first
-        colDefs.insertOne(doc);
-        // should throw MongoException
-        colDefs.insertOne(doc);
-        
-        assertTrue("Expected MongoDB exception for violating unique index.", false);
-    }
-
-    /**
-     * Makes sure a BM_ID is generated and can be retrieved
-     */
-    @Test
-    public void testBmIdDefs() throws BenchmarkResultException
-    {
-        // get BM_ID
-        String bmId = this.service.getBenchmarkIdV2(FIELD_VALUE_TEST_NAME, FIELD_VALUE_RELEASE, FIELD_VALUE_SCHEMA);
-        assertNotNull(bmId);
-        assertFalse(bmId.isEmpty());
-        
-        logger.debug("BM_ID for '" + FIELD_VALUE_TEST_NAME + "/" + FIELD_VALUE_RELEASE + "/" + FIELD_VALUE_SCHEMA + "' is '" + bmId + "'");
-    }
-
-    /**
-     * Creates a simple test document for the COL_NAME_DEFS collection
-     * 
-     * @return (Document)
-     */
-    private Document createTestDefsDocument()
-    {
-        Document doc = new Document(MongoResultDataService.FIELD_V2_TEST_NAME, FIELD_VALUE_TEST_NAME)
-                .append(MongoResultDataService.FIELD_V2_RELEASE, FIELD_VALUE_RELEASE)
-                .append(MongoResultDataService.FIELD_V2_SCHEMA, FIELD_VALUE_SCHEMA);
-        return doc;
+        this.mongoResultDataService.stop();
+        this.mongoDatabaseForTestsFactory.destroy();
+    
+        this.mongoDatabase = null;
+        this.mongoDatabaseForTestsFactory = null;
+        this.mongoResultDataService = null;
     }
     
     @Test
@@ -139,16 +85,16 @@ public class MongoResultDataServiceTest
         long durationMs = 10;
         Document bsonDesc = null;
         
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
-        this.service.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
+        this.mongoResultDataService.notifyData(bmId, driverId, testName, testRunName, objectType, operation, numberOfObjects, durationMs, bsonDesc);
         
         // should now contain 10 objects / documents created 
         // should have 100 documents/second 
@@ -157,7 +103,7 @@ public class MongoResultDataServiceTest
         // query document ...
         Document queryDoc = new Document(MongoResultDataService.FIELD_BM_ID, bmId);
         
-        List<ResultData>results = this.service.queryData(queryDoc, false);
+        List<ResultData>results = this.mongoResultDataService.queryData(queryDoc, false);
         assertEquals(4, results.size());
         
         for(final ResultData data : results)
@@ -191,6 +137,7 @@ public class MongoResultDataServiceTest
                     }
                     break;
                 default:
+                    logger.error("Data type extended? Check your code ...");
                     throw new BenchmarkResultException("Unknown data type '" + data.getDataType() + "'!");
             }
         }

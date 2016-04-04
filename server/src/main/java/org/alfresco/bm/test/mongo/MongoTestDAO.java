@@ -32,11 +32,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.alfresco.bm.exception.BenchmarkResultException;
+import org.alfresco.bm.result.ResultDataService;
 import org.alfresco.bm.test.LifecycleListener;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.prop.TestProperty;
 import org.alfresco.bm.test.prop.TestPropertyOrigin;
+import org.alfresco.bm.util.ArgumentCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bson.types.ObjectId;
@@ -78,16 +81,21 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     private final DBCollection tests;
     private final DBCollection testRuns;
     private final DBCollection testProps;
+    private final ResultDataService resultDataService; 
 
     /**
      * Construct the DAO using the Mongo DB directly
      */
-    public MongoTestDAO(DB db)
+    public MongoTestDAO(DB db, ResultDataService resultDataService)
     {
+        ArgumentCheck.checkMandatoryObject(db, "db");
+        ArgumentCheck.checkMandatoryObject(resultDataService, "resultDataService");
+        
         this.testDefCache = new HashMap<String, TestDefEntry>(17);
         this.testDefCacheLock = new ReentrantReadWriteLock();
         
         this.db = db;
+        this.resultDataService = resultDataService;
         this.testDrivers = db.getCollection(COLLECTION_TEST_DRIVERS);
         this.testDefs = db.getCollection(COLLECTION_TEST_DEFS);
         this.tests = db.getCollection(COLLECTION_TESTS);
@@ -2399,5 +2407,39 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.debug("Successfully fixed property overrides for run: " + runObjId);
         }
+    }
+
+    /**
+     * @return (ResultDataService)
+     * @since 2.1.2
+     */
+    public ResultDataService getResultDataService()
+    {
+        return resultDataService;
+    }
+
+    /**
+     * Gets the test (benchmark) ID for an active test.
+     * Note: this needs to be updated in V3
+     * 
+     * @param testName
+     *        (String, mandatory) test name
+     * 
+     * @return (String) benchmark ID or exception
+     * 
+     * @throws BenchmarkResultException
+     * 
+     * @since 2.1.2
+     */
+    public String getBenchmarkID(String testName) throws BenchmarkResultException
+    {
+        ArgumentCheck.checkMandatoryString(testName, "testName");
+        ObjectId testObjId = getTestId(testName);
+        if (null != testObjId)
+        {
+            return testObjId.toHexString();
+        }
+        
+        throw new BenchmarkResultException("No test ID found for test '" + testName + "'!");
     }
 }

@@ -214,14 +214,19 @@ public class RestAPITest implements TestConstants
         
         // Now connect a real mongo client to it
         MongoClient mongoClient = new MongoClient(mongoAddress);
+        // won't be removed in V3.x of MongoDB .... new code uses new API ....
+        @SuppressWarnings("deprecation") 
         DB dbCheck = mongoClient.getDB(dbName);
         
         // See if we can add/remove stuff and that it works
         assertTrue(dao.createTest("TESTconnectToMongoDB", "connectToMongoDB", "R1", 1));
         
-        MongoTestDAO daoCheck = new MongoTestDAO(dbCheck);
+        MongoTestDAO daoCheck = new MongoTestDAO(dbCheck, dao.getResultDataService());
         DBObject testCheckObj = daoCheck.getTest("TESTconnectToMongoDB", false);
         assertNotNull(testCheckObj);
+
+        // clean-up
+        mongoClient.close();
     }
 
     /**
