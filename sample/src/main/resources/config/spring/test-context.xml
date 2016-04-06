@@ -10,16 +10,6 @@
           http://www.springframework.org/schema/beans
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-     <!-- Application startup properties -->
-    <bean id="appPlaceholderConfigurer" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer" >
-        <property name="ignoreUnresolvablePlaceholders" value="false"/>
-        <property name="locations">
-            <list>
-                <value>classpath*:config/startup/app.properties</value>
-            </list>
-        </property>
-    </bean>
-
     <!--
         alfresco-benchmark-bm-sample: [Project description]
      -->

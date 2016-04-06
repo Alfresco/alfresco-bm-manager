@@ -31,14 +31,6 @@ import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.event.ResultService.ResultHandler;
-import org.alfresco.bm.exception.BenchmarkResultException;
-import org.alfresco.bm.result.ResultDataService;
-import org.alfresco.bm.result.data.ObjectsPerSecondResultData;
-import org.alfresco.bm.result.data.ObjectsResultData;
-import org.alfresco.bm.result.data.ResultData;
-import org.alfresco.bm.result.data.RuntimeResultData;
-import org.alfresco.bm.result.defs.ResultDBDataFields;
-import org.alfresco.bm.result.defs.ResultOperation;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.NotFoundException;
@@ -74,7 +66,6 @@ import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.bson.Document;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.DBCursor;
@@ -134,160 +125,8 @@ public class XLSXReporter extends AbstractEventReporter
         createPropertiesSheet(workbook);
         createEventSheets(workbook);
         createExtraDataSheet(workbook);
-        createResultDataSheet(workbook);
     }
 
-    /**
-     * Creates the sheet with the result data from the
-     * {@see org.alfresco.bm.result.ResultDataService}
-     * 
-     * @param workbook
-     */
-    private void createResultDataSheet(XSSFWorkbook workbook)
-    {
-        // get the service
-        ResultDataService resultDataService = this.services.getTestDAO().getResultDataService();
-        if (null == resultDataService)
-        {
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("No 'ResultDataService' available - no result sheet will be generated ...");
-            }
-            return;
-        }
-
-        // get benchmark ID
-        String bmId = null;
-        try
-        {
-            bmId = this.services.getTestDAO().getBenchmarkID(this.test);
-        }
-        catch (BenchmarkResultException e)
-        {
-            logger.error("Unable to get the Benchmark ID for test '" + test + "'.", e);
-            return;
-        }
-
-        // create the query document
-        Document queryDoc = new Document(ResultDBDataFields.FIELD_BM_ID, bmId)
-                .append(ResultDBDataFields.FIELD_TEST_NAME, this.test)
-                .append(ResultDBDataFields.FIELD_TEST_RUN_NAME, this.run);
-
-        List<Document> results = null;
-        try
-        {
-            results = resultDataService.queryDocuments(queryDoc);
-        }
-        catch (BenchmarkResultException e)
-        {
-            logger.error("Unable to get benchmark results for test '" + test + "', run '" + run + "' with BM_ID '"
-                    + bmId + "'.", e);
-            return;
-        }
-        
-        // Create the sheet
-        XSSFSheet sheet = workbook.createSheet("Result Data");
-     
-        // Create the fonts we need
-        Font fontBold = workbook.createFont();
-        fontBold.setBoldweight(Font.BOLDWEIGHT_BOLD);
-
-        // Create the styles we need
-        XSSFCellStyle rightDataStyle = sheet.getWorkbook().createCellStyle();
-        rightDataStyle.setAlignment(HorizontalAlignment.RIGHT);
-        XSSFCellStyle leftDataStyle = sheet.getWorkbook().createCellStyle();
-        rightDataStyle.setAlignment(HorizontalAlignment.LEFT);
-        XSSFCellStyle headerStyle = sheet.getWorkbook().createCellStyle();
-        headerStyle.setAlignment(HorizontalAlignment.RIGHT);
-        headerStyle.setFont(fontBold);
-        
-        XSSFRow row = null;
-        int rowCount = 0;
-
-        for (final Document doc : results)
-        {
-            String headline = getResultDataHeadline(doc);
-            
-            row = sheet.createRow(rowCount++);
-            {
-                // headline
-                row.getCell(0).setCellValue(headline);
-                row.getCell(0).setCellStyle(headerStyle);
-
-                String dataType = doc.getString(ResultDBDataFields.FIELD_DATA_TYPE);
-                switch (dataType)
-                {
-                    case RuntimeResultData.DATA_TYPE:
-                        long runticks = doc.getLong(ResultDBDataFields.FIELD_RUN_TICKS);
-                        row.getCell(1).setCellValue((double)runticks);
-                        row.getCell(1).setCellStyle(rightDataStyle);
-                        row.getCell(2).setCellValue("ms");
-                        row.getCell(2).setCellStyle(leftDataStyle);
-                        break;
-
-                    case ObjectsPerSecondResultData.DATA_TYPE:
-                        double objectsPerSecond = doc.getDouble(ResultDBDataFields.FIELD_OBJECTS_PER_SECOND);
-                        row.getCell(1).setCellValue(objectsPerSecond);
-                        row.getCell(1).setCellStyle(rightDataStyle);
-                        break;
-
-                    case ObjectsResultData.DATA_TYPE:
-                        long number = doc.getLong(ResultDBDataFields.FIELD_NUMBER_OF_OBJECTS);
-                        row.getCell(1).setCellValue((double)number);
-                        row.getCell(1).setCellStyle(rightDataStyle);
-                        break;
-
-                    default:
-                        logger.error("Unknown data type: " + dataType);
-                }
-            }
-        }
-        // Auto-size the columns
-        sheet.autoSizeColumn(0);
-        sheet.autoSizeColumn(1);
-        sheet.autoSizeColumn(2);
-
-        // Printing
-        PrintSetup ps = sheet.getPrintSetup();
-        sheet.setAutobreaks(true);
-        ps.setFitWidth((short) 1);
-        ps.setLandscape(false);
-    }
-
-    private String getResultDataHeadline(Document doc)
-    {
-        String headline = "";
-
-        String type = doc.getString(ResultDBDataFields.FIELD_DATA_TYPE);
-        String resOp = doc.getString(ResultDBDataFields.FIELD_RESULT_OP);
-        String objectType = "";
-        if (type.equals(RuntimeResultData.DATA_TYPE))
-        {
-            if (ResultOperation.None.toString().equals(resOp))
-            {
-                resOp = "Overall";
-            }
-            headline = "Runtime (" + resOp + "):";
-        }
-        else
-        {
-            objectType = doc.getString(ResultDBDataFields.FIELD_OBJECT_TYPE);
-            if (type.equals(ObjectsPerSecondResultData.DATA_TYPE))
-            {
-                headline = objectType + "(s)/sec, " + resOp + ":"; 
-            }
-            else if (type.equals(ObjectsResultData.DATA_TYPE))
-            {
-                headline = "Number of " + objectType + "(s), " + resOp + ":";
-            }
-            else 
-            {
-                headline = "Unknown data type: " + type;
-            }
-        }
-        return headline;
-    }
-    
     /**
      * Creates the sheet(s) with extra data from the {@see org.alfresco.bm.report.DataReportService}
      * 

@@ -65,7 +65,6 @@
             <array>
                 <ref bean="logWatcher" />
                 <ref bean="logService" />
-                <ref bean="resultDataService" />
                 <ref bean="testDAO" />
                 <ref bean="testDefaults" />
                 <ref bean="test" />
@@ -117,21 +116,6 @@
         <constructor-arg name="mongoClient" ref="configMongoClient" />
         <constructor-arg name="database" value="${mongo.config.database}" />
     </bean>
-
-    <bean id="resultDataMongoURI" class="com.mongodb.MongoClientURI" >
-        <constructor-arg name="uri" value="${mongo.result.data.uri}" />
-    </bean>
-    
-    <bean id="resultDataMongoClient" class="org.alfresco.mongo.MongoClientFactory" >
-        <constructor-arg name="mongoClientURI" ref="configMongoURI" />
-        <constructor-arg name="username" value="${mongo.result.data.username}" />
-        <constructor-arg name="password" value="${mongo.result.data.password}" />
-    </bean>
-    
-    <bean id="resultDataMongoDatabase" class="org.alfresco.mongo.MongoDatabaseFactory" >
-        <constructor-arg name="mongoClient" ref="resultDataMongoClient" />
-        <constructor-arg name="databaseName" value="${mongo.result.data.database}" />
-    </bean>
     
     <!--                 -->
     <!-- Mongo Logging   -->
@@ -142,7 +126,7 @@
     </bean>
 
     <bean id="logMongoClient" class="org.alfresco.mongo.MongoClientFactory" >
-        <constructor-arg name="mongoClientURI" ref="resultDataMongoURI" />
+        <constructor-arg name="mongoClientURI" ref="configMongoURI" />
         <constructor-arg name="username" value="${mongo.log.username}" />
         <constructor-arg name="password" value="${mongo.log.password}" />
     </bean>
@@ -166,12 +150,6 @@
 
     <bean id="testDAO" class="org.alfresco.bm.test.mongo.MongoTestDAO">
         <constructor-arg name="db" ref="configMongoDB" />
-        <constructor-arg name="resultDataService" ref="resultDataService" />
-    </bean>
-
-    <bean id="resultDataService" class="org.alfresco.mongo.MongoResultDataService">
-        <constructor-arg name="db" ref="resultDataMongoDatabase" />
-        <constructor-arg name="bmResultsCollectionName" value="${mongo.result.data.collection}" />
     </bean>
     
     <bean id="testService" class="org.alfresco.bm.test.TestServiceImpl">

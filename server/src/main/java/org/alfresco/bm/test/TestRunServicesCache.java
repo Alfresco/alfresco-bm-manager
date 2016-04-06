@@ -32,7 +32,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.report.DataReportService;
-import org.alfresco.bm.result.ResultDataService;
 import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.alfresco.bm.util.ArgumentCheck;
@@ -299,37 +298,6 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
             return null;
         }
         return ctx.getBean(SessionService.class);
-    }
-
-    /*
-     * Returns the result data service or null if no service is configured.
-     * 
-     * @param test
-     * (String) test name
-     * 
-     * @param run
-     * (String) test run name
-     * 
-     * @return (ResultDataService or null)
-     */
-    public ResultDataService getResultDataService(String test, String run)
-    {
-        ArgumentCheck.checkMandatoryString(test, "test");
-        ArgumentCheck.checkMandatoryString(run, "run");
-
-        try
-        {
-            ApplicationContext ctx = getContext(test, run);
-            if (null != ctx)
-            {
-                return ctx.getBean(ResultDataService.class);
-            }
-        }
-        catch (Exception e)
-        {
-            logger.debug("No result data service available!", e);
-        }
-        return null;
     }
 
     /**

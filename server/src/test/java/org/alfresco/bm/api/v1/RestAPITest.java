@@ -221,7 +221,7 @@ public class RestAPITest implements TestConstants
         // See if we can add/remove stuff and that it works
         assertTrue(dao.createTest("TESTconnectToMongoDB", "connectToMongoDB", "R1", 1));
         
-        MongoTestDAO daoCheck = new MongoTestDAO(dbCheck, dao.getResultDataService());
+        MongoTestDAO daoCheck = new MongoTestDAO(dbCheck);
         DBObject testCheckObj = daoCheck.getTest("TESTconnectToMongoDB", false);
         assertNotNull(testCheckObj);
 
