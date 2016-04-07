@@ -1,6 +1,5 @@
 package org.alfresco.bm.test;
 
-import org.alfresco.bm.exception.BenchmarkResultException;
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
@@ -55,7 +54,7 @@ public class TestRunService
             MongoTestDAO testDAO,
             String driverId,
             String testName,
-            String testRunName) throws BenchmarkResultException
+            String testRunName) 
     {
         ArgumentCheck.checkMandatoryObject(logService, "logService");
         ArgumentCheck.checkMandatoryObject(testDAO, "testDAO");

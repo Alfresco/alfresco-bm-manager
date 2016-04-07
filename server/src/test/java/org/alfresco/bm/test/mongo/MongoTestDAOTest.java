@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunState;
 import org.alfresco.bm.test.prop.TestProperty;
@@ -325,6 +326,65 @@ public class MongoTestDAOTest implements TestConstants
         assertTrue(propsObj instanceof Collection);
         String propsStr = propsObj.toString();
         assertTrue(propsStr.contains("\"name\" : \"two.str\" , \"min\" : \"0\""));
+    }
+    
+    @Test
+    public void testMaskPropertyNames() throws ObjectNotFoundException
+    {
+        // Create test definition
+        String release = UUID.randomUUID().toString();
+        Integer schema = 1;
+        String description = "Mask Testing";
+        List<TestProperty> testProperties = TestPropertyFactory.getTestProperties(INHERITANCE, properties);
+        
+        // check with non-existing test 
+        try
+        {
+            dao.getMaskedProperyNames(release, schema);
+            fail("Expected 'ObjectNotFoundException'!");
+        }
+        catch(ObjectNotFoundException ex)
+        {
+            // expected
+        }
+        
+        // write test definition 
+        boolean written = dao.writeTestDef(release, schema, description, testProperties);
+        assertTrue("Unable to write test definition '" + release + "-schema:" + schema + "'", written);
+        
+        // check to get by release and schema
+        Set<String>namesToMask1 = dao.getMaskedProperyNames(release, schema);
+        assertTrue(namesToMask1 instanceof Set);
+        
+        // Create test
+        String testName = "Test_" + release.replace("-", "_");
+        boolean created = dao.createTest(testName, description, release, schema);
+        assertTrue("Unable to create test '" + testName + "'!", created);
+        
+        // get by test name
+        Set<String>namesToMask2 = dao.getMaskedProperyNames(testName);
+        assertTrue(namesToMask2 instanceof Set);
+        
+        // check basics (one masked property)
+        assertEquals(namesToMask1.size(), namesToMask2.size());
+        assertEquals(1, namesToMask1.size());
+        
+        // make sure "one.str" is contained
+        assertTrue("Missing masked 'one.str'!", namesToMask1.contains("one.str"));
+        
+        // cleanup
+        assertTrue("Unable to delete test '" + testName + "'", dao.deleteTest(testName));
+        
+        // check again
+        try
+        {
+            dao.getMaskedProperyNames(testName);
+            fail("Expected 'ObjectNotFoundException'!");
+        }
+        catch(ObjectNotFoundException ex)
+        {
+            // expected
+        }
     }
 
     @Test

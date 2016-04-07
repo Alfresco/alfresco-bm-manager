@@ -10,7 +10,7 @@
  *
  * Alfresco is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.test.LifecycleListener;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunState;
@@ -67,12 +68,12 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     public static final String COLLECTION_TESTS = "tests";
     public static final String COLLECTION_TEST_PROPS = "test.props";
     public static final String COLLECTION_TEST_RUNS = "test.runs";
-    
+
     private static Log logger = LogFactory.getLog(MongoTestDAO.class);
 
     private final Map<String, TestDefEntry> testDefCache;
     private final ReentrantReadWriteLock testDefCacheLock;
-    
+
     private final DB db;
     private final DBCollection testDrivers;
     private final DBCollection testDefs;
@@ -86,10 +87,10 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     public MongoTestDAO(DB db)
     {
         ArgumentCheck.checkMandatoryObject(db, "db");
-        
+
         this.testDefCache = new HashMap<String, TestDefEntry>(17);
         this.testDefCacheLock = new ReentrantReadWriteLock();
-        
+
         this.db = db;
         this.testDrivers = db.getCollection(COLLECTION_TEST_DRIVERS);
         this.testDefs = db.getCollection(COLLECTION_TEST_DEFS);
@@ -99,7 +100,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     }
 
     /**
-     * @return              the database being used
+     * @return the database being used
      */
     public DB getDb()
     {
@@ -121,16 +122,46 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 "TEST_PROPS_TEST_NAME",
                 "TEST_DEFS_UNIQUE_RELEASE",
                 "TEST_DEFS_RELEASE_SCHEMA",
-                "TEST_DRIVERS_IDX_NAME_EXPIRES"};
+                "TEST_DRIVERS_IDX_NAME_EXPIRES" };
         for (String indexToDrop : indexesToDrop)
         {
-            try { testDrivers.dropIndex(indexToDrop); } catch (MongoException e) {}
-            try { testDefs.dropIndex(indexToDrop); } catch (MongoException e) {}
-            try { tests.dropIndex(indexToDrop); } catch (MongoException e) {}
-            try { testRuns.dropIndex(indexToDrop); } catch (MongoException e) {}
-            try { testProps.dropIndex(indexToDrop); } catch (MongoException e) {}
+            try
+            {
+                testDrivers.dropIndex(indexToDrop);
+            }
+            catch (MongoException e)
+            {
+            }
+            try
+            {
+                testDefs.dropIndex(indexToDrop);
+            }
+            catch (MongoException e)
+            {
+            }
+            try
+            {
+                tests.dropIndex(indexToDrop);
+            }
+            catch (MongoException e)
+            {
+            }
+            try
+            {
+                testRuns.dropIndex(indexToDrop);
+            }
+            catch (MongoException e)
+            {
+            }
+            try
+            {
+                testProps.dropIndex(indexToDrop);
+            }
+            catch (MongoException e)
+            {
+            }
         }
-        
+
         // @since 2.0
         DBObject idx_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS = BasicDBObjectBuilder
                 .start(FIELD_RELEASE, 1)
@@ -143,7 +174,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("unique", Boolean.FALSE)
                 .get();
         testDrivers.createIndex(idx_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS, opts_TEST_DRIVERS_RELEASE_SCHEMA_IPADDRESS);
-        
+
         // @since 2.0
         DBObject idx_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE = BasicDBObjectBuilder
                 .start()
@@ -156,8 +187,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("name", "TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE")
                 .add("unique", Boolean.FALSE)
                 .get();
-        testDrivers.createIndex(idx_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE, opts_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE);
-        
+        testDrivers.createIndex(idx_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE,
+                opts_TEST_DRIVERS_IDX_NAME_EXPIRES_SCHEMA_RELEASE);
+
         // @since 2.0
         DBObject idx_TEST_DEFS_UNIQUE_RELEASE_SCHEMA = BasicDBObjectBuilder
                 .start(FIELD_RELEASE, 1)
@@ -169,7 +201,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("unique", Boolean.TRUE)
                 .get();
         testDefs.createIndex(idx_TEST_DEFS_UNIQUE_RELEASE_SCHEMA, opts_TEST_DEFS_UNIQUE_RELEASE_SCHEMA);
-        
+
         // @since 2.0
         DBObject idx_TESTS_UNIQUE_NAME = BasicDBObjectBuilder
                 .start(FIELD_NAME, 1)
@@ -180,7 +212,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("unique", Boolean.TRUE)
                 .get();
         tests.createIndex(idx_TESTS_UNIQUE_NAME, opts_TESTS_UNIQUE_NAME);
-        
+
         // @since 2.0
         DBObject idx_TESTS_NAME_RELEASE_SCHEMA = BasicDBObjectBuilder
                 .start(FIELD_NAME, 1)
@@ -193,7 +225,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("unique", Boolean.FALSE)
                 .get();
         tests.createIndex(idx_TESTS_NAME_RELEASE_SCHEMA, opts_TESTS_NAME_RELEASE_SCHEMA);
-        
+
         // @since 2.0
         DBObject idx_TEST_RUNS_NAME = BasicDBObjectBuilder
                 .start(FIELD_NAME, 1)
@@ -204,7 +236,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("unique", Boolean.FALSE)
                 .get();
         testRuns.createIndex(idx_TEST_RUNS_NAME, opts_TEST_RUNS_NAME);
-        
+
         // @since 2.0
         DBObject idx_TEST_RUNS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
                 .start(FIELD_TEST, 1)
@@ -216,7 +248,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("unique", Boolean.TRUE)
                 .get();
         testRuns.createIndex(idx_TEST_RUNS_UNIQUE_TEST_NAME, opts_TEST_RUNS_UNIQUE_TEST_NAME);
-        
+
         // @since 2.0
         DBObject idx_TEST_RUNS_TEST_STATE_SCHEDULED = BasicDBObjectBuilder
                 .start(FIELD_TEST, 1)
@@ -229,7 +261,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add("unique", Boolean.FALSE)
                 .get();
         testRuns.createIndex(idx_TEST_RUNS_TEST_STATE_SCHEDULED, opts_TEST_RUNS_TEST_STATE_SCHEDULED);
-        
+
         // @since 2.0
         DBObject idx_TEST_PROPS_UNIQUE_TEST_NAME = BasicDBObjectBuilder
                 .start(FIELD_TEST, 1)
@@ -248,18 +280,24 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     public void stop() throws Exception
     {
     }
-    
+
     /**
      * Register a test driver
      * 
-     * @param release               the software release version
-     * @param schema                the schema number
-     * @param ipAddress             the IP address of the machine the application is running on
-     * @param contextPath           the application context path (or similiar) for information
-     * @param capabilities          the features supported by the driver
-     * @return                      a unique registration key
+     * @param release
+     *        the software release version
+     * @param schema
+     *        the schema number
+     * @param ipAddress
+     *        the IP address of the machine the application is running on
+     * @param contextPath
+     *        the application context path (or similiar) for information
+     * @param capabilities
+     *        the features supported by the driver
+     * @return a unique registration key
      */
-    public String registerDriver(String release, Integer schema, String ipAddress, String hostname, String contextPath, Set<String> capabilities)
+    public String registerDriver(String release, Integer schema, String ipAddress, String hostname, String contextPath,
+            Set<String> capabilities)
     {
         DBObject insertObj = BasicDBObjectBuilder
                 .start()
@@ -270,13 +308,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_CONTEXT_PATH, contextPath)
                 .add(FIELD_CAPABILITIES,
                         BasicDBObjectBuilder.start()
-                        .add(FIELD_SYSTEM, capabilities)
-                        .get())
+                                .add(FIELD_SYSTEM, capabilities)
+                                .get())
                 .add(FIELD_PING,
                         BasicDBObjectBuilder.start()
-                        .add(FIELD_TIME, new Date())
-                        .add(FIELD_EXPIRES, new Date(0L))
-                        .get())
+                                .add(FIELD_TIME, new Date())
+                                .add(FIELD_EXPIRES, new Date(0L))
+                                .get())
                 .get();
         testDrivers.insert(insertObj);
         // Get the object ID
@@ -289,17 +327,19 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             // Retrieve the object for debug
             logger.debug(
                     "Registered test driver: \n" +
-                    "   ID:  " + id + "\n" +
-                    "   New: " + insertObj);
+                            "   ID:  " + id + "\n" +
+                            "   New: " + insertObj);
         }
         return id;
     }
-    
+
     /**
      * Refresh the expiry time of a driver
      * 
-     * @param id                    the driver id
-     * @param expiryTime            the new expiry time
+     * @param id
+     *        the driver id
+     * @param expiryTime
+     *        the new expiry time
      */
     public void refreshDriver(String id, long expiryTime)
     {
@@ -310,7 +350,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .push("$set")
-                        .add(FIELD_PING + "." + FIELD_EXPIRES, new Date(expiryTime))
+                .add(FIELD_PING + "." + FIELD_EXPIRES, new Date(expiryTime))
                 .pop()
                 .get();
         testDrivers.findAndModify(queryObj, null, null, false, updateObj, false, false);
@@ -320,15 +360,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.debug(
                     "Updated test driver expiry: \n" +
-                    "   ID:  " + id + "\n" +
-                    "   New: " + expiryTime);
+                            "   ID:  " + id + "\n" +
+                            "   New: " + expiryTime);
         }
     }
 
     /**
      * Unregister a test driver
      * 
-     * @param id                    the ID of the registration
+     * @param id
+     *        the ID of the registration
      */
     public void unregisterDriver(String id)
     {
@@ -345,13 +386,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             logger.debug("Unregistered test driver: " + id);
         }
     }
-    
+
     /**
      * Get registered test drivers
      * 
-     * @param release                   the release name of the test or <tt>null</tt> for all releases
-     * @param schema                    the schema number of the driver or <tt>null</tt> for all schemas
-     * @param liveOnly                  <tt>true</tt> to retrieve only live instances
+     * @param release
+     *        the release name of the test or <tt>null</tt> for all releases
+     * @param schema
+     *        the schema number of the driver or <tt>null</tt> for all schemas
+     * @param liveOnly
+     *        <tt>true</tt> to retrieve only live instances
      */
     public DBCursor getDrivers(String release, Integer schema, boolean active)
     {
@@ -374,7 +418,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RELEASE, 1)
                 .add(FIELD_SCHEMA, 1)
                 .get();
-        
+
         DBCursor cursor = testDrivers.find(queryObj).sort(sortObj);
 
         // Done
@@ -382,21 +426,24 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.debug(
                     "Retrieved test driver: \n" +
-                    "   Release: " + release + "\n" +
-                    "   Schema:  " + schema + "\n" +
-                    "   active:  " + active + "\n" +
-                    "   Results: " + cursor.count());
+                            "   Release: " + release + "\n" +
+                            "   Schema:  " + schema + "\n" +
+                            "   active:  " + active + "\n" +
+                            "   Results: " + cursor.count());
         }
         return cursor;
     }
-    
+
     /**
      * Count registered drivers
      * 
-     * @param release                   the release name of the test or <tt>null</tt> for all releases
-     * @param schema                    the schema number of the driver or <tt>null</tt> for all schemas
-     * @param liveOnly                  <tt>true</tt> to retrieve only live instances
-     * @return                          a count of the number of drivers matching the criteria
+     * @param release
+     *        the release name of the test or <tt>null</tt> for all releases
+     * @param schema
+     *        the schema number of the driver or <tt>null</tt> for all schemas
+     * @param liveOnly
+     *        <tt>true</tt> to retrieve only live instances
+     * @return a count of the number of drivers matching the criteria
      */
     public long countDrivers(String release, Integer schema, boolean active)
     {
@@ -414,7 +461,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             queryBuilder.and(FIELD_PING + "." + FIELD_EXPIRES).greaterThan(new Date());
         }
         DBObject queryObj = queryBuilder.get();
-        
+
         long count = testDrivers.count(queryObj);
 
         // Done
@@ -422,23 +469,28 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.debug(
                     "Retrieved test driver: \n" +
-                    "   Release: " + release + "\n" +
-                    "   Schema:  " + schema + "\n" +
-                    "   active:  " + active + "\n" +
-                    "   Results: " + count);
+                            "   Release: " + release + "\n" +
+                            "   Schema:  " + schema + "\n" +
+                            "   active:  " + active + "\n" +
+                            "   Results: " + count);
         }
         return count;
     }
-    
+
     /**
-     * Write all the test application's property definitions against the release and schema number
+     * Write all the test application's property definitions against the release
+     * and schema number
      * 
-     * @param release                       the test release name
-     * @param schema                        the property schema
-     * @param description                   a description of the test definition
-     * @param testProperties                the property definitions
-     * @return                              <tt>true</tt> if the properties were written or <tt>false</tt>
-     *                                      if they already existed
+     * @param release
+     *        the test release name
+     * @param schema
+     *        the property schema
+     * @param description
+     *        a description of the test definition
+     * @param testProperties
+     *        the property definitions
+     * @return <tt>true</tt> if the properties were written or <tt>false</tt>
+     *         if they already existed
      */
     public boolean writeTestDef(String release, Integer schema, String description, List<TestProperty> testProperties)
     {
@@ -453,8 +505,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_SCHEMA, true)
                 .get();
         DBObject resultsObjExistingSchema = testDefs.findOne(queryObjExistingSchema, fieldsObjExistingSchema);
-        Integer existingSchema = (resultsObjExistingSchema == null) ? null : (Integer) resultsObjExistingSchema.get(FIELD_SCHEMA);
-        
+        Integer existingSchema = (resultsObjExistingSchema == null) ? null
+                : (Integer) resultsObjExistingSchema.get(FIELD_SCHEMA);
+
         if (existingSchema == null)
         {
             if (logger.isDebugEnabled())
@@ -463,27 +516,31 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             }
             // Fall through to write the test definition
         }
-        else if (existingSchema.equals(schema))
-        {
-            // We have an exact match.  Don't do anything.
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("Test definition exists for " + release + ":" + schema);
-            }
-            return false;
-        }
         else
-        {
-            // The query found an instance with a larger schema number.  We don't run downgrades on the same release.
-            throw new RuntimeException("The current test is out of date and needs to be upgraded to a later version or schema " + release + ":" + schema);
-        }
+            if (existingSchema.equals(schema))
+            {
+                // We have an exact match. Don't do anything.
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("Test definition exists for " + release + ":" + schema);
+                }
+                return false;
+            }
+            else
+            {
+                // The query found an instance with a larger schema number. We
+                // don't run downgrades on the same release.
+                throw new RuntimeException(
+                        "The current test is out of date and needs to be upgraded to a later version or schema "
+                                + release + ":" + schema);
+            }
 
         // Pattern for valid property names
         Pattern pattern = Pattern.compile(PROP_NAME_REGEX);
-        
+
         // Build a DB-safe map for direct persistence
         Collection<Properties> testPropertiesForDb = new ArrayList<Properties>(testProperties.size());
-        for (TestProperty testProperty: testProperties)
+        for (TestProperty testProperty : testProperties)
         {
             // Do not write properties with invalid names
             Matcher matcher = pattern.matcher(testProperty.getName());
@@ -492,14 +549,14 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 logger.warn("Property will be ignored.  The name is non-standard: " + matcher);
                 continue;
             }
-            
+
             // Convert the Java object to Java Properties
             Properties propValues = testProperty.toProperties();
 
-            // That's it.  Add it the properties.
+            // That's it. Add it the properties.
             testPropertiesForDb.add(propValues);
         }
-        
+
         // Attempt an insert
         DBObject newObj = BasicDBObjectBuilder
                 .start()
@@ -508,7 +565,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_DESCRIPTION, description)
                 .add(FIELD_PROPERTIES, testPropertiesForDb)
                 .get();
-        
+
         try
         {
             WriteResult result = testDefs.insert(newObj);
@@ -516,9 +573,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Created test definition: " + result + "\n" +
-                        "   Release: " + release + "\n" +
-                        "   Schema:  " + schema + "\n" +
-                        "   New:     " + newObj);
+                                "   Release: " + release + "\n" +
+                                "   Schema:  " + schema + "\n" +
+                                "   New:     " + newObj);
             }
             return true;
         }
@@ -534,8 +591,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     }
 
     /**
-     * @param count                 the number of results to retrieve (must be greater than zero)
-     * @return                      a list of tests, active or all
+     * @param count
+     *        the number of results to retrieve (must be greater than zero)
+     * @return a list of tests, active or all
      */
     public DBCursor getTestDefs(boolean active, int skip, int count)
     {
@@ -543,7 +601,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             throw new IllegalArgumentException("'count' must be larger than zero.");
         }
-        
+
         DBObject fieldsObj = BasicDBObjectBuilder
                 .start()
                 .add(FIELD_RELEASE, true)
@@ -554,7 +612,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RELEASE, 1)
                 .add(FIELD_SCHEMA, 1)
                 .get();
-        
+
         DBCursor cursor;
         if (active)
         {
@@ -568,23 +626,24 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             cursor = testDefs.find(null, fieldsObj).sort(sortObj).skip(skip).limit(count);
         }
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
             logger.debug(
                     "Fetching test definitions: \n" +
-                    "   active:  " + active + "\n" +
-                    "   skip:    " + skip + "\n" +
-                    "   count:   " + count + "\n" +
-                    "   Results: " + cursor.count());
+                            "   active:  " + active + "\n" +
+                            "   skip:    " + skip + "\n" +
+                            "   count:   " + count + "\n" +
+                            "   Results: " + cursor.count());
         }
         return cursor;
     }
-    
+
     /**
      * Get the test definition for internal use
-     * @return                  the test definition (untouched) or <tt>null</tt>
+     * 
+     * @return the test definition (untouched) or <tt>null</tt>
      */
     private DBObject getTestDefRaw(String release, Integer schema)
     {
@@ -593,12 +652,12 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RELEASE, release)
                 .add(FIELD_SCHEMA, schema)
                 .get();
-        
+
         DBObject testDefObj = testDefs.findOne(queryObj);
         // Done
         return testDefObj;
     }
-    
+
     /**
      * A cacheable object for holding the test definition
      * 
@@ -609,7 +668,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     {
         public final DBObject testDefObj;
         public final Map<String, DBObject> testDefPropsMap;
-        
+
         public TestDefEntry(DBObject testDefObj)
         {
             this.testDefObj = testDefObj;
@@ -627,11 +686,11 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             this.testDefPropsMap = Collections.unmodifiableMap(testDefPropsMap);
         }
     }
-    
+
     /**
      * Retrieve a cached version of the test definition
      * 
-     * @return              a cached test definition or <tt>null</tt> if not found
+     * @return a cached test definition or <tt>null</tt> if not found
      */
     private TestDefEntry getTestDefCached(String release, Integer schema)
     {
@@ -651,7 +710,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             testDefCacheLock.readLock().unlock();
         }
-        
+
         // Uncommon case: write
         testDefCacheLock.writeLock().lock();
         try
@@ -672,37 +731,42 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             testDefCacheLock.writeLock().unlock();
         }
     }
-    
+
     /**
      * Retrieve a specific (and full) test definition
      * 
-     * @param release               the test definition software release
-     * @param schema                the schema number
-     * @return                      the test definition or <tt>null</tt> if not found
+     * @param release
+     *        the test definition software release
+     * @param schema
+     *        the schema number
+     * @return the test definition or <tt>null</tt> if not found
      */
     public DBObject getTestDef(String release, Integer schema)
     {
         TestDefEntry testDefEntry = getTestDefCached(release, schema);
         DBObject testDefObj = testDefEntry == null ? null : testDefEntry.testDefObj;
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
             logger.debug(
                     "Fetched test definition: \n" +
-                    "   Release: " + release + "\n" +
-                    "   Schema:  " + schema + "\n" +
-                    "   Results: " + testDefObj);
+                            "   Release: " + release + "\n" +
+                            "   Schema:  " + schema + "\n" +
+                            "   Results: " + testDefObj);
         }
         return testDefObj;
     }
-    
+
     /**
      * Get a list of all defined tests
      * 
-     * @param release               the test definition software release or <tt>null</tt> for all test releases
-     * @param schema                the schema number or <tt>null</tt> for all schemas
-     * @return                      all the currently-defined tests
+     * @param release
+     *        the test definition software release or <tt>null</tt> for all test
+     *        releases
+     * @param schema
+     *        the schema number or <tt>null</tt> for all schemas
+     * @return all the currently-defined tests
      */
     public DBCursor getTests(String release, Integer schema, int skip, int count)
     {
@@ -727,25 +791,25 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RELEASE, true)
                 .add(FIELD_SCHEMA, true)
                 .get();
-        
+
         DBCursor dbCursor = tests.find(queryObj, fieldsObj).skip(skip).limit(count);
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
             logger.debug(
                     "Fetched tests: \n" +
-                    "   Release: " + release + "\n" +
-                    "   Schema:  " + schema + "\n" +
-                    "   Results: " + dbCursor.count());
+                            "   Release: " + release + "\n" +
+                            "   Schema:  " + schema + "\n" +
+                            "   Results: " + dbCursor.count());
         }
         return dbCursor;
     }
-    
+
     /**
      * Fetch the low-level ID for a test run
      * 
-     * @return      the test ID or <tt>null</tt> if not found
+     * @return the test ID or <tt>null</tt> if not found
      */
     private ObjectId getTestId(String test)
     {
@@ -768,25 +832,27 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.trace(
                     "Fetched test ID: \n" +
-                    "   Test:    " + test + "\n" +
-                    "   Result:  " + testObjId);
+                            "   Test:    " + test + "\n" +
+                            "   Result:  " + testObjId);
         }
         return testObjId;
     }
-    
+
     /**
      * Retrieve the data for given test
      * 
-     * @param testObjId         the ID of the test
-     * @param includeProperties <tt>true</tt> to flesh out the properties
-     * @return                  the test object or <tt>null</tt> if not found
+     * @param testObjId
+     *        the ID of the test
+     * @param includeProperties
+     *        <tt>true</tt> to flesh out the properties
+     * @return the test object or <tt>null</tt> if not found
      */
     public DBObject getTest(ObjectId testObjId, boolean includeProperties)
     {
         DBObject queryObj = QueryBuilder
                 .start(FIELD_ID).is(testObjId)
                 .get();
-        
+
         BasicDBObjectBuilder fieldsObjBuilder = BasicDBObjectBuilder
                 .start(FIELD_NAME, 1)
                 .add(FIELD_VERSION, true)
@@ -794,7 +860,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RELEASE, true)
                 .add(FIELD_SCHEMA, true);
         DBObject fieldsObj = fieldsObjBuilder.get();
-        
+
         DBObject testObj = tests.findOne(queryObj, fieldsObj);
         if (testObj == null)
         {
@@ -802,7 +868,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             logger.warn("Test not found.  Returning null test: " + testObjId);
             return null;
         }
-        
+
         BasicDBList propsList = new BasicDBList();
         if (includeProperties)
         {
@@ -823,7 +889,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 // Start with the properties from the test definition
                 Map<String, DBObject> propsMap = new HashMap<String, DBObject>(testDefEntry.testDefPropsMap);
-                
+
                 // Fetch the properties for the test
                 DBCursor testPropsCursor = getTestPropertiesRaw(testObjId, null);
                 // Combine
@@ -834,7 +900,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 testObj.put(FIELD_PROPERTIES, propsList);
             }
         }
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
@@ -842,13 +908,15 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return testObj;
     }
-    
+
     /**
      * Retrieve the data for given test
      * 
-     * @param test              the test name
-     * @param includeProperties <tt>true</tt> to flesh out the properties
-     * @return                  the test object or <tt>null</tt> if not found
+     * @param test
+     *        the test name
+     * @param includeProperties
+     *        <tt>true</tt> to flesh out the properties
+     * @return the test object or <tt>null</tt> if not found
      */
     public DBObject getTest(String test, boolean includeProperties)
     {
@@ -861,19 +929,28 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return getTest(testObjId, includeProperties);
     }
-    
+
     /**
      * Create a new test by copying an existing test.
      * <p/>
-     * All property overrides will be copied, which is where the value really lies.
+     * All property overrides will be copied, which is where the value really
+     * lies.
      * Test runs are not copied.
      * 
-     * @param name                  a globally-unique name using {@link ConfigConstants#TEST_NAME_REGEX}
-     * @param release               the test definition software release or <tt>null</tt> to use the same release as the source test
-     * @param schema                the schema number or <tt>null</tt> to use the same schema as the source test
-     * @param copyOfTest            the test name to copy
-     * @param copyOfVersion         the version of the test to copy
-     * @return                      <tt>true</tt> if the test was copied or <tt>false</tt> if not
+     * @param name
+     *        a globally-unique name using
+     *        {@link ConfigConstants#TEST_NAME_REGEX}
+     * @param release
+     *        the test definition software release or <tt>null</tt> to use the
+     *        same release as the source test
+     * @param schema
+     *        the schema number or <tt>null</tt> to use the same schema as the
+     *        source test
+     * @param copyOfTest
+     *        the test name to copy
+     * @param copyOfVersion
+     *        the version of the test to copy
+     * @return <tt>true</tt> if the test was copied or <tt>false</tt> if not
      */
     public boolean copyTest(String test, String release, Integer schema, String copyOfTest, int copyOfVersion)
     {
@@ -894,14 +971,14 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             schema = (Integer) copyOfTestObj.get(FIELD_SCHEMA);
         }
         String description = (String) copyOfTestObj.get(FIELD_DESCRIPTION);
-        
+
         // Copy the test
         if (!createTest(test, description, release, schema))
         {
             logger.warn("Failed to create a test via copy: " + test);
             return false;
         }
-        
+
         // Get the properties to copy
         BasicDBList copyOfPropObjs = (BasicDBList) copyOfTestObj.get(FIELD_PROPERTIES);
         if (copyOfPropObjs == null)
@@ -918,13 +995,15 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 continue;
             }
             String propName = (String) copyPropObj.get(FIELD_NAME);
-            // Is this property present in the new test (might be copying between releases)
+            // Is this property present in the new test (might be copying
+            // between releases)
             if (getProperty(test, null, propName) == null)
             {
-                // The new test does not have the property so do not import the overridden value
+                // The new test does not have the property so do not import the
+                // overridden value
                 continue;
             }
-            
+
             String propValue = (String) copyPropObj.get(FIELD_VALUE);
             Integer versionZero = Integer.valueOf(0);
             this.setPropertyOverride(test, null, propName, versionZero, propValue);
@@ -934,20 +1013,25 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.debug(
                     "Copied test: \n" +
-                    "   From Test: " + copyOfTest + "\n" +
-                    "   New Test:  " + test);
+                            "   From Test: " + copyOfTest + "\n" +
+                            "   New Test:  " + test);
         }
         return true;
     }
-    
+
     /**
      * Create a new test for the precise release and schema
      * 
-     * @param test                  a globally-unique name using {@link ConfigConstants#TEST_NAME_REGEX}
-     * @param description           any description
-     * @param release               the test definition software release
-     * @param schema                the schema number
-     * @return                      <tt>true</tt> if the test was written other <tt>false</tt> if not
+     * @param test
+     *        a globally-unique name using
+     *        {@link ConfigConstants#TEST_NAME_REGEX}
+     * @param description
+     *        any description
+     * @param release
+     *        the test definition software release
+     * @param schema
+     *        the schema number
+     * @return <tt>true</tt> if the test was written other <tt>false</tt> if not
      */
     public boolean createTest(String test, String description, String release, Integer schema)
     {
@@ -955,19 +1039,20 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             throw new IllegalArgumentException("Name length must be non-zero");
         }
-        else if (release == null || schema == null)
-        {
-            throw new IllegalArgumentException("A release and schema number must be supplied for a test.");
-        }
+        else
+            if (release == null || schema == null)
+            {
+                throw new IllegalArgumentException("A release and schema number must be supplied for a test.");
+            }
         Pattern pattern = Pattern.compile(TEST_NAME_REGEX);
         Matcher matcher = pattern.matcher(test);
         if (!matcher.matches())
         {
             throw new IllegalArgumentException(
                     "The test name '" + test + "' is invalid.  " +
-                    "Test names must start with a character and contain only characters, numbers or underscore.");
+                            "Test names must start with a character and contain only characters, numbers or underscore.");
         }
-        
+
         // There are no properties to start with
         DBObject writeObj = BasicDBObjectBuilder
                 .start()
@@ -977,7 +1062,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RELEASE, release)
                 .add(FIELD_SCHEMA, schema)
                 .get();
-        
+
         try
         {
             WriteResult result = tests.insert(writeObj);
@@ -985,10 +1070,10 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Created test: " + result + "\n" +
-                        "   Name:    " + test + "\n" +
-                        "   Descr:   " + description + "\n" +
-                        "   Release: " + release + "\n" +
-                        "   Schema:  " + schema);
+                                "   Name:    " + test + "\n" +
+                                "   Descr:   " + description + "\n" +
+                                "   Release: " + release + "\n" +
+                                "   Schema:  " + schema);
             }
             return true;
         }
@@ -1001,17 +1086,24 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             return false;
         }
     }
-    
+
     /**
      * Update an existing test to use new test details
      * 
-     * @param name                  the name of the test (must exist)
-     * @param version               the version of the test for concurrency checking
-     * @param newName               the new test name
-     * @param newDescription        the new description or <tt>null</tt> ot leave it
-     * @param newRelease            the new software release or <tt>null</tt> to leave it
-     * @param newSchema             the new schema number or <tt>null</tt> to leave it
-     * @return                      <tt>true</tt> if the test run was modified or <tt>false</tt> if not
+     * @param name
+     *        the name of the test (must exist)
+     * @param version
+     *        the version of the test for concurrency checking
+     * @param newName
+     *        the new test name
+     * @param newDescription
+     *        the new description or <tt>null</tt> ot leave it
+     * @param newRelease
+     *        the new software release or <tt>null</tt> to leave it
+     * @param newSchema
+     *        the new schema number or <tt>null</tt> to leave it
+     * @return <tt>true</tt> if the test run was modified or <tt>false</tt> if
+     *         not
      */
     public boolean updateTest(
             String name, int version,
@@ -1021,7 +1113,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             throw new IllegalArgumentException("Updated requires a name and version.");
         }
-        
+
         // Find the test by name and version
         DBObject queryObj = QueryBuilder
                 .start()
@@ -1030,7 +1122,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .get();
 
         // Handle version wrap-around
-        Integer newVersion = version >= Short.MAX_VALUE ? 1 : version+1;
+        Integer newVersion = version >= Short.MAX_VALUE ? 1 : version + 1;
         // Gather all the setters required
         BasicDBObjectBuilder setObjBuilder = BasicDBObjectBuilder
                 .start()
@@ -1043,9 +1135,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 throw new IllegalArgumentException(
                         "The test name '" + newName + "' is invalid.  " +
-                        "Test names must start with a character and contain only characters, numbers or underscore.");
+                                "Test names must start with a character and contain only characters, numbers or underscore.");
             }
-            
+
             setObjBuilder.add(FIELD_NAME, newName);
         }
         if (newDescription != null)
@@ -1061,13 +1153,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             setObjBuilder.add(FIELD_SCHEMA, newSchema);
         }
         DBObject setObj = setObjBuilder.get();
-        
+
         // Now push the values to set into the update
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .add("$set", setObj)
                 .get();
-        
+
         WriteResult result = tests.update(queryObj, updateObj);
         boolean written = (result.getN() > 0);
 
@@ -1078,8 +1170,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Updated test: \n" +
-                        "   Test:      " + name + "\n" +
-                        "   Update:    " + updateObj);
+                                "   Test:      " + name + "\n" +
+                                "   Update:    " + updateObj);
             }
             else
             {
@@ -1088,12 +1180,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return written;
     }
-    
+
     /**
      * Delete an existing test
      * 
-     * @param test                  the name of the test (must exist)
-     * @return                      <tt>true</tt> if the test was deleted or <tt>false</tt> if not
+     * @param test
+     *        the name of the test (must exist)
+     * @return <tt>true</tt> if the test was deleted or <tt>false</tt> if not
      */
     public boolean deleteTest(String test)
     {
@@ -1111,10 +1204,10 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .start()
                 .and(FIELD_ID).is(testObjId)
                 .get();
-        
+
         WriteResult result = tests.remove(testDelObj);
         boolean written = (result.getN() > 0);
-        
+
         // Clean up test-related runs
         DBObject runDelObj = BasicDBObjectBuilder
                 .start()
@@ -1143,12 +1236,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return written;
     }
-    
+
     /**
      * Get the test run names associated with a given test
      * 
-     * @param test              the name of the test
-     * @return                  the names of all test runs associated with the given test
+     * @param test
+     *        the name of the test
+     * @return the names of all test runs associated with the given test
      */
     public List<String> getTestRunNames(String test)
     {
@@ -1160,7 +1254,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             return Collections.emptyList();
         }
         ObjectId testObjId = (ObjectId) testObj.get(FIELD_ID);
-        
+
         DBObject queryObj = QueryBuilder
                 .start()
                 .and(FIELD_TEST).is(testObjId)
@@ -1194,11 +1288,14 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     }
 
     /**
-     * @param test              only fetch runs for this test or <tt>null</tt> to get all test runs
-     * @param testRunStates     optional states that the test runs must be in or empty for all
-     * @return                  a cursor onto the test runs for the given test
+     * @param test
+     *        only fetch runs for this test or <tt>null</tt> to get all test
+     *        runs
+     * @param testRunStates
+     *        optional states that the test runs must be in or empty for all
+     * @return a cursor onto the test runs for the given test
      */
-    public DBCursor getTestRuns(String test, int skip, int count, TestRunState ... testRunStates)
+    public DBCursor getTestRuns(String test, int skip, int count, TestRunState... testRunStates)
     {
         BasicDBObjectBuilder queryObjBuilder = BasicDBObjectBuilder
                 .start();
@@ -1207,14 +1304,15 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             ObjectId testObjId = getTestId(test);
             if (testObjId == null)
             {
-                // The test no longer exists, so the run effectively doesn't either
+                // The test no longer exists, so the run effectively doesn't
+                // either
                 logger.warn("Test not found: " + test);
                 // Use a ficticious ID that will never match
                 testObjId = new ObjectId();
             }
             queryObjBuilder.add(FIELD_TEST, testObjId);
         }
-        
+
         // Build query for the test run states
         if (testRunStates.length > 0)
         {
@@ -1226,7 +1324,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             queryObjBuilder.push(FIELD_STATE);
             queryObjBuilder.add("$in", stateStrs);
         }
-        
+
         DBObject queryObj = queryObjBuilder.get();
 
         DBObject fieldsObj = BasicDBObjectBuilder
@@ -1247,20 +1345,20 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RESULTS_TOTAL, true)
                 .add(FIELD_SUCCESS_RATE, true)
                 .get();
-        
+
         DBCursor dbCursor = testRuns.find(queryObj, fieldsObj).skip(skip).limit(count);
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
             logger.debug(
                     "Fetched test runs: \n" +
-                    "   Test:    " + test + "\n" +
-                    "   Results: " + dbCursor.count());
+                            "   Test:    " + test + "\n" +
+                            "   Results: " + dbCursor.count());
         }
         return dbCursor;
     }
-    
+
     /**
      * Fetch the low-level ID for a test run
      */
@@ -1286,19 +1384,21 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.trace(
                     "Fetched test run ID: \n" +
-                    "   Test ID: " + testObjId + "\n" +
-                    "   Run:     " + run + "\n" +
-                    "   Result:  " + runObjId);
+                            "   Test ID: " + testObjId + "\n" +
+                            "   Run:     " + run + "\n" +
+                            "   Result:  " + runObjId);
         }
         return runObjId;
     }
-    
+
     /**
      * Retrieve the data for given test run
      * 
-     * @param runObjId          the ID of the test run
-     * @param includeProperties <tt>true</tt> to flesh out all the properties
-     * @return                  the test object or <tt>null</tt> if not found
+     * @param runObjId
+     *        the ID of the test run
+     * @param includeProperties
+     *        <tt>true</tt> to flesh out all the properties
+     * @return the test object or <tt>null</tt> if not found
      */
     public DBObject getTestRun(ObjectId runObjId, boolean includeProperties)
     {
@@ -1306,7 +1406,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .start()
                 .and(FIELD_ID).is(runObjId)
                 .get();
-        
+
         BasicDBObjectBuilder fieldsObjBuilder = BasicDBObjectBuilder
                 .start()
                 .add(FIELD_NAME, true)
@@ -1326,15 +1426,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_SUCCESS_RATE, true)
                 .add(FIELD_DRIVERS, true);
         DBObject fieldsObj = fieldsObjBuilder.get();
-        
+
         DBObject runObj = testRuns.findOne(queryObj, fieldsObj);
         if (runObj == null)
         {
-            // The test run no longer exists, so the run effectively doesn't either
+            // The test run no longer exists, so the run effectively doesn't
+            // either
             logger.warn("Test run not found.  Returning null test run: " + runObjId);
             return null;
         }
-        
+
         BasicDBList propsList = new BasicDBList();
         if (includeProperties)
         {
@@ -1360,8 +1461,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                     // Again, we don't bother trying to resolve this
                     logger.warn(
                             "Test run no longer has a matching test definition: \n" +
-                            "   Test: " + testObj + "\n" +
-                            "   Run:  " + runObj);
+                                    "   Test: " + testObj + "\n" +
+                                    "   Run:  " + runObj);
                     logger.warn("Cleaning up test without matching test definition: " + testObj);
                     this.deleteTest(test);
                     return null;
@@ -1370,7 +1471,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 {
                     // Start with the properties from the test definition
                     Map<String, DBObject> propsMap = new HashMap<String, DBObject>(testDefEntry.testDefPropsMap);
-                    
+
                     // Fetch the properties for the test
                     DBCursor testPropsCursor = getTestPropertiesRaw(testObjId, null);
                     // Combine
@@ -1386,7 +1487,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 }
             }
         }
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
@@ -1394,14 +1495,17 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return runObj;
     }
-    
+
     /**
      * Retrieve the data for given test run
      * 
-     * @param test              the name of the test
-     * @param run               the test run name
-     * @param includeProperties <tt>true</tt> to flesh out all the properties
-     * @return                  the test object or <tt>null</tt> if not found
+     * @param test
+     *        the name of the test
+     * @param run
+     *        the test run name
+     * @param includeProperties
+     *        <tt>true</tt> to flesh out all the properties
+     * @return the test object or <tt>null</tt> if not found
      */
     public DBObject getTestRun(String test, String run, boolean includeProperties)
     {
@@ -1418,23 +1522,29 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         ObjectId runObjId = getTestRunId(testObjId, run);
         if (runObjId == null)
         {
-            // The test run no longer exists, so the run effectively doesn't either
+            // The test run no longer exists, so the run effectively doesn't
+            // either
             logger.warn("Test run not found.  Returning null test run: " + test + "." + run);
             return null;
         }
         return getTestRun(runObjId, includeProperties);
     }
-    
+
     /**
      * Create a new test run by copying an existing test run.
      * <p/>
-     * All property overrides will be copied, which is where the value really lies.
+     * All property overrides will be copied, which is where the value really
+     * lies.
      * 
-     * @param test                  the name of the test to which the run belongs
-     * @param run                   a test-unique name using {@link ConfigConstants#RUN_NAME_REGEX}
-     * @param copyOfRun             the test run name to copy
-     * @param copyOfVersion         the version of the test run to copy
-     * @return                      <tt>true</tt> if the test run was copied or <tt>false</tt> if not
+     * @param test
+     *        the name of the test to which the run belongs
+     * @param run
+     *        a test-unique name using {@link ConfigConstants#RUN_NAME_REGEX}
+     * @param copyOfRun
+     *        the test run name to copy
+     * @param copyOfVersion
+     *        the version of the test run to copy
+     * @return <tt>true</tt> if the test run was copied or <tt>false</tt> if not
      */
     public boolean copyTestRun(String test, String run, String copyOfRun, int copyOfVersion)
     {
@@ -1460,7 +1570,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             logger.warn("Failed to create a test run via copy: " + test + "." + run);
             return false;
         }
-        
+
         // Get the properties to copy
         BasicDBList copyOfPropObjs = (BasicDBList) copyOfTestRunObj.get(FIELD_PROPERTIES);
         if (copyOfPropObjs == null)
@@ -1479,7 +1589,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             String copyPropOrigin = (String) copyPropObj.get(FIELD_ORIGIN);
             if (!TestPropertyOrigin.RUN.name().equals(copyPropOrigin))
             {
-                // We also don't copy values that did not originate in the test run
+                // We also don't copy values that did not originate in the test
+                // run
                 continue;
             }
             String propName = (String) copyPropObj.get(FIELD_NAME);
@@ -1492,20 +1603,24 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.debug(
                     "Copied test run: \n" +
-                    "   Test:     " + test + "\n" +
-                    "   From Run: " + copyOfRun + "\n" +
-                    "   New Run:  " + run);
+                            "   Test:     " + test + "\n" +
+                            "   From Run: " + copyOfRun + "\n" +
+                            "   New Run:  " + run);
         }
         return true;
     }
-    
+
     /**
      * Create a new test run
      * 
-     * @param test                  the name of the test to which the run belongs
-     * @param run                   a test-unique name using {@link ConfigConstants#RUN_NAME_REGEX}
-     * @param description           any description
-     * @return                      <tt>true</tt> if the test run was written other <tt>false</tt> if not
+     * @param test
+     *        the name of the test to which the run belongs
+     * @param run
+     *        a test-unique name using {@link ConfigConstants#RUN_NAME_REGEX}
+     * @param description
+     *        any description
+     * @return <tt>true</tt> if the test run was written other <tt>false</tt> if
+     *         not
      */
     public boolean createTestRun(String test, String run, String description)
     {
@@ -1519,9 +1634,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             throw new IllegalArgumentException(
                     "The test run name '" + run + "' is invalid.  " +
-                    "Test run names may contain only characters, numbers or underscore.");
+                            "Test run names may contain only characters, numbers or underscore.");
         }
-        
+
         DBObject testObj = getTest(test, false);
         if (testObj == null)
         {
@@ -1549,9 +1664,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RESULTS_FAIL, Long.valueOf(0L))
                 .add(FIELD_RESULTS_TOTAL, Long.valueOf(0L))
                 .add(FIELD_SUCCESS_RATE, Double.valueOf(1.0))
-                .add(FIELD_DRIVERS, new BasicDBList())              // Ensure we have an empty list to start
+                .add(FIELD_DRIVERS, new BasicDBList())              // Ensure we
+                                                                    // have an
+                                                                    // empty
+                                                                    // list to
+                                                                    // start
                 .get();
-        
+
         try
         {
             WriteResult result = testRuns.insert(writeObj);
@@ -1559,9 +1678,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Created test run: " + result + "\n" +
-                        "   Test:    " + test + "\n" +
-                        "   Name:    " + run + "\n" +
-                        "   Descr:   " + description);
+                                "   Test:    " + test + "\n" +
+                                "   Name:    " + run + "\n" +
+                                "   Descr:   " + description);
             }
             return true;
         }
@@ -1574,16 +1693,22 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             return false;
         }
     }
-    
+
     /**
      * Update an existing test run with new details
      *
-     * @param test                  the name of the test
-     * @param run                   the name of the test run (must exist)
-     * @param version               the version of the test for concurrency checking
-     * @param newName               the new name of the test run
-     * @param newDescription        the new description or <tt>null</tt> ot leave it
-     * @return                      <tt>true</tt> if the test run was modified or <tt>false</tt> if not
+     * @param test
+     *        the name of the test
+     * @param run
+     *        the name of the test run (must exist)
+     * @param version
+     *        the version of the test for concurrency checking
+     * @param newName
+     *        the new name of the test run
+     * @param newDescription
+     *        the new description or <tt>null</tt> ot leave it
+     * @return <tt>true</tt> if the test run was modified or <tt>false</tt> if
+     *         not
      */
     public boolean updateTestRun(
             String test, String run, int version,
@@ -1593,7 +1718,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             throw new IllegalArgumentException("Updated requires a name and version.");
         }
-        
+
         // Get the test
         DBObject testObj = getTest(test, false);
         if (testObj == null)
@@ -1604,7 +1729,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             }
             return false;
         }
-        
+
         // Find the test run by name and version
         DBObject queryObj = QueryBuilder
                 .start()
@@ -1612,9 +1737,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .and(FIELD_NAME).is(run)
                 .and(FIELD_VERSION).is(version)
                 .get();
-        
+
         // Handle version wrap-around
-        Integer newVersion = version >= Short.MAX_VALUE ? 1 : version+1;
+        Integer newVersion = version >= Short.MAX_VALUE ? 1 : version + 1;
         // Gather all the setters required
         BasicDBObjectBuilder setObjBuilder = BasicDBObjectBuilder
                 .start()
@@ -1627,7 +1752,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 throw new IllegalArgumentException(
                         "The test run name '" + newName + "' is invalid.  " +
-                        "Test run names may only contain characters, numbers or underscore.");
+                                "Test run names may only contain characters, numbers or underscore.");
             }
             setObjBuilder.add(FIELD_NAME, newName);
         }
@@ -1636,13 +1761,13 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             setObjBuilder.add(FIELD_DESCRIPTION, newDescription);
         }
         DBObject setObj = setObjBuilder.get();
-        
+
         // Now push the values to set into the update
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .add("$set", setObj)
                 .get();
-        
+
         WriteResult result = testRuns.update(queryObj, updateObj);
         boolean written = (result.getN() > 0);
 
@@ -1653,9 +1778,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Updated test run: \n" +
-                        "   Test:      " + test + "\n" +
-                        "   Run:       " + run + "\n" +
-                        "   Update:    " + updateObj);
+                                "   Test:      " + test + "\n" +
+                                "   Run:       " + run + "\n" +
+                                "   Update:    " + updateObj);
             }
             else
             {
@@ -1668,24 +1793,40 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     /**
      * Update the run state of a test run.
      * <p/>
-     * The test run {@link TestConstants#FIELD_STATE state} will be set based on the values.
+     * The test run {@link TestConstants#FIELD_STATE state} will be set based on
+     * the values.
      * <p/>
-     * Note that a test run can either be stopped or completed but not both.  In both cases,
+     * Note that a test run can either be stopped or completed but not both. In
+     * both cases,
      * though, the test run must have been scheduled and then started.
      *
-     * @param test                  the name of the test
-     * @param run                   the name of the test run (must exist)
-     * @param version               the version of the test for concurrency checking
-     * @param testRunState          the test run state to set (<null> to ignore)
-     * @param scheduled             the time when the test run is scheduled to start (<null> to ignore)
-     * @param started               the time when the test run started (<null> to ignore)
-     * @param stopped               the time when the test run was stopped (<null> to ignore)
-     * @param completed             the time when the test run was completed (<null> to ignore)
-     * @param duration              the time the test has been running for in ms (<null> to ignore)
-     * @param progress              the new progress for the test run (<null> to ignore)
-     * @param resultsSuccess        the number of successful results (<null> to ignore)
-     * @param resultsFailure        the number of failed results (<null> to ignore)
-     * @return                      <tt>true</tt> if the test run was modified or <tt>false</tt> if not
+     * @param test
+     *        the name of the test
+     * @param run
+     *        the name of the test run (must exist)
+     * @param version
+     *        the version of the test for concurrency checking
+     * @param testRunState
+     *        the test run state to set (<null> to ignore)
+     * @param scheduled
+     *        the time when the test run is scheduled to start (<null> to
+     *        ignore)
+     * @param started
+     *        the time when the test run started (<null> to ignore)
+     * @param stopped
+     *        the time when the test run was stopped (<null> to ignore)
+     * @param completed
+     *        the time when the test run was completed (<null> to ignore)
+     * @param duration
+     *        the time the test has been running for in ms (<null> to ignore)
+     * @param progress
+     *        the new progress for the test run (<null> to ignore)
+     * @param resultsSuccess
+     *        the number of successful results (<null> to ignore)
+     * @param resultsFailure
+     *        the number of failed results (<null> to ignore)
+     * @return <tt>true</tt> if the test run was modified or <tt>false</tt> if
+     *         not
      */
     public boolean updateTestRunState(
             ObjectId runId, int version,
@@ -1702,7 +1843,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .and(FIELD_ID).is(runId)
                 .and(FIELD_VERSION).is(version)
                 .get();
-        
+
         // Gather all the setters required
         BasicDBObjectBuilder setObjBuilder = BasicDBObjectBuilder.start();
         if (testRunState != null)
@@ -1738,7 +1879,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 throw new IllegalArgumentException("Progress must be expressed as a double in range [0.0, 1.0].");
             }
             progress = progressLong / 10000.0;      // Accuracy
-            
+
             setObjBuilder.add(FIELD_PROGRESS, progress);
         }
         if (resultsSuccess != null || resultsFail != null)
@@ -1748,7 +1889,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 throw new IllegalArgumentException("resultsSuccess and resultsFail must be updated together.");
             }
             long resultsTotal = Long.valueOf(resultsSuccess.longValue() + resultsFail.longValue());
-            double successRate = (resultsTotal == 0) ? 1.0 : (resultsSuccess/(double)resultsTotal);
+            double successRate = (resultsTotal == 0) ? 1.0 : (resultsSuccess / (double) resultsTotal);
             setObjBuilder.add(FIELD_RESULTS_SUCCESS, resultsSuccess);
             setObjBuilder.add(FIELD_RESULTS_FAIL, resultsFail);
             setObjBuilder.add(FIELD_RESULTS_TOTAL, resultsTotal);
@@ -1767,19 +1908,19 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             }
             return false;
         }
-        
+
         // Handle version wrap-around
-        Integer newVersion = version >= Short.MAX_VALUE ? 1 : version+1;
+        Integer newVersion = version >= Short.MAX_VALUE ? 1 : version + 1;
         setObjBuilder.add(FIELD_VERSION, newVersion);
         // Get the object containing the set values
         DBObject setObj = setObjBuilder.get();
-        
+
         // Now push the values to set into the update
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .add("$set", setObj)
                 .get();
-        
+
         WriteResult result = testRuns.update(queryObj, updateObj);
         boolean written = (result.getN() > 0);
 
@@ -1790,8 +1931,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Updated test run state: \n" +
-                        "   Run ID:    " + runId + "\n" +
-                        "   Update:    " + updateObj);
+                                "   Run ID:    " + runId + "\n" +
+                                "   Update:    " + updateObj);
             }
             else
             {
@@ -1800,12 +1941,14 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return written;
     }
-    
+
     /**
      * Register a driver with a test run
      * 
-     * @param runObjId              the ID of the test run
-     * @param driverId              the ID of the driver to include
+     * @param runObjId
+     *        the ID of the test run
+     * @param driverId
+     *        the ID of the driver to include
      */
     public void addTestRunDriver(ObjectId runObjId, String driverId)
     {
@@ -1816,27 +1959,29 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .get();
         DBObject updateObj = BasicDBObjectBuilder.start()
                 .push("$addToSet")
-                    .add(FIELD_DRIVERS, driverId)
-                    .pop()
+                .add(FIELD_DRIVERS, driverId)
+                .pop()
                 .get();
         DBObject runObj = testRuns.findAndModify(queryObj, null, null, false, updateObj, true, false);
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
             logger.debug(
                     "Added driver ID to run drivers: \n" +
-                    "   Run ID:     " + runObjId + "\n" +
-                    "   Driver:     " + driverId + "\n" +
-                    "   Drivers:    " + runObj.get(FIELD_DRIVERS));
+                            "   Run ID:     " + runObjId + "\n" +
+                            "   Driver:     " + driverId + "\n" +
+                            "   Drivers:    " + runObj.get(FIELD_DRIVERS));
         }
     }
-    
+
     /**
      * Derigister a driver from a test run
      * 
-     * @param runObjId              the ID of the test run
-     * @param driverId              the ID of the driver to remove
+     * @param runObjId
+     *        the ID of the test run
+     * @param driverId
+     *        the ID of the driver to remove
      */
     public void removeTestRunDriver(ObjectId runObjId, String driverId)
     {
@@ -1847,27 +1992,29 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .get();
         DBObject updateObj = BasicDBObjectBuilder.start()
                 .push("$pull")
-                    .add(FIELD_DRIVERS, driverId)
-                    .pop()
+                .add(FIELD_DRIVERS, driverId)
+                .pop()
                 .get();
         DBObject runObj = testRuns.findAndModify(queryObj, null, null, false, updateObj, true, false);
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
             logger.debug(
                     "Removed driver ID from run drivers: \n" +
-                    "   Run ID:     " + runObjId + "\n" +
-                    "   Driver:     " + driverId + "\n" +
-                    "   Drivers:    " + runObj.get(FIELD_DRIVERS));
+                            "   Run ID:     " + runObjId + "\n" +
+                            "   Driver:     " + driverId + "\n" +
+                            "   Drivers:    " + runObj.get(FIELD_DRIVERS));
         }
     }
-    
+
     /**
      * Delete an existing test run
      * 
-     * @param runObjId              the ID of the test run
-     * @return                      <tt>true</tt> if the test run was deleted or <tt>false</tt> if not
+     * @param runObjId
+     *        the ID of the test run
+     * @return <tt>true</tt> if the test run was deleted or <tt>false</tt> if
+     *         not
      */
     public boolean deleteTestRun(ObjectId runObjId)
     {
@@ -1879,16 +2026,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             return false;
         }
         ObjectId testObjId = (ObjectId) runObj.get(FIELD_TEST);
-        
+
         // Find the test run
         DBObject queryObj = QueryBuilder
                 .start()
                 .and(FIELD_ID).is(runObjId)
                 .get();
-        
+
         WriteResult result = testRuns.remove(queryObj);
         boolean written = (result.getN() > 0);
-        
+
         // Clean up properties
         DBObject propDelObj = BasicDBObjectBuilder
                 .start()
@@ -1911,13 +2058,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return written;
     }
-    
+
     /**
      * Delete an existing test run
      * 
-     * @param test                  the name of the test
-     * @param run                   the run name (must exist)
-     * @return                      <tt>true</tt> if the test run was deleted or <tt>false</tt> if not
+     * @param test
+     *        the name of the test
+     * @param run
+     *        the run name (must exist)
+     * @return <tt>true</tt> if the test run was deleted or <tt>false</tt> if
+     *         not
      */
     public boolean deleteTestRun(String test, String run)
     {
@@ -1928,7 +2078,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             logger.warn("Unable to delete test run; test not found: " + test);
             return false;
         }
-        
+
         // Get the run ID
         ObjectId runObjId = getTestRunId(testObjId, run);
         if (runObjId == null)
@@ -1936,10 +2086,10 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             logger.warn("Unable to delete test run; run not found: " + test + "." + run);
             return false;
         }
-        
+
         // Delete by ID
         boolean deleted = deleteTestRun(runObjId);
-        
+
         // Done
         if (logger.isDebugEnabled())
         {
@@ -1954,7 +2104,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return deleted;
     }
-    
+
     /**
      * Utility method to copy a DBObject
      */
@@ -1969,27 +2119,29 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return newPropObjBuilder.get();
     }
-    
+
     /**
-     * Merges in overriding values from a collection of properties into a map 
+     * Merges in overriding values from a collection of properties into a map
      * 
-     * @param propsMap              the properties to update; the map is updated in place
-     * @param overridingPropObjs    the properties that taken precedence
+     * @param propsMap
+     *        the properties to update; the map is updated in place
+     * @param overridingPropObjs
+     *        the properties that taken precedence
      */
     private static void mergeProperties(Map<String, DBObject> propsMap, DBCursor overridingPropObjs)
     {
         // Keep track of properties that were not overridden
         Set<String> unmerged = new HashSet<String>(propsMap.keySet());
-        
+
         while (overridingPropObjs != null && overridingPropObjs.hasNext())
         {
             DBObject overridePropObj = overridingPropObjs.next();
             String key = (String) overridePropObj.get(FIELD_NAME);
             unmerged.remove(key);
-            
+
             MongoTestDAO.mergeProperty(propsMap, overridePropObj);
         }
-        
+
         // All the untouched properties need to have 'value' moved to 'default'
         for (String key : unmerged)
         {
@@ -1997,7 +2149,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             String sourceObjValue = (String) sourceObj.get(FIELD_VALUE);
             if (sourceObjValue == null)
             {
-                // There is no value.  So the default remains the same.
+                // There is no value. So the default remains the same.
                 continue;
             }
             // Copy the object
@@ -2013,12 +2165,14 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         // Done
     }
-    
+
     /**
-     * Merges in overriding value from an object into a map 
+     * Merges in overriding value from an object into a map
      * 
-     * @param propsMap              the properties to update; the map is updated in place
-     * @param overridePropObj       the property that taken precedence
+     * @param propsMap
+     *        the properties to update; the map is updated in place
+     * @param overridePropObj
+     *        the property that taken precedence
      */
     private static void mergeProperty(Map<String, DBObject> propsMap, DBObject overridePropObj)
     {
@@ -2034,7 +2188,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         // Copy the property to a new instance
         DBObject newPropObj = copyDBObject(propObj);
-        // If the new property already has a value, then that becomes the default
+        // If the new property already has a value, then that becomes the
+        // default
         String newPropValue = (String) newPropObj.get(FIELD_VALUE);
         if (newPropValue != null)
         {
@@ -2049,7 +2204,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         propsMap.put(key, newPropObj);
         // Done
     }
-    
+
     /**
      * Convert the map entries into a collection of DBObjects
      */
@@ -2062,12 +2217,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         }
         return list;
     }
-    
+
     /**
      * Get all test-specific overrides for properties
-     * @param testObjId                 the ID of the test
-     * @param runObjId                  the ID of the test run or <tt>null</tt> to find generic test properties
-     * @return                          all properties for the test or test run
+     * 
+     * @param testObjId
+     *        the ID of the test
+     * @param runObjId
+     *        the ID of the test run or <tt>null</tt> to find generic test
+     *        properties
+     * @return all properties for the test or test run
      */
     private DBCursor getTestPropertiesRaw(ObjectId testObjId, ObjectId runObjId)
     {
@@ -2078,15 +2237,20 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .get();
         return testProps.find(queryObj);
     }
-    
+
     /**
-     * Get all test-specific overrides for properties.  Note that this does not include any
+     * Get all test-specific overrides for properties. Note that this does not
+     * include any
      * inherited fields from the property definitions.
      * 
-     * @param testObjId                 the ID of the test
-     * @param runObjId                  the ID of the test run or <tt>null</tt> to find generic test properties
-     * @param propertyName              the name of the property (never <tt>null</tt>)
-     * @return                          the property for the test run as a cursor
+     * @param testObjId
+     *        the ID of the test
+     * @param runObjId
+     *        the ID of the test run or <tt>null</tt> to find generic test
+     *        properties
+     * @param propertyName
+     *        the name of the property (never <tt>null</tt>)
+     * @return the property for the test run as a cursor
      */
     private DBCursor getTestPropertyRaw(ObjectId testObjId, ObjectId runObjId, String propertyName)
     {
@@ -2098,17 +2262,23 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .get();
         return testProps.find(queryObj);
     }
-    
+
     /**
-     * Retrieve the effective property for a given test, test run and property name.
+     * Retrieve the effective property for a given test, test run and property
+     * name.
      * <p/>
-     * This combines all values in the property inheritance hierarchy to get to the value
+     * This combines all values in the property inheritance hierarchy to get to
+     * the value
      * applicable to the test or test run.
-     *  
-     * @param test                      the name of the test
-     * @param run                       the name of the run or <tt>null</tt> to find the value for the test only
-     * @param propertyName              the name of the property (never <tt>null</tt>)
-     * @return                          the property for the test or <tt>null</tt> if it does not exist
+     * 
+     * @param test
+     *        the name of the test
+     * @param run
+     *        the name of the run or <tt>null</tt> to find the value for the
+     *        test only
+     * @param propertyName
+     *        the name of the property (never <tt>null</tt>)
+     * @return the property for the test or <tt>null</tt> if it does not exist
      */
     public DBObject getProperty(String test, String run, String propertyName)
     {
@@ -2116,7 +2286,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             throw new IllegalArgumentException("'propertyName' may not be null.");
         }
-        
+
         // First see if there is a test as requested
         DBObject testObj = getTest(test, false);
         if (testObj == null)
@@ -2126,9 +2296,9 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Could not get property for test that does not exist: \n" +
-                        "   Test:      " + test + "\n" +
-                        "   Run:       " + run + "\n" +
-                        "   Property:  " + propertyName);
+                                "   Test:      " + test + "\n" +
+                                "   Run:       " + run + "\n" +
+                                "   Property:  " + propertyName);
             }
             return null;
         }
@@ -2137,7 +2307,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         // Get the property definition
         String release = (String) testObj.get(FIELD_RELEASE);
         Integer schema = (Integer) testObj.get(FIELD_SCHEMA);
-        
+
         TestDefEntry testDefEntry = getTestDefCached(release, schema);
         if (testDefEntry == null)
         {
@@ -2145,19 +2315,20 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             return null;
         }
         Map<String, DBObject> propsMap = new HashMap<String, DBObject>(testDefEntry.testDefPropsMap);
-        
+
         // Get the overriding value from the test, if present
         DBCursor testPropsCursor = getTestPropertyRaw(testObjId, null, propertyName);
         // Combine
         MongoTestDAO.mergeProperties(propsMap, testPropsCursor);
-        
+
         // Check if we want the next level of overrides
         if (run != null)
         {
             ObjectId runObjId = getTestRunId(testObjId, run);
             if (runObjId == null)
             {
-                // The test no longer exists, so the run effectively doesn't either
+                // The test no longer exists, so the run effectively doesn't
+                // either
                 logger.warn("Test run not found: " + test + "." + run);
                 return null;
             }
@@ -2167,7 +2338,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             // Combine
             MongoTestDAO.mergeProperties(propsMap, runPropsCursor);
         }
-        
+
         // Pull out the property we want
         DBObject propObj = propsMap.get(propertyName);
 
@@ -2177,36 +2348,45 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             String msg = (propObj == null) ? "Property not found: \n" : "Found property: \n";
             logger.debug(
                     msg +
-                    "   Test:      " + test + "\n" +
-                    "   Run:       " + run + "\n" +
-                    "   Property:  " + propObj);
+                            "   Test:      " + test + "\n" +
+                            "   Run:       " + run + "\n" +
+                            "   Property:  " + propObj);
         }
         return propObj;
     }
-    
+
     /**
      * Override a specific test property value.
      * <p/>
-     * A version number of zero indicates that there is no existing override defined.<br/>
-     * A value of <tt>null</tt> indicates that the existing override should be removed.
+     * A version number of zero indicates that there is no existing override
+     * defined.<br/>
+     * A value of <tt>null</tt> indicates that the existing override should be
+     * removed.
      * 
-     * @param test                      the name of the test
-     * @param run                       the name of the test run (<tt>null</tt> to reference the test alone)
-     * @param propertyName              the name of the property
-     * @param version                   the current version of the property
-     * @param value                     the new value to set or <tt>null</tt> to remove any override
-     * @throws IllegalStateException    if the test has started
+     * @param test
+     *        the name of the test
+     * @param run
+     *        the name of the test run (<tt>null</tt> to reference the test
+     *        alone)
+     * @param propertyName
+     *        the name of the property
+     * @param version
+     *        the current version of the property
+     * @param value
+     *        the new value to set or <tt>null</tt> to remove any override
+     * @throws IllegalStateException
+     *         if the test has started
      */
     public boolean setPropertyOverride(String test, String run, String propertyName, int version, String value)
     {
         // Handle version wrap-around
-        int newVersion = (version >= Short.MAX_VALUE) ? 1 : version+1;
+        int newVersion = (version >= Short.MAX_VALUE) ? 1 : version + 1;
 
         // We need to keep the IDs
         ObjectId runObjId = null;
         ObjectId testObjId = null;
         String origin = null;
-        
+
         if (run == null)
         {
             origin = TestPropertyOrigin.TEST.name();
@@ -2238,8 +2418,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 {
                     throw new IllegalStateException(
                             "Property overrides can only be set for test runs that have not started: \n" +
-                            "   Run:      " + runObj + "\n" +
-                            "   Property: " + propertyName);
+                                    "   Run:      " + runObj + "\n" +
+                                    "   Property: " + propertyName);
                 }
             }
             catch (IllegalArgumentException e)
@@ -2252,7 +2432,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             runObjId = (ObjectId) runObj.get(FIELD_ID);
             testObjId = (ObjectId) runObj.get(FIELD_TEST);
         }
-                
+
         DBObject queryObj = QueryBuilder
                 .start()
                 .and(FIELD_TEST).is(testObjId)
@@ -2260,7 +2440,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .and(FIELD_NAME).is(propertyName)
                 .and(FIELD_VERSION).is(Integer.valueOf(version))
                 .get();
-        
+
         DBObject updateObj = BasicDBObjectBuilder
                 .start()
                 .add(FIELD_TEST, testObjId)
@@ -2270,7 +2450,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_VALUE, value)
                 .add(FIELD_ORIGIN, origin)
                 .get();
-        
+
         WriteResult result = null;
         boolean written = false;
         try
@@ -2310,37 +2490,40 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             {
                 logger.debug(
                         "Wrote property override: \n" +
-                        "   Test:      " + test + "\n" +
-                        "   Run:       " + run + "\n" +
-                        "   Property:  " + propertyName + "\n" +
-                        "   Version:   " + version);
+                                "   Test:      " + test + "\n" +
+                                "   Run:       " + run + "\n" +
+                                "   Property:  " + propertyName + "\n" +
+                                "   Version:   " + version);
             }
             else
             {
                 logger.debug(
                         "Did not update property override: \n" +
-                        "   Test:      " + test + "\n" +
-                        "   Run:       " + run + "\n" +
-                        "   Property:  " + propertyName + "\n" +
-                        "   Version:   " + version);
+                                "   Test:      " + test + "\n" +
+                                "   Run:       " + run + "\n" +
+                                "   Property:  " + propertyName + "\n" +
+                                "   Version:   " + version);
             }
         }
         return written;
     }
-    
+
     /**
-     * Record a final set of locked properties for a test run.  The properties written will not
+     * Record a final set of locked properties for a test run. The properties
+     * written will not
      * be updateable.
      * 
-     * @param testObjId         the ID of the test
-     * @param runObjId          the ID of the test run
+     * @param testObjId
+     *        the ID of the test
+     * @param runObjId
+     *        the ID of the test run
      */
     public void lockProperties(ObjectId testObjId, ObjectId runObjId)
     {
         // Get all the test run overrides
         DBObject runObj = getTestRun(runObjId, true);
         BasicDBList propObjs = (BasicDBList) runObj.get(FIELD_PROPERTIES);
-        
+
         // First remove all current property overrides for the run
         DBObject propDelObj = BasicDBObjectBuilder
                 .start()
@@ -2348,13 +2531,15 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 .add(FIELD_RUN, runObjId)
                 .get();
         testProps.remove(propDelObj);
-        
+
         // Now add them all back
-        int version = Short.MAX_VALUE + 1;              // This puts it out of the normal range of editing
+        int version = Short.MAX_VALUE + 1;              // This puts it out of
+                                                        // the normal range of
+                                                        // editing
         List<DBObject> insertObjList = new ArrayList<DBObject>(propObjs.size());
         for (Object obj : propObjs)
         {
-            DBObject propObj = (DBObject) obj; 
+            DBObject propObj = (DBObject) obj;
             String propName = (String) propObj.get(FIELD_NAME);
             String propOrigin = (String) propObj.get(FIELD_ORIGIN);
             Object defValue = propObj.get(FIELD_DEFAULT);
@@ -2364,7 +2549,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 // We override ALL values
                 value = defValue;
             }
-            
+
             DBObject insertObj = BasicDBObjectBuilder
                     .start()
                     .add(FIELD_TEST, testObjId)
@@ -2376,7 +2561,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                     .get();
             insertObjList.add(insertObj);
         }
-        
+
         // Do the bulk insert
         try
         {
@@ -2387,8 +2572,8 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             StringBuilder sb = new StringBuilder();
             sb.append(
                     "Lost test run property overrides: \n" +
-                    "   Error: " + e.getMessage() + "\n" +
-                    "   Props:");
+                            "   Error: " + e.getMessage() + "\n" +
+                            "   Props:");
             for (Object propObj : propObjs)
             {
                 sb.append("\n").append("      ").append(propObj);
@@ -2402,5 +2587,85 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         {
             logger.debug("Successfully fixed property overrides for run: " + runObjId);
         }
+    }
+
+    /**
+     * Fetch masked property names (passwords) by release and version name.
+     * 
+     * @param release
+     *        (String, mandatory) test release name
+     * @param version
+     *        (Integer) test version number
+     * 
+     * @return (Set<String>) or exception
+     * 
+     * @throws ObjectNotFoundException
+     * @since 2.1.2
+     */
+    public Set<String> getMaskedProperyNames(String release, Integer schema) throws ObjectNotFoundException
+    {
+        ArgumentCheck.checkMandatoryString(release, "release");
+
+        Set<String> result = new HashSet<String>();
+        TestDefEntry testDefEntry = getTestDefCached(release, schema);
+        ObjectNotFoundException.checkObject(testDefEntry, release + "-schema:" + schema);
+
+        // Start with the properties from the test definition
+        Map<String, DBObject> propsMap = new HashMap<String, DBObject>(testDefEntry.testDefPropsMap);
+        for (final String key : propsMap.keySet())
+        {
+            DBObject dbObjProp = propsMap.get(key);
+            if( dbObjProp.containsField(FIELD_MASK))
+            {
+                Object maskObj = dbObjProp.get(FIELD_MASK);
+                if (null != maskObj)
+                {
+                    boolean mask = false;
+                    if (maskObj instanceof String)
+                    {
+                        mask = ((String)maskObj).equals("true");
+                    }
+                    else if (maskObj instanceof Boolean)
+                    {
+                        mask = (Boolean)maskObj;
+                    }
+                    if (mask)
+                    {
+                        result.add((String)dbObjProp.get(FIELD_NAME));
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Fetch masked property names (passwords) by test name.
+     * 
+     * @param testName
+     *        (String, mandatory) test name
+     * 
+     * @return (Set<String>) or exception
+     * 
+     * @throws ObjectNotFoundException
+     * @since 2.1.2
+     */
+    public Set<String> getMaskedProperyNames(String testName) throws ObjectNotFoundException
+    {
+        ArgumentCheck.checkMandatoryString(testName, "testName");
+
+        DBObject queryObj = QueryBuilder
+                .start()
+                .and(FIELD_NAME).is(testName)
+                .get();
+
+        BasicDBObjectBuilder fieldsObjBuilder = BasicDBObjectBuilder
+                .start(FIELD_RELEASE, true)
+                .add(FIELD_SCHEMA, true);
+
+        DBObject testObj = tests.findOne(queryObj, fieldsObjBuilder.get());
+        ObjectNotFoundException.checkObject(testObj, testName);
+
+        return getMaskedProperyNames((String) testObj.get(FIELD_RELEASE), (Integer) testObj.get(FIELD_SCHEMA));
     }
 }
