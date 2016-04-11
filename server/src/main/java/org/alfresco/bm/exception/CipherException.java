@@ -41,4 +41,17 @@ public class CipherException extends Exception
         Log logger = LogFactory.getLog(this.getClass());
         logger.error("Cipher exception", cause);
     }
+
+    /**
+     * Constructor
+     * 
+     * @param message
+     *        (String) exception message
+     */
+    public CipherException(String message)
+    {
+        super(message);
+        Log logger = LogFactory.getLog(this.getClass());
+        logger.error(message);
+    }
 }

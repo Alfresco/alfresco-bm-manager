@@ -20,6 +20,7 @@ package org.alfresco.bm.test;
 
 import java.util.Date;
 
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,10 +65,14 @@ public class TestServiceImpl implements TestService
     @Override
     public TestRunState getTestRunState(String test, String run) throws NotFoundException
     {
-        DBObject testRunObj = testDAO.getTestRun(test, run, false);
-        if (testRunObj == null)
+        DBObject testRunObj;
+        try
         {
-            throw new NotFoundException(test, null);
+            testRunObj = testDAO.getTestRun(test, run, false);
+        }
+        catch (ObjectNotFoundException e)
+        {
+            throw new NotFoundException(test, null, e);
         }
         
         // Check the state transition
@@ -84,10 +89,14 @@ public class TestServiceImpl implements TestService
     @Override
     public DBObject getTestRunMetadata(String test, String run) throws NotFoundException
     {
-        DBObject testRunObj = testDAO.getTestRun(test, run, false);
-        if (testRunObj == null)
+        DBObject testRunObj;
+        try
         {
-            throw new NotFoundException(test, null);
+            testRunObj = testDAO.getTestRun(test, run, false);
+        }
+        catch (ObjectNotFoundException e)
+        {
+            throw new NotFoundException(test, null, e);
         }
         
         // Done
@@ -103,10 +112,14 @@ public class TestServiceImpl implements TestService
             throws NotFoundException, RunStateException, ConcurrencyException
     {
         // Get the current state of play
-        DBObject testRunObj = testDAO.getTestRun(test, run, false);
-        if (testRunObj == null)
+        DBObject testRunObj;
+        try
         {
-            throw new NotFoundException(test, run);
+            testRunObj = testDAO.getTestRun(test, run, false);
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            throw new NotFoundException(test, run, e1);
         }
         
         // Check the state transition
@@ -143,10 +156,14 @@ public class TestServiceImpl implements TestService
             throws NotFoundException, RunStateException, ConcurrencyException
     {
         // Get the current state of play
-        DBObject testRunObj = testDAO.getTestRun(test, run, false);
-        if (testRunObj == null)
+        DBObject testRunObj;
+        try
         {
-            throw new NotFoundException(test, run);
+            testRunObj = testDAO.getTestRun(test, run, false);
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            throw new NotFoundException(test, run, e1);
         }
         Integer version = (Integer) testRunObj.get(FIELD_VERSION);
 

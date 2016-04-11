@@ -30,13 +30,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import org.alfresco.bm.api.v1.ImportResult;
+import org.alfresco.bm.exception.CipherException;
 import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.test.TestConstants;
 import org.alfresco.bm.test.TestRunState;
+import org.alfresco.bm.test.prop.CipherVersion;
 import org.alfresco.bm.test.prop.TestProperty;
 import org.alfresco.bm.test.prop.TestPropertyFactory;
 import org.alfresco.bm.test.prop.TestPropertyOrigin;
@@ -751,8 +755,15 @@ public class MongoTestDAOTest implements TestConstants
         }
         
         // Check individual
-        DBObject runA1Obj = dao.getTestRun(testA, runA1, true);
-        assertNotNull(runA1Obj);
+        DBObject runA1Obj;
+        try
+        {
+            runA1Obj = dao.getTestRun(testA, runA1, true);
+        }
+        catch (ObjectNotFoundException e)
+        {
+            fail("Test '" + testA + "' not found!");
+        }
         
         // Check filtering by state
         cursor = dao.getTestRuns(testB, 0, 5);
@@ -794,27 +805,64 @@ public class MongoTestDAOTest implements TestConstants
         
         // create a test run
         String runA1 = createTestRun(testA, "A's description");
-        assertNull(dao.getTestRun("NO", runA1, false));
-        assertNull(dao.getTestRun(testA, "missing", false));
-        DBObject runA1Obj = dao.getTestRun(testA, runA1, false);
-        assertNotNull(runA1Obj);
+        try
+        {
+            assertNull(dao.getTestRun("NO", runA1, false));
+            fail("Should not find 'NO'!");
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            // expected!
+        }
+        try
+        {
+            assertNull(dao.getTestRun(testA, "missing", false));
+            fail("Should not find 'missing'test run!");
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            // expected
+        }
+        DBObject runA1Obj = null;
+        try
+        {
+            runA1Obj = dao.getTestRun(testA, runA1, false);
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            fail("Should have found test '" + testA + "', run '" + runA1 + "'.");
+        }
         
-        ObjectId runA1ObjId = (ObjectId) runA1Obj.get(FIELD_ID);
-        runA1Obj = dao.getTestRun(runA1ObjId, true);
-        assertNotNull("Test run retrieved by ObjectId was null", runA1Obj);
-        assertNotNull("Test run not returned with properties", runA1Obj.get(FIELD_PROPERTIES));
+        try
+        {
+            ObjectId runA1ObjId = (ObjectId) runA1Obj.get(FIELD_ID);
+            runA1Obj = dao.getTestRun(runA1ObjId, true);
+            assertNotNull("Test run not returned with properties", runA1Obj.get(FIELD_PROPERTIES));
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            fail("Test run retrieved by ObjectId was null :" + runA1Obj);
+        }
         
         // Rename the test and ensure that the update appears in the test run,
         // which should be ID based for lookups
-        assertTrue("Failed to update test", dao.updateTest(testA, 0, "RenamedTestA", null, null, null));
-        DBObject runA1ObjCheck = dao.getTestRun("RenamedTestA", runA1, false);
-        assertNotNull(runA1ObjCheck);
-        assertEquals("Expected exactly the same ID for the test run", runA1Obj.get(FIELD_ID), runA1ObjCheck.get(FIELD_ID));
+        String renamedTestName = "RenamedTestA";
+        assertTrue("Failed to update test", dao.updateTest(testA, 0, renamedTestName, null, null, null));
+        DBObject runA1ObjCheck = null;
+        try
+        {
+            runA1ObjCheck = dao.getTestRun(renamedTestName, runA1, false);
+            assertEquals("Expected exactly the same ID for the test run", runA1Obj.get(FIELD_ID), runA1ObjCheck.get(FIELD_ID));
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            fail("Should have found renamed test to " + renamedTestName);
+        }        
         
         // Attempt an illegal rename of the test run
         try
         {
-            dao.updateTestRun("RenamedTestA", runA1, 0, "CHANGED NAME", null);
+            dao.updateTestRun(renamedTestName, runA1, 0, "CHANGED NAME", null);
             fail("Illegal test run name not detected.");
         }
         catch (IllegalArgumentException e)
@@ -823,34 +871,72 @@ public class MongoTestDAOTest implements TestConstants
         }
         
         // Update the description of the test run
-        assertFalse("Expected nothing to be updated.", dao.updateTestRun("RenamedA", runA1, 0, null, null));
-        assertTrue(dao.updateTestRun("RenamedTestA", runA1, 0, "CHANGED_NAME", null));
-        runA1ObjCheck = dao.getTestRun("RenamedTestA", "CHANGED_NAME", false);
-        assertNotNull(runA1ObjCheck);
-        assertEquals("CHANGED_NAME", runA1ObjCheck.get(FIELD_NAME));
-        assertTrue(dao.updateTestRun("RenamedTestA", "CHANGED_NAME", 1, null, "CHANGED DESCRIPTION"));
-        runA1ObjCheck = dao.getTestRun("RenamedTestA", "CHANGED_NAME", false);
-        assertNotNull(runA1ObjCheck);
-        assertEquals("CHANGED DESCRIPTION", runA1ObjCheck.get(FIELD_DESCRIPTION));
+        try
+        {
+            assertFalse("Expected nothing to be updated.", dao.updateTestRun("RenamedA", runA1, 0, null, null));
+            assertTrue(dao.updateTestRun(renamedTestName, runA1, 0, "CHANGED_NAME", null));
+            runA1ObjCheck = dao.getTestRun(renamedTestName, "CHANGED_NAME", false);
+            assertEquals("CHANGED_NAME", runA1ObjCheck.get(FIELD_NAME));
+            assertTrue(dao.updateTestRun(renamedTestName, "CHANGED_NAME", 1, null, "CHANGED DESCRIPTION"));
+            runA1ObjCheck = dao.getTestRun(renamedTestName, "CHANGED_NAME", false);
+            assertEquals("CHANGED DESCRIPTION", runA1ObjCheck.get(FIELD_DESCRIPTION));
+        }
+        catch (ObjectNotFoundException e)
+        {
+            fail("Test not found: " + renamedTestName);
+        }
         
         assertFalse(dao.deleteTestRun(testA, runA1));
         assertFalse(dao.deleteTestRun(testA, "CHANGED_NAME"));
-        assertFalse(dao.deleteTestRun("RenamedTestA", runA1));
-        assertTrue(dao.deleteTestRun("RenamedTestA", "CHANGED_NAME"));
-        runA1ObjCheck = dao.getTestRun("RenamedTestA", "CHANGED_NAME", false);
-        assertNull(runA1ObjCheck);
+        assertFalse(dao.deleteTestRun(renamedTestName, runA1));
+        assertTrue(dao.deleteTestRun(renamedTestName, "CHANGED_NAME"));
+        try
+        {
+            runA1ObjCheck = dao.getTestRun(renamedTestName, "CHANGED_NAME", false);
+            fail("Shouldn't find deleted test " + renamedTestName);
+        }
+        catch (ObjectNotFoundException e)
+        {
+            // expected
+        }
+        
         
         // create a test run
-        String runA2 = createTestRun("RenamedTestA", "A2's description");
-        assertNull(dao.getTestRun("NO", runA2, false));
-        assertNull(dao.getTestRun("RenamedTestA", "missing2", false));
-        DBObject runA2Obj = dao.getTestRun("RenamedTestA", runA2, false);
-        assertNotNull(runA2Obj);
-        ObjectId runA2ObjId = (ObjectId) runA2Obj.get(FIELD_ID);
+        String runA2 = createTestRun(renamedTestName, "A2's description");
+        try
+        {
+            dao.getTestRun("NO", runA2, false);
+            dao.getTestRun(renamedTestName, "missing2", false);
+            fail("Shouldn't find non-existing tests!");
+        }
+        catch (ObjectNotFoundException e)
+        {
+            // expected
+        }
         
-        // Delete test run by ID
-        assertTrue(dao.deleteTestRun(runA2ObjId));
-        assertNull(dao.getTestRun("RenamedTestA", runA2, false));
+        ObjectId runA2ObjId = null;
+        try
+        {
+            DBObject runA2Obj = dao.getTestRun(renamedTestName, runA2, false);
+            runA2ObjId = (ObjectId) runA2Obj.get(FIELD_ID);
+            assertNotNull(runA2ObjId);
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            fail("Should have found test " + renamedTestName);
+        }
+            
+        try
+        {
+            // Delete test run by ID
+            assertTrue(dao.deleteTestRun(runA2ObjId));
+            dao.getTestRun(renamedTestName, runA2, false);
+            fail("Shouldn't find deleted test " + renamedTestName);
+        }
+        catch (ObjectNotFoundException e)
+        {
+            // expected
+        }
     }
     
     /**
@@ -886,9 +972,19 @@ public class MongoTestDAOTest implements TestConstants
         }
         else
         {
-            DBObject testRunObj = dao.getTestRun(test, run, true);
-            propObjs = (BasicDBList) testRunObj.get(FIELD_PROPERTIES);
+            DBObject testRunObj;
+            try
+            {
+                testRunObj = dao.getTestRun(test, run, true);
+                propObjs = (BasicDBList) testRunObj.get(FIELD_PROPERTIES);
+            }
+            catch (ObjectNotFoundException e)
+            {
+                fail("Should find test '" + test + "' run '" + run + "'.");
+            }
         }
+        assertNotNull(propObjs);
+        
         // Iterate and find
         for (Object obj : propObjs)
         {
@@ -968,7 +1064,7 @@ public class MongoTestDAOTest implements TestConstants
     }
     
     @Test
-    public void testUpdateTestRunState()
+    public void testUpdateTestRunState() throws ObjectNotFoundException
     {
         String test = createTest(null);
         String run = createTestRun(test, null);
@@ -1074,7 +1170,7 @@ public class MongoTestDAOTest implements TestConstants
     }
     
     @Test
-    public void testAddAndRemoveTestRunDrivers()
+    public void testAddAndRemoveTestRunDrivers() throws ObjectNotFoundException
     {
         String test = createTest(null);
         String run = createTestRun(test, null);
@@ -1195,9 +1291,16 @@ public class MongoTestDAOTest implements TestConstants
         checkPropertyValue(testA, "runA1_CP1", "one.str", "SET_AT_TEST_2", "SET_AT_RUN", 1, TestPropertyOrigin.RUN);
         
         // Now fix the properties
-        ObjectId testAObjId = (ObjectId) dao.getTest(testA, false).get(FIELD_ID);
-        ObjectId runA1ObjId = (ObjectId) dao.getTestRun(testA, runA1, false).get(FIELD_ID);
-        dao.lockProperties(testAObjId, runA1ObjId);
+        try
+        {
+            ObjectId testAObjId = (ObjectId) dao.getTest(testA, false).get(FIELD_ID);
+            ObjectId runA1ObjId = (ObjectId) dao.getTestRun(testA, runA1, false).get(FIELD_ID);
+            dao.lockProperties(testAObjId, runA1ObjId);
+        }
+        catch (ObjectNotFoundException e)
+        {
+            fail("Test/run not found!");
+        }
         assertFalse(dao.setPropertyOverride(testA, runA1, "one.str", 2, "CAN'T MODIFY FIXED PROPERTIES"));
         // and copy again
         assertTrue(dao.copyTestRun(testA, "runA1_CP2", runA1, 0));
@@ -1247,5 +1350,166 @@ public class MongoTestDAOTest implements TestConstants
         
         // Get at the properties
         assertEquals("Properties were not cleaned up.", 0, db.getCollection(MongoTestDAO.COLLECTION_TEST_PROPS).count());
+    }
+    
+    /**
+     * Scenario:
+     * 
+     * Create test 
+     * Get masked property names 
+     * Must contain ONE value "proc.pwd"
+     * Delete test
+     */
+    @Test
+    public void checkMask()
+    {
+        // TODO
+    }
+    
+    
+    /**
+     * Scenario: 
+     * 
+     * Create test 
+     * Create run 
+     * Export properties to DBObject 
+     * Check if all passwords are encrypted as expected 
+     * Replace a value in the exported DBObject 
+     * Create a new test run 
+     * Re-import the DBObject 
+     * Export the properties from the first test
+     * Export the properties from the second test 
+     * Compare - only the replaced value must differ 
+     * Update password with an non-encrypted value 
+     * Re-import DBObject - expected FAIL
+     * Update CIPHER field to ensure NONE
+     * Re-import DBObject 
+     * check if password was updated
+     * Delete first test run 
+     * Try to re-import in the first run - object not found: expected ERROR
+     * Delete test 
+     * Try to re-import in the second test run - object not found: expected ERROR  
+     */
+    @Test
+    public void testExportImport() throws ObjectNotFoundException, CipherException
+    {
+        final String newUserName = "NewThreeValue";
+        final String newPasswordValue = "StrongSecretPassword";
+        final String propToUpdateName = "three";
+        final String propPasswordName = "one.str";
+        
+        // Create test and run
+        String testName = createTest("Export-Import-Test");
+        String runNameExport = createTestRun(testName, "Export-Run");
+        
+        // export 
+        DBObject exportObj = this.dao.exportTestRun(testName, runNameExport);
+        
+        // check all PWD to be encrypted
+        int count = 0;
+        Set<String>maskedProps = this.dao.getMaskedProperyNames(testName);
+        for (final Object obj : (BasicDBList)exportObj.get(FIELD_PROPERTIES))
+        {
+            final DBObject dbProp = (DBObject)obj;
+            if (this.dao.isMaskedProperty(dbProp))
+            {
+                //must contain FIELD_CIPHER!
+                Object cipher = dbProp.get(FIELD_CIPHER);
+                assertNotNull("Missing field " + FIELD_CIPHER, cipher);
+                assertEquals("Cipher version one expected!", CipherVersion.V1.toString(), cipher.toString());
+                count++;
+            }
+        }
+        assertEquals(count, maskedProps.size());
+        
+        // replace a value 
+        for (Object objIt : (BasicDBList)exportObj.get(FIELD_PROPERTIES))
+        {
+            DBObject dbProp = (DBObject)objIt;
+            String propName = (String)dbProp.get(FIELD_NAME);
+            if (propName.equals(propToUpdateName))
+            {
+                dbProp.put(FIELD_VALUE, newUserName);
+                break;
+            }
+        }
+        
+        // create new run 
+        String runNameImport = createTestRun(testName, "Import-Run");
+        
+        // import 
+        DBObject importResultDBObject = this.dao.importTestRun(testName, runNameImport, exportObj);
+        assertEquals(ImportResult.OK, getImportResult( importResultDBObject));
+        
+        // get props exported and imported 
+        Map<String, DBObject>mapRunExport = this.dao.getTestRunPropertiesMap(null, null, testName, runNameExport);
+        Map<String, DBObject>mapRunImport = this.dao.getTestRunPropertiesMap(null, null, testName, runNameImport);
+        assertEquals(mapRunExport.size(), mapRunImport.size());
+        
+        // the only difference allowed is the updated value!
+        for (final String propName : mapRunExport.keySet())
+        {
+            DBObject propExport = mapRunExport.get(propName);
+            DBObject propImport = mapRunImport.get(propName);
+            if (propName.equals(propToUpdateName))
+            {
+                assertFalse(this.dao.getPropValueAsString(propExport).equals(this.dao.getPropValueAsString(propImport)));
+            }
+            else
+            {
+                assertEquals(this.dao.getPropValueAsString(propExport), this.dao.getPropValueAsString(propImport));
+            }
+        }
+        
+        // update password 
+        DBObject propPwd = null;
+        for(final Object propItObj : (BasicDBList)exportObj.get(FIELD_PROPERTIES))
+        {
+            DBObject prop = (DBObject)propItObj;
+            String propName = (String)prop.get(FIELD_NAME);
+            if  (propPasswordName.equals(propName))
+            {
+                propPwd = prop;
+                break;
+            }
+        }
+        assertNotNull(propPwd);
+        propPwd.put(FIELD_VALUE, newPasswordValue);
+        importResultDBObject = this.dao.importTestRun(testName, runNameImport, exportObj);
+        assertEquals(ImportResult.ERROR, getImportResult( importResultDBObject));
+        
+        // update field that PWD is NOT encrypted and re-import
+        propPwd.put(FIELD_CIPHER, CipherVersion.NONE.toString());
+        importResultDBObject = this.dao.importTestRun(testName, runNameImport, exportObj);
+        assertEquals(ImportResult.OK, getImportResult( importResultDBObject));
+        
+        // check if password was updated
+        mapRunImport = this.dao.getTestRunPropertiesMap(null, null, testName, runNameImport);
+        propPwd = mapRunImport.get(propPasswordName);
+        String pwdValueNow = this.dao.getPropValueAsString(propPwd);
+        assertEquals("Property '" + propPasswordName + "' expected new value!", newPasswordValue, pwdValueNow);
+        
+        // Delete first test run 
+        this.dao.deleteTestRun(testName, runNameExport);
+        importResultDBObject = this.dao.importTestRun(testName, runNameExport, exportObj);
+        assertEquals(ImportResult.ERROR, getImportResult( importResultDBObject));
+        
+        // Delete test itself
+        this.dao.deleteTest(testName);
+        importResultDBObject = this.dao.importTestRun(testName, runNameImport, exportObj);
+        assertEquals(ImportResult.ERROR, getImportResult( importResultDBObject));
+    }
+    
+    /**
+     * Extract result from DBObject
+     *  
+     * @param resultObj (DBObject)
+     * 
+     * @return ImportResult
+     */
+    private ImportResult getImportResult(DBObject resultObj)
+    {
+        String result = (String)resultObj.get(FIELD_RESULT);
+        return ImportResult.valueOf(result);
     }
 }

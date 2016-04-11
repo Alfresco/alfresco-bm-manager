@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.alfresco.bm.event.EventService;
 import org.alfresco.bm.event.ResultService;
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.report.DataReportService;
 import org.alfresco.bm.session.SessionService;
 import org.alfresco.bm.test.mongo.MongoTestDAO;
@@ -106,11 +107,17 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
     private ClassPathXmlApplicationContext createContext(String test, String run)
     {
         String testRunFqn = test + "." + run;
-        DBObject runObj = dao.getTestRun(test, run, true);
-        if (runObj == null)
+        DBObject runObj;
+        try
         {
+            runObj = dao.getTestRun(test, run, true);
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            logger.error("Test '" + test + "." + run + "' not found.", e1);
             return null;
         }
+        
         // Dig the properties out of the test run
         Properties testRunProps = new Properties();
         {

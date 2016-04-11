@@ -39,6 +39,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.alfresco.bm.api.AbstractRestResource;
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.report.DataReportService;
@@ -823,7 +824,15 @@ public class TestRestAPI extends AbstractRestResource
                 written = testDAO.copyTestRun(test, name, copyOf, version);
                 if (!written)
                 {
-                    DBObject copyOfObj = testDAO.getTestRun(test, copyOf, false);
+                    DBObject copyOfObj;
+                    try
+                    {
+                        copyOfObj = testDAO.getTestRun(test, copyOf, false);
+                    }
+                    catch (ObjectNotFoundException onfe)
+                    {
+                        copyOfObj = null;
+                    }
                     Integer copyOfVersion = copyOfObj == null ? null : (Integer) copyOfObj.get(FIELD_VERSION);
                     if (copyOfVersion != null && copyOfVersion.equals(version))
                     {
@@ -849,8 +858,12 @@ public class TestRestAPI extends AbstractRestResource
                 }
             }
             // Now fetch the full run definition
-            DBObject dbObject = testDAO.getTestRun(test, name, true);
-            if (dbObject == null)
+            DBObject dbObject;
+            try
+            {
+                dbObject = testDAO.getTestRun(test, name, true);
+            }
+            catch (ObjectNotFoundException onfe)
             {
                 throwAndLogException(Status.NOT_FOUND, "The newly create run '" + name + "' could not be found.");
                 return null;
@@ -892,8 +905,12 @@ public class TestRestAPI extends AbstractRestResource
         }
         try
         {
-            DBObject dbObject = testDAO.getTestRun(test, run, true);
-            if (dbObject == null)
+            DBObject dbObject = null;
+            try
+            {
+                dbObject = testDAO.getTestRun(test, run, true);
+            }
+            catch (ObjectNotFoundException onfe)
             {
                 throwAndLogException(Status.NOT_FOUND, "The test run '" + test + "." + run + "' does not exist.");
             }
@@ -975,11 +992,17 @@ public class TestRestAPI extends AbstractRestResource
             {
                 throwAndLogException(Status.NOT_FOUND, "Could not update test run '" + test + "." + oldName + "'.");
             }
+
             // Now fetch the full test run
-            DBObject dbObject = testDAO.getTestRun(test, name, true);
-            if (dbObject == null)
+            DBObject dbObject = null;
+            try
             {
-                throwAndLogException(Status.NOT_FOUND, "The test for test run '" + test + "." + name + "' could not be found.");
+                dbObject = testDAO.getTestRun(test, name, true);
+            }
+            catch (ObjectNotFoundException onfe)
+            {
+                throwAndLogException(Status.NOT_FOUND,
+                        "The test for test run '" + test + "." + name + "' could not be found.");
             }
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
@@ -1244,10 +1267,19 @@ public class TestRestAPI extends AbstractRestResource
         }
         catch (IllegalStateException e)
         {
-            DBObject runObj = testDAO.getTestRun(test, run, false);
+            String msg = test + "." + run;
+            try
+            {
+                DBObject runObj = testDAO.getTestRun(test, run, false);
+                msg = runObj.toString();
+            }
+            catch (ObjectNotFoundException e1)
+            {
+                logger.debug("Test '" + test + "', run '" + run +"' not found!", e1);
+            }
             throwAndLogException(
                     Status.FORBIDDEN,
-                    "Properties cannot be changed once a test has started: " + runObj);
+                    "Properties cannot be changed once a test has started: " + msg);
         }
         
         // Retrieve the property
@@ -1278,8 +1310,12 @@ public class TestRestAPI extends AbstractRestResource
         }
         try
         {
-            DBObject dbObject = testDAO.getTestRun(test, run, false);
-            if (dbObject == null)
+            DBObject dbObject = null;
+            try
+            {
+                dbObject = testDAO.getTestRun(test, run, false);
+            }
+            catch (ObjectNotFoundException onfe)
             {
                 throwAndLogException(Status.NOT_FOUND, "The test run '" + test + "." + run + "' does not exist.");
             }
@@ -1473,5 +1509,87 @@ public class TestRestAPI extends AbstractRestResource
             @PathParam("run") String run)
     {
         return new ResultsRestAPI(testRunServices, test, run);
+    }
+    
+    @GET
+    @Path("/{test}/runs/{run}/exportProps")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String exportProps(
+            @PathParam("test") String test,
+            @PathParam("run") String run)
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "Inbound: " +
+                    "[test:" + test +
+                    ", run:" + run +
+                    "]");
+        }
+        try
+        {
+            DBObject dbObject = testDAO.exportTestRun(test, run);
+
+            String json = JSON.serialize(dbObject);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Outbound: " + json);
+            }
+            return json;
+        }
+        catch (WebApplicationException e)
+        {
+            throw e;
+        }
+        catch (ObjectNotFoundException onfe)
+        {
+            throwAndLogException(Status.NOT_FOUND, "The test run '" + test + "." + run + "' does not exist.");
+        }
+        catch (Exception e)
+        {
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+        }
+        
+        return null;
+    }
+    
+    @GET
+    @Path("/{test}/runs/{run}/importProps")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String importProps(
+            @PathParam("test") String test,
+            @PathParam("run") String run,
+            DBObject dbImportObject)
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug(
+                    "Inbound: " +
+                            "[test:" + test +
+                            ", run:" + run +
+                            "]");
+        }
+        try
+        {
+            DBObject dbObject = testDAO.importTestRun(test, run, dbImportObject);
+
+            String json = JSON.serialize(dbObject);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Outbound: " + json);
+            }
+            return json;
+        }
+        catch (WebApplicationException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+        }
+
+        return null;
     }
 }

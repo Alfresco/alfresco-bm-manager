@@ -24,6 +24,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.alfresco.bm.event.EventProcessor;
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogService.LogLevel;
 import org.alfresco.bm.server.EventController;
@@ -123,12 +124,17 @@ public class TestRun implements TestConstants
     }
     
     /**
-     * @return              the raw DBObject or <tt>null</tt> if the test run is no longer valid
+     * @return the raw DBObject or <tt>null</tt> if the test run is no longer
+     *         valid
      */
     private DBObject getRunObj(boolean includeProperties)
     {
-        DBObject runObj = testDAO.getTestRun(id, includeProperties);
-        if (runObj == null)
+        try
+        {
+            DBObject runObj = testDAO.getTestRun(id, includeProperties);
+            return runObj;
+        }
+        catch (ObjectNotFoundException e)
         {
             if (logger.isDebugEnabled())
             {
@@ -136,10 +142,6 @@ public class TestRun implements TestConstants
             }
             stop();
             return null;
-        }
-        else
-        {
-            return runObj;
         }
     }
     
@@ -240,16 +242,24 @@ public class TestRun implements TestConstants
                         // We bug out until the next check cycle
                         return;
                     }
+
                     // Lock in all properties
-                    runObj = getRunObj(false);
-                    if (runObj == null)
+                    try
                     {
-                        return;
+                        runObj = getRunObj(false);
+                        if (runObj == null)
+                        {
+                            return;
+                        }
+                        ObjectId testObjId = (ObjectId) runObj.get(FIELD_TEST);
+
+                        testDAO.lockProperties(testObjId, id);
                     }
-                    ObjectId testObjId = (ObjectId) runObj.get(FIELD_TEST);
-
-                    testDAO.lockProperties(testObjId, id);
-
+                    catch (ObjectNotFoundException onfe)
+                    {
+                        logger.error("Unable to find test or lock properties.", onfe);
+                    }
+                    
                     // Give the EventController the updated list of drivers
                     updateDriverIds();
 

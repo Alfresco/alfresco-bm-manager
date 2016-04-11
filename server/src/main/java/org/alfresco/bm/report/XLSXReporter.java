@@ -31,6 +31,7 @@ import org.alfresco.bm.api.AbstractRestResource;
 import org.alfresco.bm.event.EventRecord;
 import org.alfresco.bm.event.ResultService;
 import org.alfresco.bm.event.ResultService.ResultHandler;
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.test.TestRunServicesCache;
 import org.alfresco.bm.test.TestService;
 import org.alfresco.bm.test.TestService.NotFoundException;
@@ -485,17 +486,24 @@ public class XLSXReporter extends AbstractEventReporter
 
     private void createPropertiesSheet(XSSFWorkbook workbook) throws IOException, NotFoundException
     {
-        DBObject testRunObj = services.getTestDAO().getTestRun(test, run, true);
-        if (testRunObj == null)
+        DBObject testRunObj;
+        try
         {
+            testRunObj = services.getTestDAO().getTestRun(test, run, true);
+        }
+        catch (ObjectNotFoundException e)
+        {
+            logger.error("Test run not found!", e);
             return;
         }
+
         // Ensure we don't leak passwords
         testRunObj = AbstractRestResource.maskValues(testRunObj);
 
         BasicDBList propertiesList = (BasicDBList) testRunObj.get(FIELD_PROPERTIES);
         if (propertiesList == null)
         {
+            logger.error("Properties not found!");
             return;
         }
         // Order the properties, nicely

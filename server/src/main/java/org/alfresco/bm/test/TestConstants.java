@@ -114,6 +114,12 @@ public interface TestConstants
     public static final String FIELD_RUN = "run";
     public static final String FIELD_DRIVERS = "drivers";
     
+    /** @since 2.1.2 */
+    public static final String FIELD_CIPHER = "chipher";
+    public static final String FIELD_MESSAGE = "msg";
+    public static final String FIELD_RESULT = "result";
+    
+    
     /*
      * Service field names
      */

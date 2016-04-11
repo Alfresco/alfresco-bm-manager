@@ -44,6 +44,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
+import org.alfresco.bm.exception.ObjectNotFoundException;
 import org.alfresco.bm.log.LogService;
 import org.alfresco.bm.log.LogWatcher;
 import org.alfresco.bm.report.DataReportService;
@@ -644,7 +645,7 @@ public class RestAPITest implements TestConstants
      * Locking of properties and state change protection
      */
     @Test
-    public synchronized void testScenario04() throws Exception
+    public synchronized void testScenario04()
     {
         String json = createTestRun("T04", "A test for scenario 04.", "01", "Scenario 04 - Run 01");
         
@@ -698,7 +699,15 @@ public class RestAPITest implements TestConstants
         org.alfresco.bm.test.Test test = ctx.getBean(org.alfresco.bm.test.Test.class);
 
         // Extract the test run wrapper
-        DBObject testRunObj = dao.getTestRun("T04", "01", false);
+        DBObject testRunObj = null;
+        try
+        {
+            testRunObj = dao.getTestRun("T04", "01", false);
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            fail("Should find 'T04.01'!");
+        }
         ObjectId testRunId = (ObjectId) testRunObj.get(FIELD_ID);
         TestRun testRun = test.getTestRun(testRunId);
         
@@ -770,7 +779,14 @@ public class RestAPITest implements TestConstants
         test.forcePing();
         assertNull("Test must drop a completed test run", test.getTestRun(testRunId));
 
-        test.stop();
+        try
+        {
+            test.stop();
+        }
+        catch (Exception e)
+        {
+            fail("Test should not fail on stop!");
+        }
     }
     
     /**
@@ -790,7 +806,15 @@ public class RestAPITest implements TestConstants
         test.forcePing();
         
         // Extract the test run wrapper
-        DBObject testRunObj = dao.getTestRun("T05", "01", false);
+        DBObject testRunObj = null;
+        try
+        {
+            testRunObj = dao.getTestRun("T05", "01", false);
+        }
+        catch (ObjectNotFoundException e1)
+        {
+            fail("Should find 'T05.01'!");
+        }
         ObjectId testRunId = (ObjectId) testRunObj.get(FIELD_ID);
         TestRun testRun = test.getTestRun(testRunId);
         assertNull("The test run should not be instantiated until it has been scheduled.", testRun);

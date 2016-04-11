@@ -84,9 +84,15 @@ public interface TestService extends TestConstants
 
         public NotFoundException(String test, String run)
         {
+            this(test, run, null);
+        }
+        
+        public NotFoundException(String test, String run, Throwable cause)
+        {
             super(run == null ?
                     "Test not found: " + test :
-                    "Test run not found: " + test + "." + run);
+                    "Test run not found: " + test + "." + run
+                    , cause);
         }
     }
     
