@@ -59,6 +59,9 @@
                             <a class="btn" id="editTestRunBtn-{{item.name}}" href="#/tests/{{data.testname}}/{{item.name}}/properties">
                                 <span class="fa fa-cog fa-lg"></span>
                             </a>
+                            <a class="btn" id="exportRunBtn-{{item.name}}" download="{{data.testname}}-{{item.name}}.json" href="api/v1/tests/{{data.testname}}/runs/{{item.name}}/exportProps">
+                                <span class="fa fa-download fa-lg"></span>
+                              </a>
                             <a ng-click="deleteRun(item.name,data.testname)" class="btn" id="deleteTestRunBtn-{{item.name}}">
                                 <span class="fa fa-trash-o fa-lg"></span>
                             </a>
