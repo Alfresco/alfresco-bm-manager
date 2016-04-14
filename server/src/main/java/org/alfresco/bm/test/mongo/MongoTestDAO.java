@@ -2880,7 +2880,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             if (null != relObj && !relObj.toString().equals(release))
             {
                 result = ImportResult.WARN;
-                message += "\r\nRelease '"
+                message += "\r\nWARN: Release '"
                         + release
                         + "' from test to import doesn't match import release '"
                         + relObj.toString()
@@ -2889,7 +2889,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
             if (null != schemaObj && !schemaObj.toString().equals(schema.toString()))
             {
                 result = ImportResult.WARN;
-                message += "\r\nSchema '"
+                message += "\r\nWARN: Schema '"
                         + schema
                         + "' from test to import doesn't match import schema '"
                         + schemaObj.toString()
@@ -2922,7 +2922,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
                 if (null == oldProp)
                 {
                     result = ImportResult.WARN;
-                    message += "\r\nIgnored: property '"
+                    message += "\r\nWARN: Ignored property '"
                             + propName
                             + "' not found";
                 }

@@ -1553,14 +1553,14 @@ public class TestRestAPI extends AbstractRestResource
         return null;
     }
     
-    @GET
+    @POST
     @Path("/{test}/runs/{run}/importProps")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String importProps(
             @PathParam("test") String test,
             @PathParam("run") String run,
-            DBObject dbImportObject)
+            PropSetBean propBean)
     {
         if (logger.isDebugEnabled())
         {
@@ -1572,6 +1572,7 @@ public class TestRestAPI extends AbstractRestResource
         }
         try
         {
+            DBObject dbImportObject = (DBObject)JSON.parse(propBean.getValue());
             DBObject dbObject = testDAO.importTestRun(test, run, dbImportObject);
 
             String json = JSON.serialize(dbObject);
