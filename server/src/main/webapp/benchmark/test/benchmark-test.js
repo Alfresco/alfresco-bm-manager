@@ -132,7 +132,21 @@
         function($scope, $location, $timeout, TestService, ModalService) {
             // Instantiate an object to store your scope data in (Best Practices)
             $scope.data = {};
-
+            
+            // loads the number of drivers for the test
+            $scope.getNumDrivers = function(test){
+            	try{
+	            	TestService.getDrivers({
+	                    id: test.name
+	                }, function(response) {
+	                    test.driver = response.length + " Driver"; 
+	                });
+            	}
+            	catch(err){
+            		test.driver = "No Driver";
+            	}
+            }
+            
             // callback for ng-click 'deleteTest':
             $scope.deleteTest = function(testId) {
                 $scope.modal = {
@@ -152,12 +166,11 @@
                 TestService.deleteTest({
                     id: name
                 }, function(response){
-                    $scope.data.tests = TestService.getTests()
+                    $scope.data.tests = TestService.getTests();
                 });
                 $scope.data.tests = TestService.getTests();
             }
             
-            // create the list of tests
             $scope.data.tests = TestService.getTests();
         }
     ]);

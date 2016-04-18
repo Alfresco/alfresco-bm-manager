@@ -9,10 +9,11 @@
                 <div class="col-xs-3">
                     <!-- add run summary -->
                 </div>
-                <div class="col-xs-9 text-right">
-                    <div class="huge">{{item.count}}</div>
+                
+                <div class="col-xs-9 text-right" ng-init="getNumDrivers(item)">
+                    <!-- div class="huge">{{item.count}}</div -->
 
-                    <div>{{item.name}}</div>
+                    <div>{{item.name}}&nbsp;&nbsp;<span class="badge">{{item.driver}}</span></div>
                 </div>
             </div>
         </div>
