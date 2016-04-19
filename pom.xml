@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>4.0.3.RELEASE</spring.version>
         <jersey.version>1.17.1</jersey.version>
-        <tomcat.version>7.0.42</tomcat.version>
+        <tomcat.version>7.0.65</tomcat.version>
         <junit.version>4.11</junit.version>
     </properties>
 
