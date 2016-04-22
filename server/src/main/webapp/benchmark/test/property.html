@@ -116,14 +116,15 @@
         <ul class="test list-group"  id="property-{{prop.uid}}" ng-hide="prop.collapsed == true">
             <li class="list-group-item filterable" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse " filter-value="{{item.title.toLowerCase()}}">
                 <div class="row">               
-                    <div class="col-xs-6 col-md-6">
+                    <!-- item.mask is NOT a boolean unless converted, it's a string! -->
+                    <div class="col-xs-6 col-md-6" ng-init="validate(item); item.mask = ( (('' + item.mask).toLowerCase()) == 'true');">
                         <h4 ng-class="{'panel-title': !item.validationFail, 'panel-title alert alert-danger alert-dismissible fade in': item.validationFail}">{{item.title}}</h4> 
                         <p> 
                             {{item.description}}
                         </p>
                     </div>
                     <div class="col-xs-6 col-md-6">
-                        <span ng-show="attentionReq(item)"></span>
+<!--                         <span ng-show="attentionReq(item)"></span> -->
                         <span ng-show="readOnly">{{item.value}}</span>                                             
                         <span ng-show="!readOnly"> 
                             <div ng-hide="propertyEditorEnabled == true">
@@ -144,7 +145,7 @@
                             <div>
                                 <div class="input-group">
                                     <span class="input-group-btn" ng-hide="isEmpty(item.value)">
-                                        <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item)" type="button"> Reset</button>
+                                        <button class="btn btn-dark" ng-click="propertyEditorEnabled=!propertyEditorEnabled;resetProperty(item);validate(item);" type="button"> Reset</button>
                                     </span>
                                     
                                     <input class="form-control ng-valid" ng-model="item.value" min="{{item.min}}" max="{{item.max}}" onClick="this.select();" ng-keyup="propertyEditorEnabled = doKeyPress($event, item)" ng-change="validate(item)" ng-hide="hasChoice(item) || item.mask == true">

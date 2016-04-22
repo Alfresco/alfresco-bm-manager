@@ -122,7 +122,11 @@ public class CreateUsers extends AbstractEventProcessor
         
         // Schedule events for each user to be created
         long createdUsers = userDataService.countUsers(null, DataCreationState.Created);
-        long toCreate = numberOfUsers - createdUsers;
+        // 2016-04-22 fkb: get the scheduled users, too - they might not YET be created but the events still open
+        long scheduledUsers = userDataService.countUsers(null, DataCreationState.Scheduled);
+        // 2016-04-22 fkb: get the failed users, too - will notify if there are any failed users
+        long failedUsers = userDataService.countUsers(null, DataCreationState.Failed);
+        long toCreate = numberOfUsers - createdUsers - scheduledUsers;
         int index = 0;
         List<UserData> pendingUsers = userDataService.getUsersByCreationState(DataCreationState.NotScheduled, index, batchSize);
         
@@ -139,6 +143,10 @@ public class CreateUsers extends AbstractEventProcessor
             // There are no more pending users but we wanted to create more
             Event doneEvent = new Event(eventNameUsersCreated, null);
             nextEvents.add(doneEvent);
+            if (failedUsers > 0)
+            {
+                return new EventResult("Failed to create " + failedUsers + " users!", nextEvents, false);
+            }
             return new EventResult("No more pending users but still need " + toCreate + " users.", nextEvents, false);
         }
         
@@ -178,10 +186,15 @@ public class CreateUsers extends AbstractEventProcessor
         
         // Return messages + next events
         String msg = "Scheduled " + scheduled + " user(s) for creation.";
+        if (failedUsers > 0)
+        {
+            msg += " Failed to create " + failedUsers + " users!";
+        }
         if (scheduled == 0)
         {
             msg += "  Not rescheduling any events.";
         }
+
         return new EventResult(msg, nextEvents);
     }
 }

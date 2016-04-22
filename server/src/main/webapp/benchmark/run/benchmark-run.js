@@ -746,7 +746,7 @@
             $scope.validate = function(itemProperty){
                 ValidationService.validate(itemProperty);
             }
-            
+                        
             // checks whether the property item has a choice collection
             $scope.hasChoice = function(itemProperty){
                 if (itemProperty.type.toLowerCase() == 'boolean'){

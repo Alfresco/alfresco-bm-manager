@@ -104,6 +104,10 @@ app.service('ValidationService', function(){
                 property.validationMessage = "Internal configuration error: the property '" + property.title + "' has no type!";
             }
             else{
+            	if (typeof property.value == 'undefined'){
+                    property.validationMessage = "Undefined value.";
+            		return true;
+            	}
                 switch (property.type.toLowerCase()){
                     case "string":
                         validators.stringValidator(property);
@@ -200,7 +204,7 @@ app.service('ValidationService', function(){
 
             // neither a number, nor a string with at least one char
             property.validationFail = true;
-            property.validationMessage = "Please enter an integer value";
+            property.validationMessage = (typeof property.value); //"Please enter an integer value";
         },
         
         // decimal validation
