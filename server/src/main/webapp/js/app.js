@@ -138,7 +138,13 @@ app.service('ValidationService', function(){
         // max: maximum length (optional)
         // regex: regular expression (optional)
         stringValidator:function(property){
-            // check 'min'
+        	// accept other property
+        	try{
+        		if (validators.isAnotherProperty(property.value)){
+        			return;
+        		}
+        	}catch(err){alert("String Validation: " + err);};
+        	// check 'min'
             var min = 0;
             if (typeof property.min != 'undefined'){
                 // if a minimum value is defined the string must NOT be empty
@@ -179,6 +185,12 @@ app.service('ValidationService', function(){
         
         // integer validation
         intValidator:function(property){
+        	// accept other property
+        	try{
+        		if (validators.isAnotherProperty(property.value)){
+        			return;
+        		}
+        	}catch(err){alert(err);};
             if (typeof property.value == 'number' || (typeof property.value == 'string' && property.value.length > 0)) {
                 // don't accept numbers that are not 'int' ...
                 if ( property.value%1 == 0){
@@ -209,6 +221,12 @@ app.service('ValidationService', function(){
         
         // decimal validation
         decimalValidator:function(property){
+        	// accept other property
+        	try{
+        		if (validators.isAnotherProperty(property.value)){
+        			return;
+        		}
+        	}catch(err){alert(err);};
             // accept any number
         	if (Number.isNaN(parseFloat(property.value))){
                 property.validationFail = true;
@@ -257,8 +275,12 @@ app.service('ValidationService', function(){
                         return;
                     }
                 }
-                property.validationFail = true;
-                property.validationMessage = "Please enter 'true' or 'false'";
+                try{
+                	if (!validators.isAnotherProperty(property.value)){
+                		property.validationFail = true;
+                		property.validationMessage = "Please enter 'true' or 'false'";
+                	}
+                }catch(err){alert(err);};
             }
         },
         
@@ -271,9 +293,24 @@ app.service('ValidationService', function(){
                     }
                 }
             }
-            
-            property.validationFail = true;
-            property.validationMessage = "Please use one of: " + values;
+            try{
+            	if (!validators.isAnotherProperty(property.value)){
+            		property.validationFail = true;
+            		property.validationMessage = "Please use one of: " + values;
+            	}
+            }catch(err){alert(err);};
+        },
+        
+        // checks if propValue is ${xyz.xyz}
+        isAnotherProperty:function(propValue){
+        	if (typeof propValue == 'undefined'){
+        		return false;
+        	}
+        	var regex = new RegExp( "\\${[a-zA-Z][a-z.A-Z]*}" );
+        	if (propValue.match(regex) != propValue){
+        		return false;
+        	}
+        	return true;
         }
     };
     return validators;
