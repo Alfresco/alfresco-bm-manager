@@ -35,11 +35,22 @@ import org.alfresco.bm.event.EventResult;
  * The {@link UserDataService} is examined to check that the prescribed
  * number of users are present.
  * 
+ * <h1>Enhancements</h1>
+ * 
+ * If {@link setEventNameSelf} is set and there are still scheduled users 
+ * for creation the event processor reschedules self as long as a progress
+ * in user creation is detected. You may adjust the delay between 
+ * rescheduled events with {@link setDelayRescheduleSelf}.
+ * 
+ *  Note: this may happen if Alfresco is rather low on user creation or if
+ *  you use a long delay between user create events. 
+ * 
  * <h1>Output</h1>
  * 
  * {@link #EVENT_NAME_USERS_READY}: Passes inbound data through<br/>
  * 
  * @author Derek Hulley
+ * @author Frank Becker
  * @since 1.4
  */
 public class CheckUserCountEventProcessor extends AbstractEventProcessor
@@ -49,8 +60,11 @@ public class CheckUserCountEventProcessor extends AbstractEventProcessor
     public static final String MSG_FOUND_USERS = "Found %1d created users.  Minimum was %1d.";
     
     private String eventNameUsersReady = EVENT_NAME_USERS_READY;
+    private String eventNameSelf = null;
     private final UserDataService userDataService;
     private final long userCount;
+    private long delayRescheduleSelf = 1000;
+    private boolean rescheduleSelf = false;
     
     /**
      * @param userDataService           the service that provides a view onto the users
@@ -69,26 +83,120 @@ public class CheckUserCountEventProcessor extends AbstractEventProcessor
     {
         this.eventNameUsersReady = eventNameUsersReady;
     }
+    
+    /**
+     * Sets the self event name to reschedule 
+     * 
+     * @param eventName name of event or null to NOT reschedule self
+     * @since 2.1.4
+     */
+    public void setEventNameSelf(String eventName)
+    {
+        this.eventNameSelf = eventName;
+        if (null != eventName && !eventName.isEmpty())
+        {
+            setRescheduleSelf(true);
+        }
+    }
 
     @Override
     public EventResult processEvent(Event event) throws Exception
     {
+        // process event data
+        Object eventData = event.getData();
+        CheckUserCountEventData data = null;
+        if (null != eventData && eventData instanceof CheckUserCountEventData)
+        {
+            data = (CheckUserCountEventData) eventData;
+        }
+        
+        // check for failed users
+        long failedUserCount = userDataService.countUsers(null, DataCreationState.Failed); 
+
         // Check the number of users
+        long scheduledUserCount = userDataService.countUsers(null, DataCreationState.Scheduled);
         long actualUserCount = userDataService.countUsers(null, DataCreationState.Created);
         if (actualUserCount < userCount)
         {
-            // Not enough
+            // not enough users ....
+            
+            // there must be no failed users to reschedule, if there are any failed just report
+            if (0 == failedUserCount )
+            {                
+                // check if still scheduled users - and if we CAN reschedule self
+                if (scheduledUserCount > 0 && null != this.eventNameSelf && this.rescheduleSelf)
+                {
+                    boolean hasError = false;
+                    
+                    if (null != data && (actualUserCount <= data.getUserCountCreated()  || data.getUserCountScheduled() <= scheduledUserCount))
+                    {
+                            // no progress ...
+                            hasError = true;
+                    }
+                    
+                    if (!hasError)
+                    {
+                        if (null == data)
+                        {
+                            data = new CheckUserCountEventData(eventData, actualUserCount, scheduledUserCount);
+                        }
+                        else
+                        {
+                            data.setUserCountCreated(actualUserCount);
+                            data.setUserCountScheduled(scheduledUserCount);
+                        }
+                        
+                        // re-schedule self 
+                        Event nextEvent = new Event(this.eventNameSelf, System.currentTimeMillis() + this.delayRescheduleSelf, data);
+                        String msg = "Rescheduled CheckUserCount; still " + scheduledUserCount + " scheduled users!";
+                        return new EventResult(msg, nextEvent);
+                    }
+                }
+            }
+            
+            // report error
             String msg = String.format(ERR_NOT_ENOUGH_USERS, userCount, actualUserCount);
             return new EventResult(msg, false);
         }
-        // There are enough users
+        
+        // There are enough users - pass through the input event data
+        Object nextEventData = (null == data) ? event.getData() : data.getEventData();
         Event nextEvent = new Event(
                 eventNameUsersReady,
                 System.currentTimeMillis(),
-                event.getData());
-        // Just pass the inbound data through
+                nextEventData);
         return new EventResult(
                 String.format(MSG_FOUND_USERS, actualUserCount, userCount),
                 nextEvent);
+    }
+
+    /**
+     * @param delayRescheduleSelfMs (long, > 0) number of milliseconds to reschedule self 
+     * @since 2.1.4
+     */
+    public void setDelayRescheduleSelf(long delayRescheduleSelfMs)
+    {
+        if (delayRescheduleSelfMs < 0)
+        {
+            throw new IllegalArgumentException("'delayRescheduleSelfMs': a positive value is required!");
+        }
+        this.delayRescheduleSelf = delayRescheduleSelfMs;
+    }
+
+    /**
+     * @param rescheduleSelf
+     *        (boolean) reschedule self if scheduled users found (true) or fail
+     *        (false)?
+     *        Note: requires eventNameSelf not to be null or empty!
+     * 
+     * @since 2.1.4
+     */
+    public void setRescheduleSelf(boolean rescheduleSelf)
+    {
+        this.rescheduleSelf = rescheduleSelf;
+        if (rescheduleSelf && (null == this.eventNameSelf || this.eventNameSelf.isEmpty()))
+        {
+            throw new IllegalArgumentException("'setRescheduleSelf' requires 'eventNameSelf' to be set!");
+        }
     }
 }

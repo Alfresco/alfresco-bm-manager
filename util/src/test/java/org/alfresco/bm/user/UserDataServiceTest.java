@@ -49,7 +49,7 @@ public class UserDataServiceTest
 {
     private final static String COLLECTION_BM_USER_DATA_SERVICE = "BenchmarkUserDataServiceTest";
     
-    private final static String[] USERS = new String[] {"fsmith", "jblogg", "bjones", "msimonds", "ddevries"};
+    public final static String[] USERS = new String[] {"fsmith", "jblogg", "bjones", "msimonds", "ddevries"};
 
     private static AbstractApplicationContext ctx;
     private static UserDataService userDataService;
@@ -82,9 +82,9 @@ public class UserDataServiceTest
     }
     
     /**
-     * Create user data object using the username provided
+     * Create user data object using the user name provided
      */
-    private static UserData createUserData(String username)
+    public static UserData createUserData(String username)
     {
         String first = "" + System.currentTimeMillis();
         String last = "" + System.currentTimeMillis();
