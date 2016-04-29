@@ -879,7 +879,72 @@
                     return false;
                 }
                 return true;
-            }
+            };
+            
+            // TODO
+         // import properties
+            $scope.importProperties = function(runname, testname){
+            	$scope.importPropsData = {
+                        display: true,
+                        title: 'Import run properties: ' + runname,
+                        message: "Select JSON property file to upload",
+                        upload : true,
+                        buttonClose: "Cancel",
+                        buttonOk: "Import",
+                        actionName: "doImportProperties",
+                        actionValue: [runname, testname]
+                    };
+                $scope.modal = ModalService.create($scope.importPropsData);
+            };
+            
+            // callback from modal to store the file content
+            $scope.storeFile = function(file){
+            	$scope.file = file;
+            };
+			
+			// callback from modal to trigger import
+			$scope.doImportProperties = function(runname, testname) {
+				// create transfer to RestAPI
+				var json = {
+						"version" : 0,
+	                    "value": $scope.file.toString()
+	                };
+				TestRunService.importProps({
+                    id: testname,
+                    runname: runname
+                }, json, function(response) {
+                	var result = response;
+                	// if all OK - reload page
+                	if (result.result.toString() == "OK"){
+                		$window.location.reload();
+                	}
+                	else{
+	                	try
+	                	{
+	                		$scope.importWarnErrorData = {
+	                                display: true,
+	                                title: 'Import result',
+	                                message: result.msg,
+	                                upload : false,
+	                                buttonOk: "OK",
+	                                actionName: "doFinishImport",
+	                                actionValue: [runname, testname],
+	                                hideButtonClose : true
+	                            };
+	                		$scope.modal = ModalService.create($scope.importWarnErrorData);
+	                	}
+	                	catch(err){/*alert(err);*/};
+                	}
+                })
+			};
+
+			// finish import on warn or error and navigate to property edit
+			$scope.doFinishImport = function(runname, testname){
+				var url = "#/tests/" + testname + "/" + runname + "/properties";
+				$window.location = url;
+				// final reload to ensure clean forms
+				$window.location.reload();
+			}            
             
             $scope.getSummary = function() {
                 //initial chart display.

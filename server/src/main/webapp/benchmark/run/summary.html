@@ -86,6 +86,9 @@
 		                      <a class="btn" id="editTestBtn-{{testname}}" href="#/tests/{{testname}}/{{summary.name}}/properties">
 		                        <span class="fa fa-cog fa-lg"></span>
 		                      </a>
+                              <a ng-hide="summary.state != 'NOT_SCHEDULED' || hasStarted == true" class="btn" id="importRunBtn-{{testname}}" ng-click="importProperties(summary.name, testname);">
+                                  <span class="fa fa-upload fa-lg"></span>
+                              </a>
 		                      <a class="btn" id="exportRunBtn-{{testname}}" download="{{testname}}-{{summary.name}}.json" href="api/v1/tests/{{testname}}/runs/{{summary.name}}/exportProps">
                                 <span class="fa fa-download fa-lg"></span>
                               </a>

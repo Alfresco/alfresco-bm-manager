@@ -60,7 +60,7 @@
                             </a>
                             <a ng-hide="item.hasStarted == true" class="btn" id="importRunBtn-{{item.name}}" ng-click="importProperties(item.name, data.testname);">
                                 <span class="fa fa-upload fa-lg"></span>
-                              </a>
+                            </a>
                             <a class="btn" id="exportRunBtn-{{item.name}}" download="{{data.testname}}-{{item.name}}.json" href="api/v1/tests/{{data.testname}}/runs/{{item.name}}/exportProps">
                                 <span class="fa fa-download fa-lg"></span>
                               </a>
