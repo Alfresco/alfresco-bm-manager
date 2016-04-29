@@ -7,14 +7,11 @@ Copy the 'src' folder to the archetype
 > cd archetype
 
 Update dependency versions numbers
-find . -name archetype-metadata.xml | xargs sed -i -e 's/2.0.4-SNAPSHOT/2.0.4/g'
-find . -name archetype.properties | xargs sed -i -e 's/server-version=2.0.4-SNAPSHOT/server-version=2.0.4/g'
+find . -name archetype-metadata.xml | xargs sed -i -e 's/2.1.3-SNAPSHOT/2.1.3/g'
+find . -name archetype.properties | xargs sed -i -e 's/server-version=2.1.3-SNAPSHOT/server-version=2.1.3/g'
 
 Check all properties and configuration files
-> start pom.xml
-> start src\main\resources\archetype-resources\pom.xml
-> start src\main\resources\META-INF\maven\archetype-metadata.xml
-> start src\test\resources\projects\basic\archetype.properties
+> git diff
 
 Build the archetype
 > mvn clean install
