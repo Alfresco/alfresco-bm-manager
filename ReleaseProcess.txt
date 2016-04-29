@@ -37,6 +37,9 @@ Move onto the new version
 > mvn clean install
 > git add *
 > git commit
+> git push --all
 > git checkout master
 
-Merge the branch into 'master'
+Merge the branch into 'master‘
+
+> git merge prepare-V2.1.3
