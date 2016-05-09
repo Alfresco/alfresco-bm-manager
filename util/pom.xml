@@ -22,7 +22,7 @@
         <dependency>
             <groupId>org.springframework.social</groupId>
             <artifactId>spring-social-alfresco-bm</artifactId>
-            <version>0.5.2</version>
+            <version>1.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.alfresco.services.sync</groupId>
