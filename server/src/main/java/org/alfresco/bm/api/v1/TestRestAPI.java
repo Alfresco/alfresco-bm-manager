@@ -53,6 +53,8 @@ import org.alfresco.bm.test.mongo.MongoTestDAO;
 import org.alfresco.mongo.MongoClientFactory;
 import org.alfresco.mongo.MongoDBFactory;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -1530,7 +1532,8 @@ public class TestRestAPI extends AbstractRestResource
         {
             DBObject dbObject = testDAO.exportTestRun(test, run);
 
-            String json = JSON.serialize(dbObject);
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(dbObject);
             if (logger.isDebugEnabled())
             {
                 logger.debug("Outbound: " + json);
