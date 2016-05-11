@@ -602,7 +602,7 @@
             
             // Validates the name entered by the user
             $scope.validateRunName = function(){          
-                $scope.nameErrorMessage = ValidationService.isValidTestName($scope.data.name);
+                $scope.nameErrorMessage = ValidationService.isValidTestRunName($scope.data.name);
             }
 
             // called for each key press  in the BM name editor:
@@ -1272,7 +1272,7 @@
             
             // validates the test run name
             $scope.validateName = function(testRunName){
-                $scope.errorMsg = ValidationService.isValidTestName(testRunName);
+                $scope.errorMsg = ValidationService.isValidTestRunName(testRunName);
             };
 
             $scope.update = function(test) {

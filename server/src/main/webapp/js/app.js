@@ -96,7 +96,24 @@ app.service('ValidationService', function(){
             
             return null;
         },
-  
+
+        // test run name validation - only alpha-numeric values and the underscore are allowed values
+        // returns null if everything is OK or a string error message if not. 
+        isValidTestRunName:function(testRunName){
+            // check empty
+            if (validators.isEmpty(testRunName) ){
+                return "Please enter a test run name!";
+            }
+            
+            // validate RegEx
+            var regex = new RegExp( "[a-zA-Z0-9][a-zA-Z0-9_]*" );
+            if (testRunName.match(regex) != testRunName){
+                return "Test run names must contain only letters, numbers or underscores and start with a number or letter!";
+            }
+            
+            return null;
+        },
+        
         // validation by "type" (int | decimal | boolean | string) of the property
         typeValidator:function(property){
             if (typeof property.type == 'undefined'){
@@ -294,7 +311,7 @@ app.service('ValidationService', function(){
                 }
             }
             try{
-            	if (!validators.isAnotherProperty(property.value)){
+            	if (!validators.isAnotherProperty(property.value) && !validators.isEmpty(property.value)){
             		property.validationFail = true;
             		property.validationMessage = "Please use one of: " + values;
             	}
