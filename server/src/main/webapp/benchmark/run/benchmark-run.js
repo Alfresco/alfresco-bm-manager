@@ -512,7 +512,11 @@
 
             // validates the test name
             $scope.validateName = function(testRunName){
-                $scope.errorMsg = ValidationService.isValidTestName(testRunName);
+            	try{
+                $scope.errorMsg = ValidationService.isValidTestRunName(testRunName);
+            	}catch(err){
+            		alert(err);
+            	}
             };
             
             $scope.createTestRun = function(testrun) {
