@@ -496,6 +496,7 @@ public class TestRun implements TestConstants
         }
         catch (Exception e)
         {
+            /*
             Throwable root = ExceptionUtils.getRootCause(e);
             if (root != null && (root instanceof MongoException || root instanceof IOException))
             {
@@ -503,20 +504,20 @@ public class TestRun implements TestConstants
                 // FIXME 
                 
                 String msg1 = "Failed to start test run application '" + testRunFqn + "': " + e.getCause().getMessage();
-                String msg2 = "Set the test run property '" + PROP_MONGO_TEST_HOST + "' (<server>:<port>) as required.";
+                //String msg2 = "Set the test run property '" + PROP_MONGO_TEST_HOST + "' (<server>:<port>) as required.";
                 // We deal with this specifically as it's a simple case of not finding the MongoDB
                 logger.error(msg1);
-                logger.error(msg2);
+                //logger.error(msg2);
                 logService.log(driverId, test, run, LogLevel.ERROR, msg1);
-                logService.log(driverId, test, run, LogLevel.ERROR, msg2);
+                //logService.log(driverId, test, run, LogLevel.ERROR, msg2);
             }
             else
-            {
+            {*/
                 String stack = ExceptionUtils.getStackTrace(e);
                 logger.error("Failed to start test run application '" + testRunFqn + "': ", e);
                 String error = "Failed to start test run application '" + testRunFqn + ". \r\n" + stack;
                 logService.log(driverId, test, run, LogLevel.ERROR, error);
-            }
+            //}
             stop();
         }
     }

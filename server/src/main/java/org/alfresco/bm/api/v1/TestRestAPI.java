@@ -68,15 +68,16 @@ import com.mongodb.util.JSON;
 /**
  * <b>REST API V1</b><br/>
  * <p>
- * The url pattern:
+ * The URL pattern:
  *     <ul>
  *         <li>&lt;API URL&gt;/v1/tests</pre></li>
  *     </ul>
  * </p>
- * Delegate the request to service layer and responds with json.
+ * Delegate the request to service layer and responds with JSON.
  * 
  * @author Michael Suzuki
  * @author Derek Hulley
+ * @author Frank Becker
  * @since 2.0
  */
 @Path("/v1/tests")
@@ -407,6 +408,7 @@ public class TestRestAPI extends AbstractRestResource
      * 
      * @param test              the name of the test
      * @param clean             <tt>true</tt> to remove all related test runs as well
+     * 
      */
     @DELETE
     @Path("/{test}")
@@ -432,7 +434,7 @@ public class TestRestAPI extends AbstractRestResource
                 // Delete each one, in turn, which will clean up associated collections and data
                 for (String run : runs)
                 {
-                    deleteTestRun(test, run, clean);
+                    deleteTestRun(test, run, true);
                 }
             }
             // Delete the test configuration
@@ -788,7 +790,7 @@ public class TestRestAPI extends AbstractRestResource
         }
         
         // Get the definition and make sure that we have details to play with
-        // Note that it will throw an exception if the defintion does not exist
+        // Note that it will throw an exception if the definition does not exist
         DBObject testObj = testDAO.getTest(test, false);
         if (testObj == null)
         {
@@ -1030,6 +1032,7 @@ public class TestRestAPI extends AbstractRestResource
      * @param test              the name of the test
      * @param run               the name of the test run
      * @param clean             <tt>true</tt> to remove all related test run data as well
+     * 
      */
     @DELETE
     @Path("/{test}/runs/{run}")
@@ -1049,65 +1052,31 @@ public class TestRestAPI extends AbstractRestResource
         }
         try
         {
-            // Delete all the associated test run data
+            // delete the test run data
             if (clean)
             {
-                // Get the MongoDB connection properties for the test run
-                String mongoTestHost = getTestRunPropertyString(test, run, PROP_MONGO_TEST_HOST);
-                String mongoTestDB = getTestRunPropertyString(test, run, PROP_MONGO_TEST_DATABASE);
-                String mongoTestUsername = getTestRunPropertyString(test, run, PROP_MONGO_TEST_USERNAME);
-                String mongoTestPassword = getTestRunPropertyString(test, run, PROP_MONGO_TEST_PASSWORD);
-                MongoClient mongoClient = null;
-                try
+                if (null != this.testRunServices)
                 {
-                    // remove extra data (first always)
-                    if (null != this.testRunServices)
-                    {
-                        DataReportService dataReportService = this.testRunServices.getDataReportService(test, run);
-                        if (null != dataReportService)
-                        {
-                            dataReportService.remove(null, test, run);
-                        }
-                    }
-                    
-                    // clean up test run
-                    mongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoTestHost), mongoTestUsername, mongoTestPassword).getObject();
-                    DB mongoDB = new MongoDBFactory(mongoClient, mongoTestDB).getObject();
-                    Set<String> testRunCollections = mongoDB.getCollectionNames();
-                    // Drop all that match the test and test run
-                    for (String testRunCollection : testRunCollections)
-                    {
-                        if (!testRunCollection.startsWith(test + "." + run + "."))
-                        {
-                            continue;               // Keep looking
-                        }
-                        DBCollection collection = mongoDB.getCollection(testRunCollection);
-                        if (collection == null)
-                        {
-                            continue;               // Already removed
-                        }
-                        collection.drop();
-                    }
+                    this.testRunServices.deleteTestRun(test, run);
                 }
-                catch (IllegalArgumentException e)
+                else
                 {
-                    // This is valid if MongoDB host was not set
-                    logService.log(null, test, run, LogLevel.WARN, "Unable to clean test run '" + run + "' in test '" + test + "': " + e.getMessage());
+                    // clean must always be true ...
+                    throwAndLogException(Status.NOT_FOUND,
+                            "The test run data collections '" + test + "."
+                                    + run + "' were not deleted.");
                 }
-                catch (MongoTimeoutException e)
-                {
-                    // This is valid if the test run does not reference a valid MongoDB host
-                    logService.log(null, test, run, LogLevel.WARN, "Unable to clean test run '" + run + "' in test '" + test + "'; MongoDB connection timed out: " + mongoTestHost);
-                }
-                finally
-                {
-                    if (mongoClient != null)
-                    {
-                        try {mongoClient.close(); } catch (Exception e) { logger.error(e); }
-                    }
-                }
-                
             }
+            else
+            {
+                logger.warn(
+                        "Test run data of test '" 
+                                + test 
+                                + "', run '" 
+                                + run
+                                + "' not removed!");
+            }
+
             // Delete the test run and all associated configuration
             boolean deleted = testDAO.deleteTestRun(test, run);
             if (!deleted)

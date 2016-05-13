@@ -108,4 +108,12 @@ public interface SessionService
      * Returns a number of sessions, active or otherwise
      */
     long getAllSessionsCount();
+    
+    /**
+     * Clears all recorded data
+     * 
+     * @return true if success, false else
+     * @since 2.1.4
+     */
+    boolean clear();
 }

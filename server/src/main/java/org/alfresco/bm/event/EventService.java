@@ -28,6 +28,7 @@ import java.util.List;
  * next and not necessarily the event at the head of the queue.
  * 
  * @author Derek Hulley
+ * @author Frank Becker
  * @since 1.0
  */
 public interface EventService
@@ -88,4 +89,12 @@ public interface EventService
      * @return                  <tt>true</tt> if the event was deleted otherwise <tt>false</tt>
      */
     boolean deleteEvent(Event event);
+    
+    /**
+     * Clears all recorded data
+     * 
+     * @return true if success, false else
+     * @since 2.1.4
+     */
+    boolean clear();
 }

@@ -605,4 +605,19 @@ public class MongoResultService extends AbstractResultService implements Lifecyc
         
         return results;
     }
+    
+    @Override
+    public boolean clear()
+    {
+        try
+        {
+            this.collection.drop();
+            return true;
+        }
+        catch(MongoException mex)
+        {
+            logger.error("Unable to drop colection '" + this.collection.getName() + "'");
+            return false;
+        }
+    }
 }

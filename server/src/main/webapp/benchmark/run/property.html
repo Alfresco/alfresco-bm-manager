@@ -5,6 +5,15 @@
   <h6><i>{{attentionMessage}}</i></h6>
 </div>
 
+<div ng-hide="errMsg == null " class="alert alert-danger alert-dismissible fade in">
+    <h4 id="attention-required">
+        Attention:
+    </h4>
+    <br />
+  <h6>{{errMsg}}</h6>
+</div>
+
+
 <div class="panel panel-default">
     <div class="panel-body ">
         <div class="row" ng-show="runNameEditorEnabled == true">
@@ -15,7 +24,7 @@
                         <button class="btn btn-sm btn-dark" ng-click="reset();runNameEditorEnabled=false" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-remove" />
                         </button>
-                        <button  ng-hide="nameErrorMessage != null" class="btn btn-sm btn-default" ng-click="updateRunName(data.name);runNameEditorEnabled=false" type="button" tabindex="-1">
+                        <button  ng-hide="nameErrorMessage != null" class="btn btn-sm btn-default" ng-click="runNameEditorEnabled=false;updateRunName(data.name);" type="button" tabindex="-1">
                             <span class="glyphicon glyphicon-ok" />
                         </button>
                     </span>

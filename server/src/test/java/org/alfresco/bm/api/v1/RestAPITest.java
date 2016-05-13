@@ -92,6 +92,7 @@ public class RestAPITest implements TestConstants
 {
     public static final String RELEASE = "RestAPITest";
     public static final int SCHEMA = 0;
+    public static final String MONGO_TEST_DATABASE = "bm21-data";
     
     private static Log logger = LogFactory.getLog(RestAPITest.class);
     
@@ -128,6 +129,7 @@ public class RestAPITest implements TestConstants
         {
             ctxProperties.put(PROP_MONGO_CONFIG_HOST, mongoHost);
             ctxProperties.put(PROP_MONGO_CONFIG_DATABASE, database);
+            ctxProperties.put(PROP_MONGO_TEST_DATABASE, MONGO_TEST_DATABASE);
             ctxProperties.put(PROP_APP_RELEASE, RELEASE);
             ctxProperties.put(PROP_APP_SCHEMA, "" + SCHEMA);
             ctxProperties.put(PROP_APP_INHERITANCE, "COMMON, TEST");
@@ -463,7 +465,7 @@ public class RestAPITest implements TestConstants
         checkTestRunState("TEST01", "001", TestRunState.SCHEDULED, false);
         
         // Delete the test run
-        api.deleteTestRun("TEST01", "001", false);
+        api.deleteTestRun("TEST01", "001", true);
         try
         {
             api.getTestRun("TEST01", "001");
@@ -945,6 +947,7 @@ public class RestAPITest implements TestConstants
         api.scheduleTestRun(testName, runName, schedule);
         
         // Point to the correct MongoDB
+        String testHost = api.getTestRunProperty(testName, runName, PROP_MONGO_TEST_HOST);
         PropSetBean propSetBean = new PropSetBean();
         propSetBean.setValue(mongoHost);
         propSetBean.setVersion(0);
@@ -1055,7 +1058,7 @@ public class RestAPITest implements TestConstants
     public synchronized void testScenario08() throws Exception
     {
         MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
-        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm21-data").getObject();
+        DB testMongoDB = new MongoDBFactory(testMongoClient, MONGO_TEST_DATABASE).getObject();
         Set<String> testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
         Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
 
@@ -1080,7 +1083,7 @@ public class RestAPITest implements TestConstants
     public synchronized void testScenario09() throws Exception
     {
         MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
-        DB testMongoDB = new MongoDBFactory(testMongoClient, "bm21-data").getObject();
+        DB testMongoDB = new MongoDBFactory(testMongoClient, MONGO_TEST_DATABASE).getObject();
         Set<String> testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
         Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
 

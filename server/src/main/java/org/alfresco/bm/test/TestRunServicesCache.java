@@ -45,7 +45,10 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 
 import com.mongodb.BasicDBList;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import com.mongodb.MongoSocketException;
 
 /**
@@ -334,6 +337,51 @@ public class TestRunServicesCache implements LifecycleListener, TestConstants
             logger.debug("No data report service available!", e);
         }
         return null;
+    }
+    
+    /**
+     * Deletes the collections of the test run and the extra data from MongoDB
+     * 
+     * @param test
+     *        (String, mandatory) test name
+     * @param run
+     *        (String, mandatory) test run name
+     * 
+     * @since 2.1.4
+     */
+    public boolean deleteTestRun(String test, String run)
+    {
+        boolean removed = true;
+
+        // remove the test run from the data service
+        DataReportService dataReportService = getDataReportService(test, run);
+        if (null != dataReportService)
+        {
+            dataReportService.remove(null, test, run);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Removed " + test + "." + run + " data from 'DataReportService'.");
+            }
+        }
+
+        // remove all collections
+        EventService ev = getEventService(test, run);
+        if (null != ev)
+        {
+            removed &= ev.clear();
+        }
+        ResultService rs = getResultService(test, run);
+        if (null != rs)
+        {
+            removed &= rs.clear();
+        }
+        SessionService se = getSessionService(test, run);
+        if (null != se)
+        {
+            removed &= se.clear();
+        }
+
+        return removed;
     }
 
     /**

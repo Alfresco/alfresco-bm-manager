@@ -47,6 +47,7 @@
         )
     }).value('version', '0.1');
 
+    
     /**
      * Test run service.
      * Get run detail http://localhost:9080/alfresco-benchmark-server/api/v1/tests/Bench_13/runs/run_1
@@ -54,7 +55,8 @@
      * Copy test run /api/v1/tests/SAMPLE1/runs
      */
     bmRun.factory('TestRunService', function($resource) {
-        return $resource('api/v1/tests/:id/runs/:runname/:param1/:param2', {
+    	try{
+    		return $resource('api/v1/tests/:id/runs/:runname/:param1/:param2', {
             id: '@id',
             runname: '@runname',
             filterEventName: '@filterEventName',
@@ -180,7 +182,10 @@
                     param1: 'importProps',
                 }
             }
-        })
+        });
+    	}catch(err){
+    		alert(err);
+    	}
     }).value('version', '0.1');
     
     /**
@@ -572,6 +577,7 @@
             var names = path.replace("/tests/", "").split("/");
             var testname = names[0];
             var runname = names[1];
+            $scope.errMsg = null;
 
             $scope.readOnly = false;
             $scope.data.testname = testname;
@@ -675,16 +681,27 @@
                 // of the version number ... else next save will fail ...
                 $scope.data.version = $scope.data.version + 1;
             }
-
+            
+            // call Rest API to update the test run
             $scope.updateTestRun = function(data) {
-                TestRunService.updateTestRun({
-                    "id": testname
-                }, data, function(response) {
-
-                    $scope.runNameEditorEnabled = false;
-                    $scope.runDescEditorEnabled = false;
-                    $location.path("/tests/" + testname + "/" + response.name + "/properties");
-                });
+            	try{
+            		// reset error message first
+            		$scope.errMsg = null;
+            		TestRunService.updateTestRun({
+            			"id": testname
+            			}, 
+            			data, 
+            			function(response) {
+            				$scope.runNameEditorEnabled = false;
+            				$scope.runDescEditorEnabled = false;
+            				$location.path("/tests/" + testname + "/" + response.name + "/properties");
+            			}, // TODO this pattern must be used in every Jersey call ....
+            			function(errResponse){            
+            				$scope.errMsg = "Unable to update the test run!";
+            			});
+            	}catch(err){
+            		$scope.errMsg = err;
+            	}
             };
             // call back for update test property field
             $scope.updateProperty = function(item) {

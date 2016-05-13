@@ -19,6 +19,8 @@
 package org.alfresco.bm.session;
 
 import org.alfresco.bm.test.LifecycleListener;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObjectBuilder;
@@ -37,6 +39,8 @@ import com.mongodb.WriteResult;
  */
 public class MongoSessionService extends AbstractSessionService implements LifecycleListener
 {
+    private static Log logger = LogFactory.getLog(MongoSessionService.class);
+    
     public static final String FIELD_ID = "_id";
     public static final String FIELD_DATA = "data";
     public static final String FIELD_START_TIME = "startTime";
@@ -221,5 +225,20 @@ public class MongoSessionService extends AbstractSessionService implements Lifec
     public long getAllSessionsCount()
     {
         return collection.count();
+    }
+
+    @Override
+    public boolean clear()
+    {
+        try
+        {
+            this.collection.drop();
+            return true;
+        }
+        catch(MongoException mex)
+        {
+            logger.error("Unable to drop colection '" + this.collection.getName() + "'");
+            return false;
+        }
     }
 }

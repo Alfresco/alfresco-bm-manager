@@ -50,7 +50,7 @@ import de.flapdoodle.embed.mongo.distribution.Version.Main;
 public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, TestConstants
 {
     /** Stores the Mongo version to test against.*/
-    private final Main version = Main.V3_2;
+    private final Main version = Main.V3_0;
 
     private Log logger = LogFactory.getLog(MongoDBForTestsFactory.class);
     private final MongodExecutable mongodExecutable;
@@ -63,6 +63,7 @@ public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, 
      * 
      * @throws Exception
      */
+    @SuppressWarnings("deprecation")
     public MongoDBForTestsFactory() throws Exception
     {
         MongodStarter starter = MongodStarter.getDefaultInstance();

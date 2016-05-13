@@ -180,4 +180,12 @@ public interface ResultService
      * @return                  the number of failed events
      */
     long countResultsByFailure();
+    
+    /**
+     * Clears all recorded data
+     * 
+     * @return true if success, false else
+     * @since 2.1.4
+     */
+    boolean clear();
 }

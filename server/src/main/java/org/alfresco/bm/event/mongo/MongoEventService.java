@@ -377,4 +377,20 @@ public class MongoEventService extends AbstractEventService implements Lifecycle
             return true;
         }
     }
+    
+    @Override
+    public boolean clear()
+    {
+        try
+        {
+            this.collection.drop();
+            return true;
+        }
+        catch(MongoException mex)
+        {
+            logger.error("Unable to drop colection '" + this.collection.getName() + "'");
+            return false;
+        }
+    }
+
 }
