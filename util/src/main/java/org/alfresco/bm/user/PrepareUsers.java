@@ -26,17 +26,17 @@ import org.alfresco.bm.event.EventResult;
 import com.mongodb.DuplicateKeyException;
 
 /**
- * Prepare a specific number of users for interaction with Alfresco.
+ * <p>Prepare a specific number of users for interaction with Alfresco.
  * This does not actually create users in Alfresco but merely creates
  * a population of users (email addresses, names, etc) that can be used
- * by subsequent operations.<br />
- * The user collection will be cleaned of any user entries where the
+ * by subsequent operations.</p>
+ * <p>The user collection will be cleaned of any user entries where the
  * 'created' flag is false i.e. users already created will be preserved.
  * Once cleaned up, the preparation will check all users including those
- * created.<br />
+ * created.</p>
  * In this way, the number of users can be extended but never decreased.
  * If users already exist and you wish to ensure that all users are new
- * users, change the username pattern or use a new user mirror name.
+ * users, change the user name pattern or use a new user mirror name.
  * <p/>
  * Numerical-based values can be used in:
  * <ul>

@@ -6,11 +6,14 @@
 </div>
 
 <div ng-hide="errMsg == null " class="alert alert-danger alert-dismissible fade in">
-    <h4 id="attention-required">
-        Attention:
-    </h4>
-    <br />
-  <h6>{{errMsg}}</h6>
+    <p>
+        <h4 id="attention-required">
+            Attention:
+        </h4>
+    </p>
+    <p>
+        <h6>{{errMsg}}</h6>
+    </p>
 </div>
 
 
@@ -106,16 +109,6 @@
                     </div>
 
                     <div class="col-xs-6 col-md-6">
-                    <!-- 
-                    Debug: propertyEditorEnabled == {{propertyEditorEnabled}}<br /><br />
-                                Debug: item {{item.name}}:<br />
-                                .mask = {{item.mask}}<br />
-                                .value = {{item.value}}<br />
-                                .default = {{item.default}}<br />
-                                .cancelValue = {{cancelValue}}<br />
-                                .validationFail = {{item.validationFail}}<br />
-                                .validationMessage = {{item.validationMessage}}<br />
-                                Debug END<br /><br />  -->
                         <!-- span ng-show="attentionReq(item)"></span -->
                         <span ng-show="readOnly == true">
                             <div ng-hide="item.mask == true">
