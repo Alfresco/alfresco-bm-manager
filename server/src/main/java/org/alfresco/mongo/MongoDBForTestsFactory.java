@@ -50,7 +50,7 @@ import de.flapdoodle.embed.mongo.distribution.Version.Main;
 public class MongoDBForTestsFactory implements FactoryBean<DB>, DisposableBean, TestConstants
 {
     /** Stores the Mongo version to test against.*/
-    private final Main version = Main.V3_0;
+    private final Main version = Main.V3_2;
 
     private Log logger = LogFactory.getLog(MongoDBForTestsFactory.class);
     private final MongodExecutable mongodExecutable;
