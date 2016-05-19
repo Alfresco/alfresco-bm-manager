@@ -44,3 +44,8 @@ Move onto the new version
 Merge the branch into 'master‘
 
 > git merge prepare-V2.2.0
+
+Delete the local branch 
+
+> git branch -D prepare-V2.2.0
+
