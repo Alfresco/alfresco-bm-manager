@@ -5,7 +5,7 @@
   
   <requiredProperties>
     <requiredProperty key="server-version">
-      <defaultValue>2.1.4-SNAPSHOT</defaultValue>
+      <defaultValue>2.1.4</defaultValue>
     </requiredProperty>
     <requiredProperty key="junit-version">
       <defaultValue>4.11</defaultValue>
