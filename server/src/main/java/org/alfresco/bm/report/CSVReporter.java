@@ -21,6 +21,8 @@ package org.alfresco.bm.report;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -148,6 +150,10 @@ public class CSVReporter extends AbstractEventReporter
             ResultSummary summary = entry.getValue();
             SummaryStatistics statsSuccess = summary.getStats(true);
             SummaryStatistics statsFail = summary.getStats(false);
+            DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols();
+            formatSymbols.setDecimalSeparator('.');
+            formatSymbols.setGroupingSeparator(' ');
+            DecimalFormat percentageFormat = new DecimalFormat("###.#", formatSymbols);
             // Event Name
             writer.write(String.format("%s,", eventName));
             // Total Count
@@ -157,7 +163,9 @@ public class CSVReporter extends AbstractEventReporter
             // Failure Count
             writer.write(String.format("%6d,", statsFail.getN()));
             // Success Rate (%)
-            writer.write(String.format("%3.1f,", summary.getSuccessPercentage()));
+            //writer.write(String.format("%3.1f,", summary.getSuccessPercentage()));
+            writer.write(percentageFormat.format(summary.getSuccessPercentage()));
+            writer.write(",");
             // Min (ms)
             writer.write(String.format("%10d,", (long)statsSuccess.getMin()));
             // Max (ms)
