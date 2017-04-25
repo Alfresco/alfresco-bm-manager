@@ -40,7 +40,7 @@ import com.mongodb.DBObject;
  * <p/>
  * Results table where each row consists of:
  * <ul>
- *   <li><b>Event name:</b> Name of the event.  These will be listed aphabetically across the rows.</li>
+ *   <li><b>Event name:</b> Name of the event.  These will be listed alphabetically across the rows.</li>
  *   <li><b>Total Count:</b> Total number of events.</li>
  *   <li><b>Success Count:</b> Number of successful events.</li>
  *   <li><b>Failure Count:</b> Number of failed events.</li>

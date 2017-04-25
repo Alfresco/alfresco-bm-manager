@@ -1095,12 +1095,13 @@ public class TestRestAPI extends AbstractRestResource
         }
     }
     
-    /**
+    /*
      * Helper method to retrieve the property value in play for a particular test run
      * 
      * @return                  the property value or <tt>null</tt> if not available
-     */
-    private String getTestRunPropertyString(String test, String run, String propertyName)
+     *
+     * never used
+     * private String getTestRunPropertyString(String test, String run, String propertyName)
     {
         DBObject propertyObj = testDAO.getProperty(test, run, propertyName);
         
@@ -1115,7 +1116,7 @@ public class TestRestAPI extends AbstractRestResource
             propertyValue = (String) propertyObj.get(FIELD_VALUE);
         }
         return propertyValue;
-    }
+    }*/
     
     @GET
     @Path("/{test}/runs/{run}/props/{property}")
@@ -1546,6 +1547,79 @@ public class TestRestAPI extends AbstractRestResource
         {
             DBObject dbImportObject = (DBObject)JSON.parse(propBean.getValue());
             DBObject dbObject = testDAO.importTestRun(test, run, dbImportObject);
+
+            String json = JSON.serialize(dbObject);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Outbound: " + json);
+            }
+            return json;
+        }
+        catch (WebApplicationException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+        }
+
+        return null;
+    }
+    
+    @GET
+    @Path("/{test}/exportProps")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String exportTestProps(
+            @PathParam("test") String test)
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Inbound: " + "[test:" + test + "]");
+        }
+        try
+        {
+            DBObject dbObject = testDAO.exportTest(test);
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(dbObject);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Outbound: " + json);
+            }
+            return json;
+        }
+        catch (WebApplicationException e)
+        {
+            throw e;
+        }
+        catch (ObjectNotFoundException onfe)
+        {
+            throwAndLogException(Status.NOT_FOUND, "The test '" + test + "' doesn't exist.");
+        }
+        catch (Exception e)
+        {
+            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
+        }
+        return null;
+    }
+    
+    @POST
+    @Path("/{test}/importProps")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String importTestProps(
+            @PathParam("test") String test,
+            PropSetBean propBean)
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Inbound: [test:" + test + "]");
+        }
+        try
+        {
+            DBObject dbImportObject = (DBObject) JSON.parse(propBean.getValue());
+            DBObject dbObject = testDAO.importTest(test, dbImportObject);
 
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())

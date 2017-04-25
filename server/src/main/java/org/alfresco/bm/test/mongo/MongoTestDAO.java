@@ -32,6 +32,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.management.RuntimeErrorException;
+
 import org.alfresco.bm.api.AESCipher;
 import org.alfresco.bm.api.v1.ImportResult;
 import org.alfresco.bm.exception.CipherException;
@@ -1616,6 +1618,64 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
     }
 
     /**
+     * Returns the map with "final" test run properties of the test run.
+     * 
+     * @param testObjId
+     *        (ObjectId, optional)
+     * @param testName
+     *        (String, mandatory)
+     * 
+     * @return (Map<String, DBObject>) or exception
+     * 
+     * @throws ObjectNotFoundException
+     */
+    public Map<String, DBObject> getTestPropertiesMap(
+            ObjectId testObjId,
+            String testName) throws ObjectNotFoundException
+    {
+        ArgumentCheck.checkMandatoryString(testName, "testName");
+
+        // check optional arguments
+        if (null == testObjId)
+        {
+            testObjId = getTestId(testName);
+            if (null == testObjId)
+            {
+                cleanup(testName, null);
+                throw new ObjectNotFoundException(testName);
+            }
+        }
+
+        // Retrieve the test
+        DBObject testObj = getTest(testObjId, false);
+        if (testObj == null)
+        {
+            cleanup(testName, null);
+            throw new ObjectNotFoundException(testName);
+        }
+
+        // Get the associated test definition
+        String release = (String) testObj.get(FIELD_RELEASE);
+        Integer schema = (Integer) testObj.get(FIELD_SCHEMA);
+        TestDefEntry testDefEntry = getTestDefCached(release, schema);
+        if (testDefEntry == null)
+        {
+            cleanup(testName, null);
+            throw new ObjectNotFoundException(testName);
+        }
+
+        // now get the properties
+        // Start with the properties from the test definition
+        Map<String, DBObject> propsMap = new HashMap<String, DBObject>(testDefEntry.testDefPropsMap);
+
+        // Fetch the properties for the test
+        DBCursor testPropsCursor = getTestPropertiesRaw(testObjId, null);
+        // Combine
+        MongoTestDAO.mergeProperties(propsMap, testPropsCursor);
+
+        return propsMap;
+    }
+    /**
      * Retrieve the data for given test run
      * 
      * @param test
@@ -2705,7 +2765,7 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         // Do the bulk insert
         try
         {
-            testProps.insert(insertObjList, WriteConcern.SAFE);
+            testProps.insert(insertObjList, WriteConcern.ACKNOWLEDGED);
         }
         catch (MongoException e)
         {
@@ -2829,6 +2889,146 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         return getMaskedProperyNames((String) testObj.get(FIELD_RELEASE), (Integer) testObj.get(FIELD_SCHEMA));
     }
 
+    /**
+     * Imports the properties of a test from JSON.
+     * 
+     * @param testName (String, mandatory) test name to import properties to
+     * @param importObj (DBObject, mandatory) properties to import
+     * @return (DBObject) Result and message
+     * @throws CipherException
+     */
+    public DBObject importTest(String testName, DBObject importObj) throws CipherException
+    {
+        // create return object
+        DBObject resultObj = new BasicDBObject();
+        String message = "Import succeeded.";
+        ImportResult result = ImportResult.OK;
+
+        try
+        {
+            ArgumentCheck.checkMandatoryString(testName, "testName");
+            ArgumentCheck.checkMandatoryObject(importObj, "importObj");
+
+            // get object IDs
+            ObjectId testObjId = getTestId(testName);
+            if (null == testObjId)
+            {
+                throw new ObjectNotFoundException(testName);
+            }
+            
+            // get test definition
+            DBObject queryObj = QueryBuilder
+                    .start(FIELD_ID).is(testObjId)
+                    .get();
+            BasicDBObjectBuilder fieldsObjBuilder = BasicDBObjectBuilder
+                    .start(FIELD_NAME, 1)
+                    .add(FIELD_RELEASE, true)
+                    .add(FIELD_SCHEMA, true);
+            DBObject fieldsObj = fieldsObjBuilder.get();
+
+            DBObject testObj = tests.findOne(queryObj, fieldsObj);
+            if (testObj == null)
+            {
+                throw new ObjectNotFoundException(testName);
+            }
+
+            // get values from test
+            String release = (String) testObj.get(FIELD_RELEASE);
+            Object tmp = testObj.get(FIELD_SCHEMA);
+            Integer schema = null == tmp ? 0 : Integer.valueOf(tmp.toString());
+
+            // get properties
+            Map<String, DBObject> mapProps = getTestPropertiesMap(testObjId, testName);
+
+            // get values from the import object
+            Object relObj = importObj.get(FIELD_RELEASE);
+            Object schemaObj = importObj.get(FIELD_SCHEMA);
+            if (null != relObj && !relObj.toString().equals(release))
+            {
+                result = ImportResult.WARN;
+                message += "\r\nWARN: Release '"
+                        + release
+                        + "' from test to import doesn't match import release '"
+                        + relObj.toString()
+                        + "'!";
+            }
+            if (null != schemaObj && !schemaObj.toString().equals(schema.toString()))
+            {
+                result = ImportResult.WARN;
+                message += "\r\nWARN: Schema '"
+                        + schema
+                        + "' from test to import doesn't match import schema '"
+                        + schemaObj.toString()
+                        + "'!";
+            }
+            
+            // decrypt all values in the properties 
+            // separate from set value - might throw exception and nothing should be changed if
+            BasicDBList propsListEnc = (BasicDBList) importObj.get(FIELD_PROPERTIES);
+            BasicDBList propsListDec = new BasicDBList();
+            for (final Object obj : propsListEnc)
+            {
+                final DBObject dbObj = (DBObject) obj;
+                String propName = (String) dbObj.get(FIELD_NAME);
+                
+                // decrypt
+                DBObject prop = decryptPropertyValue(dbObj, propName);
+                propsListDec.add(prop);
+            }
+            
+            // again a loop and update the values 
+            for (final Object objProp : propsListDec)
+            {
+                // get property
+                final DBObject dbObj = (DBObject) objProp;
+                String propName = (String) dbObj.get(FIELD_NAME);
+
+                // get oldProperty
+                final DBObject oldProp = mapProps.get(propName);
+                if (null == oldProp)
+                {
+                    result = ImportResult.WARN;
+                    message += "\r\nWARN: Ignored property '"
+                            + propName
+                            + "' not found";
+                }
+                else
+                {
+                    // see if the value differs
+                    String oldValue = getPropValueAsString(oldProp);
+                    String newValue = getPropValueAsString(dbObj);
+                    if (!oldValue.equals(newValue))
+                    {
+                        // update property
+                        updateProperty(testName, null, propName, newValue, oldProp);
+                    }
+                }
+            }
+        }
+        catch (ObjectNotFoundException onfe)
+        {
+            message = "Test not found: '" + testName + "'!";
+            result = ImportResult.ERROR;
+            logger.error(message, onfe);
+
+            message += "\r\n\r\n" + onfe.toString();
+        }
+        catch (CipherException ce)
+        {
+            message = "Error during decryption while import properties of test: '" + testName + "'! No value imported";
+            result = ImportResult.ERROR;
+            logger.error(message, ce);
+
+            message += "\r\n\r\n" + ce.toString();
+        }
+
+        // put return values
+        resultObj.put(FIELD_RESULT, result.toString());
+        resultObj.put(FIELD_MESSAGE, message);
+
+        return resultObj;
+    }
+    
     public DBObject importTestRun(String testName, String runName, DBObject importObj)
     {
         // create return object
@@ -2844,12 +3044,16 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
 
             // get object IDs
             ObjectId testObjId = getTestId(testName);
-            ObjectId runObjId = getTestRunId(testObjId, runName);
             if (null == testObjId)
             {
                 throw new ObjectNotFoundException(testName + "." + runName);
             }
-
+            ObjectId runObjId = getTestRunId(testObjId, runName);
+            if (null == runObjId)
+            {
+                throw new ObjectNotFoundException(testName + "." + runName);
+            }
+            
             // get test definition
             DBObject queryObj = QueryBuilder
                     .start(FIELD_ID).is(testObjId)
@@ -3025,6 +3229,80 @@ public class MongoTestDAO implements LifecycleListener, TestConstants
         return result;
     }
 
+    /**
+     * Exports the test with properties as JSON
+     * 
+     * @param testName (string, mandatory) name of the test to export
+     * @return DBObject to serialize as JSON
+     * 
+     * @throws ObjectNotFoundException
+     * @throws CipherException
+     */
+    public DBObject exportTest(String testName) throws ObjectNotFoundException, CipherException
+    {
+        ArgumentCheck.checkMandatoryString(testName, "testName");
+
+        // get object IDs
+        ObjectId testObjId = getTestId(testName);
+        if (null == testObjId)
+        {
+            throw new ObjectNotFoundException(testName);
+        }
+
+        // get test definition
+        DBObject queryObj = QueryBuilder
+                .start(FIELD_ID).is(testObjId)
+                .get();
+        BasicDBObjectBuilder fieldsObjBuilder = BasicDBObjectBuilder
+                .start(FIELD_NAME, 1)
+                .add(FIELD_VERSION, true)
+                .add(FIELD_RELEASE, true)
+                .add(FIELD_SCHEMA, true);
+        DBObject fieldsObj = fieldsObjBuilder.get();
+
+        DBObject testObj = tests.findOne(queryObj, fieldsObj);
+        if (testObj == null)
+        {
+            throw new ObjectNotFoundException(testName);
+        }
+
+        // get values from test
+        String release = (String) testObj.get(FIELD_RELEASE);
+        Object tmp = testObj.get(FIELD_SCHEMA);
+        Integer schema = null == tmp ? 0 : Integer.valueOf(tmp.toString());
+        tmp = testObj.get(FIELD_VERSION);
+        Integer version = null == tmp ? 0 : Integer.valueOf(tmp.toString());
+
+        // get properties
+        Set<String> maskedProps = getMaskedProperyNames(testName);
+        Map<String, DBObject> mapProps = getTestPropertiesMap(testObjId, testName);
+
+        // encrypt passwords
+        for (final String propName : maskedProps)
+        {
+            DBObject propDbObj = mapProps.get(propName);
+            if (null != propDbObj)
+            {
+                // encrypt
+                propDbObj = encryptPropertyValue(propDbObj, propName);
+                mapProps.put(propName, propDbObj);
+            }
+        }
+
+        // prepare return object
+        DBObject exportObj = new BasicDBObject();
+        exportObj.put(FIELD_TEST, testName);
+        exportObj.put(FIELD_RELEASE, release);
+        exportObj.put(FIELD_SCHEMA, schema);
+        exportObj.put(FIELD_VERSION, version);
+
+        // Turn into a map and add
+        BasicDBList propsList = MongoTestDAO.getPropertyList(mapProps);
+        exportObj.put(FIELD_PROPERTIES, propsList);
+
+        return exportObj;
+    }
+    
     /**
      * Exports a test run with encrypted password properties by test and run
      * name.

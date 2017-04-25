@@ -52,14 +52,14 @@ import com.mongodb.util.JSON;
 /**
  * <b>REST API V1</b><br/>
  * <p>
- * The url pattern:
+ * The URL pattern:
  *     <ul>
  *         <li>&lt;API URL&gt;/v1/tests/{test}/runs/{run}/results</pre></li>
  *     </ul>
  * </p>
  * This class presents APIs for retrieving test run results and related information.
  * <p/>
- * It is a meant to be a subresource, hence there is no defining path annotation.
+ * It is a meant to be a sub-resource, hence there is no defining path annotation.
  * 
  * @author Derek Hulley
  * @since 2.0
