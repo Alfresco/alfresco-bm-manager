@@ -56,9 +56,15 @@
                 </div>
             </div>
         </div>
-        Release: {{data.test.release}} Schema:{{data.test.schema}}            
+        Release: {{data.test.release}} Schema:{{data.test.schema}}   
     </div>
     <div class="panel-footer">
+        <a class="btn" id="importRunBtn-{{data.test.name}}" ng-click="importProperties(data.test.name);">
+            <span class="fa fa-upload fa-lg"></span>
+        </a>
+        <a class="btn" id="exportTestBtn-{{data.test.name}}" download="{{data.test.name}}.json" href="api/v1/tests/{{data.test.name}}/exportProps">
+            <span class="fa fa-download fa-lg"></span>
+        </a>
         <a href="#/tests/{{data.test.name}}/copy"  id="copyTestBtn1-{{data.test.name}}" class="btn">
             <i class="fa fa-files-o fa-lg"></i>
         </a>

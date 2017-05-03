@@ -90,6 +90,13 @@
                     id: 'id',
                     param:'drivers'
                 }
+            },
+            importProps : {
+            	method: 'POST',
+                params: {
+                    id: 'id',
+                    param: 'importProps',
+                }
             }
         })
     }).value('version', '0.1');
@@ -179,8 +186,8 @@
     /**
      * Controller to display test detail
      */
-    bmTest.controller('TestPropertyCtrl', ['$scope', '$location', 'TestService', 'TestPropertyService', 'UtilService','ModalService', 'ValidationService',
-        function($scope, $location, TestService, TestPropertyService, UtilService, ModalService, ValidationService) {
+    bmTest.controller('TestPropertyCtrl', ['$scope', '$location', '$window', 'TestService', 'TestPropertyService', 'UtilService','ModalService', 'ValidationService',
+        function($scope, $location, $window, TestService, TestPropertyService, UtilService, ModalService, ValidationService) {
             $scope.data = {};
             $scope.properties = [];
             $scope.master = {};
@@ -217,6 +224,63 @@
                 $scope.master = angular.copy($scope.data.test);
             });
 
+          //callback for ng-click 'importProperties':
+            $scope.importProperties = function(testName){
+            	$scope.importPropsData = {
+                        display: true,
+                        title: 'Import test properties: ' + testName,
+                        message: "Select JSON property file to upload",
+                        upload : true,
+                        buttonClose: "Cancel",
+                        buttonOk: "Import",
+                        actionName: "doImportProperties",
+                        actionValue: [testName]
+                    };
+                $scope.modal = ModalService.create($scope.importPropsData);
+            };
+            // callback from modal to store the file content
+            $scope.storeFile = function(file){
+            	$scope.file = file;
+            };
+            // callback from modal to trigger import
+			$scope.doImportProperties = function(testname) {
+				// create transfer to RestAPI
+				var json = {
+						"version" : 0,
+	                    "value": $scope.file.toString()
+	                };
+				TestService.importProps({
+                    id: testname
+                }, json, function(response) {
+                	var result = response;
+                	// if all OK - reload page
+                	if (result.result.toString() == "OK"){
+                		$window.location.reload();
+                	}
+                	else{
+	                	try
+	                	{
+	                		$scope.importWarnErrorData = {
+	                                display: true,
+	                                title: 'Import result',
+	                                message: result.msg,
+	                                upload : false,
+	                                buttonOk: "OK",
+	                                actionName: "doFinishImport",
+	                                actionValue: [testname],
+	                                hideButtonClose : true
+	                            };
+	                		$scope.modal = ModalService.create($scope.importWarnErrorData);
+	                	}
+	                	catch(err){/*alert(err);*/};
+                	}
+                })
+			};
+			// finish import on warn or error 
+			$scope.doFinishImport = function(testname){
+				// reload page
+				$window.location.reload();
+			}
 
             //callback for ng-click 'deleteTest':
             $scope.deleteTest = function(testId) {
