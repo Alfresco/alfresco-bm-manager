@@ -9,6 +9,10 @@ Copy the 'src' folder to the archetype
 Update dependency versions numbers
 find . -name archetype-metadata.xml | xargs sed -i -e 's/2.2.0-SNAPSHOT/2.2.0/g'
 find . -name archetype.properties | xargs sed -i -e 's/server-version=2.2.0-SNAPSHOT/server-version=2.2.0/g'
+Remove backup files (if created in the previous step):
+    git status
+    rm src/main/resources/META-INF/maven/archetype-metadata.xml-e
+    rm src/test/resources/projects/basic/archetype.properties-e
 
 Check all properties and configuration files
 > git diff

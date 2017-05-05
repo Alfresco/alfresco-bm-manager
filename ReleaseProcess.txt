@@ -16,16 +16,19 @@ Update POM file revision numbers
         modified:   sample/pom.xml
         modified:   server/pom.xml
         modified:   util/pom.xml
+Note: on some systems backup files (e.g. pom.xml-e) will be created. Please remove those files!
 
 Build, test and deploy the artifacts:
 > mvn clean install
 > mvn deploy -DskipTests
 
+(Note: Artifacts are deployed to https://artifacts.alfresco.com/nexus/content/repositories/releases/org/alfresco/)
+
 Follow instructions in sample/building-the-archetype
 
 Commit all the changes:
 > git add *
-> git commit
+> git commit -m "Alfresco Benchmark V2.2.0"
 > git push --all
 
 Tag the branch in GitHub
