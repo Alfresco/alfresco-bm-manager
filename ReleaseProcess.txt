@@ -63,3 +63,6 @@ Delete the local branch
 
 > git branch -D prepare-V2.2.1
 
+Push the latest changes 
+> git push --all
+
