@@ -18,7 +18,7 @@ Build the archetype
 
 Test locally
 > cd target
-> mvn archetype:generate -DarchetypeCatalog=local
+> mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate -DarchetypeCatalog=local
 > cd <your-artiface-id>
 > mvn clean install
 > cd ..
@@ -34,7 +34,7 @@ Clean up
 To use, follow instructions on:
    http://wiki.alfresco.com/wiki/Benchmark_Framework_2.0:_Developing_Tests
    If you are familiar with Maven then it is just this:
-      mvn archetype:generate
+      mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate
             -DarchetypeRepository=http://artifacts.alfresco.com/nexus/content/groups/public/archetype-catalog.xml
             -DarchetypeGroupId=org.alfresco
             -DarchetypeArtifactId=alfresco-benchmark-sample-archetype
