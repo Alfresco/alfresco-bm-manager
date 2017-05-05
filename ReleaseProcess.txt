@@ -1,13 +1,13 @@
 Create a new branch for the release process.
-If the current version is 2.2.0-SNAPSHOT, then it will be:
-> git checkout -b prepare-V2.2.0
+If the current version is 2.2.1-SNAPSHOT, then it will be:
+> git checkout -b prepare-V2.2.1
 
 Update POM file revision numbers
-> find . -name pom.xml | xargs sed -i -e 's/2.2.0-SNAPSHOT/2.2.0/g'
-> find . -name archetype-metadata.xml | xargs sed -i -e 's/2.2.0-SNAPSHOT/2.2.0/g'
-> find . -name archetype.properties | xargs sed -i -e 's/2.2.0-SNAPSHOT/2.2.0/g'
+> find . -name pom.xml | xargs sed -i -e 's/2.2.1-SNAPSHOT/2.2.1/g'
+> find . -name archetype-metadata.xml | xargs sed -i -e 's/2.2.1-SNAPSHOT/2.2.1/g'
+> find . -name archetype.properties | xargs sed -i -e 's/2.2.1-SNAPSHOT/2.2.1/g'
 > git status
-  On branch prepare-V2.2.0
+  On branch prepare-V2.2.1
   Changes not staged for commit:
         modified:   pom.xml
         modified:   sample/archetype/pom.xml
@@ -24,21 +24,32 @@ Build, test and deploy the artifacts:
 
 (Note: Artifacts are deployed to https://artifacts.alfresco.com/nexus/content/repositories/releases/org/alfresco/)
 
-Follow instructions in sample/building-the-archetype
+Follow instructions in sample/building-the-archetype and return to base directory. 
+Check again for all changes made: git status
 
 Commit all the changes:
 > git add *
-> git commit -m "Alfresco Benchmark V2.2.0"
+> git commit -m "Alfresco Benchmark V2.2.1"
 > git push --all
 
-Tag the branch in GitHub
+Tag the branch in GitHub:
+https://github.com/AlfrescoBenchmark - login 
+https://github.com/AlfrescoBenchmark/alfresco-benchmark/releases/new
+Create new label and select branch as target
+Set Release Title and describe your changes for the release
+Publish release 
+
 Move onto the new version
-> find . -name pom.xml | xargs sed -i -e 's/2.2.0/2.2.1-SNAPSHOT/g'
-> find . -name archetype-metadata.xml | xargs sed -i -e 's/2.2.0/2.2.1-SNAPSHOT/g'
-> find . -name archetype.properties | xargs sed -i -e 's/2.2.0/2.2.1-SNAPSHOT/g'
-> git status
+> find . -name pom.xml | xargs sed -i -e 's/2.2.1/2.2.2-SNAPSHOT/g'
+> find . -name archetype-metadata.xml | xargs sed -i -e 's/2.2.1/2.2.2-SNAPSHOT/g'
+> find . -name archetype.properties | xargs sed -i -e 's/2.2.1/2.2.2-SNAPSHOT/g'
+> git status 
+(Remove any backup files) 
 > git diff
 > mvn clean install
+
+(Optional: update the version numbers in this guide and the sample) 
+
 > git add *
 > git commit
 > git push --all
@@ -46,9 +57,9 @@ Move onto the new version
 
 Merge the branch into 'master‘
 
-> git merge prepare-V2.2.0
+> git merge prepare-V2.2.1
 
 Delete the local branch 
 
-> git branch -D prepare-V2.2.0
+> git branch -D prepare-V2.2.1
 
