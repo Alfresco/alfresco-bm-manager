@@ -2,7 +2,7 @@
 
 This project provides a management application and a supporting library for development of highly scalable, easy-to-run Java-based load and benchmark tests.  Maven and Java development patterns are employed so that load tests can be included in automated build plans; both for the product they are testing but also to prevent regressions in the tests.
 
-More information on the <a href="https://wiki.alfresco.com/wiki/Benchmark_Framework_2.0">Alfresco Wiki</a>
+More information on the <a href="https://community.alfresco.com/docs/DOC-6235">Alfresco Community Site</a>
 * Videos related to the <a href=https://www.youtube.com/watch?v=CXFH_1lFvsk&list=PLktNOqTikHe_Uy6UNIic0U_ga44XK0voi>Benchmark Framework 2.0</a>
 * Videos prepared for <a href="http://summit.alfresco.com">Alfresco Summit 2014</a> showing <a href="https://www.youtube.com/watch?v=_8w5TxjBgh4&list=PLktNOqTikHe8wXFvWnV8s7TbTlV4K2flf">a CMIS load test in action</a>
 
