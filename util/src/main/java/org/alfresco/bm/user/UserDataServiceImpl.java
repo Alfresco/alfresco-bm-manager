@@ -84,7 +84,7 @@ public class UserDataServiceImpl extends AbstractUserDataService implements Init
      */
     private void checkIndexes()
     {
-        collection.setWriteConcern(WriteConcern.SAFE);
+        collection.setWriteConcern(WriteConcern.ACKNOWLEDGED);
         
         DBObject uidxUserName = BasicDBObjectBuilder
                 .start(FIELD_USERNAME, 1)
