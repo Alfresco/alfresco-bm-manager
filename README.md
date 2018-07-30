@@ -1,4 +1,4 @@
-### Alfresco Benchmark
+### Alfresco Benchmark Framework Manager
 
 This project provides a management application and a supporting library for development of highly scalable, easy-to-run Java-based load and benchmark tests.  Maven and Java development patterns are employed so that load tests can be included in automated build plans; both for the product they are testing but also to prevent regressions in the tests.
 
@@ -10,13 +10,13 @@ More information on the <a href="https://community.alfresco.com/docs/DOC-6235">A
 
 Git:
 
-    git clone https://github.com/AlfrescoBenchmark/alfresco-benchmark.git
-    cd alfresco-benchmark
+    git clone https://github.com/Alfresco/alfresco-bmf-manager.git
+    cd alfresco-bmf-manager
 
 Subversion:
 
-    svn checkout https://github.com/AlfrescoBenchmark/alfresco-benchmark.git
-    cd alfresco-benchmark
+    svn checkout https://github.com/Alfresco/alfresco-bmf-manager.git
+    cd alfresco-bmf-manager
 
 ### Use Maven
 
@@ -74,3 +74,6 @@ Subversion:
 
     At any time - usually when the test run completes - click through on the test run.  
     Click the download button and open the CSV file in a spreadsheet.
+
+### Contributing guide
+Please use [this guide](CONTRIBUTING.md) to make a contribution to the project.
