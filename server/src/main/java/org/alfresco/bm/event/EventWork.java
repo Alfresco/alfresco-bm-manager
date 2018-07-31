@@ -172,7 +172,7 @@ public class EventWork implements Runnable
         }
         
         // Pass the event(s) through the producers
-        Set<String> eventNamesSeen = new HashSet<>(nextEvents.size() + 17);
+        Set<String> eventNamesSeen = new HashSet<String>(nextEvents.size() + 17);
         nextEvents = getNextEvents(nextEvents, eventNamesSeen);
         
         // Only propagate session IDs automatically if there is a 1:1 relationship between the event processed

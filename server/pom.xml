@@ -10,21 +10,15 @@
         <bm.tomcat.ip>localhost</bm.tomcat.ip>
         <bm.tomcat.url>http://${bm.tomcat.ip}:${bm.tomcat.port}/manager/text</bm.tomcat.url>
         <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
+        <maven.compiler.source>1.8</maven.compiler.source>
+    	<maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     <parent>
         <groupId>org.alfresco</groupId>
         <artifactId>alfresco-benchmark</artifactId>
         <version>2.2.1-SNAPSHOT</version>
     </parent>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+   
 
     <dependencies>
         <!-- Logging -->
@@ -35,38 +29,25 @@
         </dependency>
         <!-- MongoDB -->
         <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>3.2.0</version>
-        </dependency>
-        <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>1.50.2</version>
+            <version>1.50.5</version>
         </dependency>
-        <!-- Fix till nexus dependency is resolved -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-            <version>${spring.version}</version>
+      	 <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>3.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>${spring.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-asm</artifactId>
-                </exclusion>
-            </exclusions>   
+      
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-expression</artifactId>
-            <version>${spring.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
-        <!-- end fix -->
 
         <!-- Jackson json parser -->
         <dependency>
@@ -78,20 +59,6 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>1.9.12</version>
-        </dependency>
-
-        <!-- Tomcat API -->
-        <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-api</artifactId>
-            <version>${tomcat.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
-            <scope>test</scope>
         </dependency>
 
         <!-- Jersey + Spring -->
@@ -205,7 +172,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
+            <version>1.8.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -240,25 +207,6 @@
                 <configuration>
                     <tagNameFormat>V@{project.version}</tagNameFormat>
                     <tagBase>https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/server/tags</tagBase>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <configuration>
-                    <url>${bm.tomcat.url}</url>
-                    <!-- Refer to the server settings in your ~/.m2/settings.xml -->
-                    <server>${bm.tomcat.server}</server>
-                    <port>${bm.tomcat.port}</port>
-                    <path>/alfresco-benchmark-server</path>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.1.1</version>
-                <configuration>
-                    <attachClasses>true</attachClasses>
                 </configuration>
             </plugin>
             <plugin>
