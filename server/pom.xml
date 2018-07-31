@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>alfresco-benchmark-server</artifactId>
-    <packaging>war</packaging>
+
+    <parent>
+        <groupId>org.alfresco</groupId>
+        <artifactId>alfresco-bmf-manager-project</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>alfresco-bmf-manager</artifactId>
+    <name>Alfresco Benchmark Framework Manager</name>
+    <packaging>jar</packaging>
+
     <properties>
         <bm.tomcat.port>9080</bm.tomcat.port>
         <bm.tomcat.ip>localhost</bm.tomcat.ip>
         <bm.tomcat.url>http://${bm.tomcat.ip}:${bm.tomcat.port}/manager/text</bm.tomcat.url>
         <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
-        <maven.compiler.source>1.8</maven.compiler.source>
-    	<maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-    <parent>
-        <groupId>org.alfresco</groupId>
-        <artifactId>alfresco-benchmark</artifactId>
-        <version>2.2.1-SNAPSHOT</version>
-    </parent>
-   
 
     <dependencies>
         <!-- Logging -->
@@ -33,13 +34,13 @@
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
             <version>1.50.5</version>
         </dependency>
-      	 <dependency>
+        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>3.0.0</version>
+            <version>3.2.0</version>
         </dependency>
-      
-		<dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
@@ -65,7 +66,7 @@
         <dependency>
             <groupId>com.sun.jersey.contribs</groupId>
             <artifactId>jersey-spring</artifactId>
-            <version>${jersey.version}</version>
+            <version>1.17.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -96,12 +97,12 @@
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
-            <version>${jersey.version}</version>
+            <version>1.17.1</version>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-json</artifactId>
-            <version>${jersey.version}</version>
+            <version>1.17.1</version>
         </dependency>
 
         <!-- Servlet -->
@@ -172,50 +173,59 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.8.4</version>
+            <version>1.9.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>config/startup/*.properties</include>
-                    <include>log4j.properties</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**</include>
-                </includes>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <tagNameFormat>V@{project.version}</tagNameFormat>
-                    <tagBase>https://svn.alfresco.com/repos/alfresco-enterprise/benchmark/server/tags</tagBase>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${dependency.spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <runOrder>random</runOrder>
-                </configuration>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>classes</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+
 </project>

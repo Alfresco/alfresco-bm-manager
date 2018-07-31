@@ -1,51 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.alfresco</groupId>
 
-    <artifactId>alfresco-benchmark</artifactId>
-    <name>Alfresco Benchmark Project</name>
-    <version>2.2.1-SNAPSHOT</version>
+    <parent>
+        <groupId>org.alfresco</groupId>
+        <artifactId>alfresco-super-pom</artifactId>
+        <version>9</version>
+    </parent>
+
+    <groupId>org.alfresco</groupId>
+    <artifactId>alfresco-bmf-manager-project</artifactId>
+    <name>Alfresco Benchmark Framework Manager Project</name>
+    <version>3.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.version>4.0.3.RELEASE</spring.version>
-        <jersey.version>1.17.1</jersey.version>
-        <tomcat.version>7.0.69</tomcat.version>
-        <junit.version>4.11</junit.version>
         <dependency.spring-boot.version>1.5.12.RELEASE</dependency.spring-boot.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-
-    <prerequisites>
-       <maven>3.0.3</maven>
-    </prerequisites>
 
     <modules>
         <module>server</module>
         <module>util</module>
         <module>sample</module>
-  </modules>
-    
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${dependency.spring-boot.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-      </plugins>
-     </build>
-    
-     <dependencyManagement>
+    </modules>
+
+    <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -54,18 +36,23 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-       </dependencies>
-      </dependencyManagement>
+        </dependencies>
+    </dependencyManagement>
+
+    <scm>
+        <connection>scm:git:git@github.com:Alfresco/alfresco-bmf-manager.git</connection>
+        <developerConnection>scm:git:git@github.com:Alfresco/alfresco-bmf-manager.git</developerConnection>
+        <url>https://github.com/Alfresco/alfresco-bmf-manager</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <distributionManagement>
         <repository>
             <id>alfresco-internal</id>
-            <name>Alfresco Releases Repository</name>
             <url>https://artifacts.alfresco.com/nexus/content/repositories/releases</url>
         </repository>
         <snapshotRepository>
             <id>alfresco-internal-snapshots</id>
-            <name>Alfresco Snapshots Repository </name>
             <url>https://artifacts.alfresco.com/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
