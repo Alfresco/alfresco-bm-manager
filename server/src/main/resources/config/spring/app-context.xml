@@ -58,7 +58,6 @@
     <bean id="appLifeCycleController" class="org.alfresco.bm.common.spring.LifecycleController">
         <constructor-arg>
             <array>
-                <ref bean="logWatcher" />
                 <ref bean="logService" />
                 <ref bean="testDAO" />
                 <ref bean="testDefaults" />
@@ -87,9 +86,6 @@
         <constructor-arg name="defaults" ref="testDefaults" />
         <property name="systemCapabilities" value="${system.capabilities}" />
         <property name="testRunMonitorPeriod" value="${test.run.monitor-period}" />
-    </bean>
-
-    <bean id="logWatcher" class="org.alfresco.bm.common.util.log.LogWatcher">
     </bean>
     
     <!--                 -->

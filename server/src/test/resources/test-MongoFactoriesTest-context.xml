@@ -12,7 +12,7 @@
         <constructor-arg name="uri" value="${mongo.uri.test}" />
     </bean>
 
-    <bean id="mongoClient" class="org.alfresco.mongo.MongoClientFactory" >
+    <bean id="mongoClient" class="org.alfresco.bm.common.mongo.MongoClientFactory" >
         <constructor-arg name="mongoClientURI" ref="mongoClientURI" />
         <constructor-arg name="username"><null/></constructor-arg>
         <constructor-arg name="password"><null/></constructor-arg>
