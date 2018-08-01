@@ -90,7 +90,6 @@
     </bean>
 
     <bean id="logWatcher" class="org.alfresco.bm.common.util.log.LogWatcher">
-        <constructor-arg name="logDir" value="${app.dir}" />
     </bean>
     
     <!--                 -->

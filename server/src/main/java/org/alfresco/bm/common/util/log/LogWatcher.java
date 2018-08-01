@@ -40,8 +40,9 @@ public class LogWatcher implements LifecycleListener
     
     private final File logDir;
     
-    public LogWatcher(String logDir)
+    public LogWatcher()
     {
+    	String logDir= System.getProperty("user.dir");
         this.logDir = new File(logDir);
     }
 
