@@ -30,8 +30,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.alfresco.bm.api.v1.ResultsRestAPI;
-import org.alfresco.bm.api.v1.TestRestAPI;
+import org.alfresco.bm.manager.api.v1.ResultsRestAPI;
+import org.alfresco.bm.manager.api.v1.TestRestAPI;
 import org.alfresco.bm.driver.event.Event;
 import org.alfresco.bm.common.EventRecord;
 import org.alfresco.bm.driver.event.EventService;
@@ -43,9 +43,9 @@ import org.alfresco.bm.common.TestConstants;
 import org.alfresco.bm.common.spring.TestRunServicesCache;
 import org.alfresco.bm.common.TestService;
 import org.alfresco.bm.common.mongo.MongoTestDAO;
-import org.alfresco.bm.tools.BMTestRunner;
-import org.alfresco.bm.tools.BMTestRunnerListener;
-import org.alfresco.bm.tools.BMTestRunnerListenerAdaptor;
+import org.alfresco.bm.common.util.junit.tools.BMTestRunner;
+import org.alfresco.bm.common.util.junit.tools.BMTestRunnerListener;
+import org.alfresco.bm.common.util.junit.tools.BMTestRunnerListenerAdaptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
@@ -66,7 +66,7 @@ import com.mongodb.DBObject;
  * @since 1.0
  */
 @RunWith(JUnit4.class)
-public class BM000XTest extends BMTestRunnerListenerAdaptor implements TestConstants
+public class BM000XTest extends BMTestRunnerListenerAdaptor
 {
     private static Log logger = LogFactory.getLog(BM000XTest.class);
     
