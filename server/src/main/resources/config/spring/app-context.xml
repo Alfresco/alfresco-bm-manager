@@ -83,7 +83,7 @@
         <constructor-arg name="release" value="${app.release}" />
         <constructor-arg name="schema" value="${app.schema}" />
         <constructor-arg name="description" value="${app.description}" />
-        <constructor-arg name="contextPath" value="${app.contextPath}" />
+        <constructor-arg name="contextPath" value="${server.contextPath}" />
         <constructor-arg name="defaults" ref="testDefaults" />
         <property name="systemCapabilities" value="${system.capabilities}" />
         <property name="testRunMonitorPeriod" value="${test.run.monitor-period}" />
