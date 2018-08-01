@@ -22,7 +22,7 @@
     <!-- MongoDB  -->
     <!--          -->
 
-    <bean id="mongoDBFactory" class="org.alfresco.mongo.MongoDBForTestsFactory" />
+    <bean id="mongoDBFactory" class="org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory" />
     
     <!--            -->
     <!-- User Data  -->

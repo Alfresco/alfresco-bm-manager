@@ -31,7 +31,7 @@
     <!--                 -->
 
     <!-- The CompletionEstimator looking at the number of processes performed -->
-    <bean id="completionEstimator.processCount" class="org.alfresco.bm.test.EventCountCompletionEstimator">
+    <bean id="completionEstimator.processCount" class="org.alfresco.bm.driver.test.EventCountCompletionEstimator">
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="eventName" value="executeProcess" />
@@ -39,7 +39,7 @@
     </bean>
 
     <!-- Override the default estimator to use the desired estimators -->
-    <bean id="completionEstimator" class="org.alfresco.bm.test.CompoundCompletionEstimator">
+    <bean id="completionEstimator" class="org.alfresco.bm.driver.test.CompoundCompletionEstimator">
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="estimators">
@@ -57,11 +57,11 @@
         Contrived example in order to demonstrate how test files can be obtained.
         The LocalTestFileService can also be used but it limits how your tests can be distributed.
     -->
-    <bean id="fileDataService" class="org.alfresco.bm.file.FileDataServiceImpl">
+    <bean id="fileDataService" class="org.alfresco.bm.driver.file.FileDataServiceImpl">
         <constructor-arg name="db" ref="testMongoDB" />
         <constructor-arg name="collection" value="${files.collection.name}" />
     </bean>
-    <bean id="testFileService" class="org.alfresco.bm.file.FtpTestFileService">
+    <bean id="testFileService" class="org.alfresco.bm.driver.file.FtpTestFileService">
         <constructor-arg name="fileDataService" ref="fileDataService" />
         <constructor-arg name="localDir" value="${files.cache.dir}" /> 
         <constructor-arg name="ftpHost" value="${files.ftp.host}" /> 
@@ -86,11 +86,7 @@
         The 'producer.processDone' effectively absorbs the 'processDone' events.
     -->
 
-    <!-- Good practice to start with an event rename as the 'start' event is reserved -->    
-    <bean id="event.start" class="org.alfresco.bm.event.RenameEventProcessor" parent="event.base" >
-        <constructor-arg name="outputEventName" value="scheduleProcesses" />
-        <property name="chart" value="false"/>
-    </bean>
+
     <bean id="event.scheduleProcesses" class="org.alfresco.bm.process.ScheduleProcesses" parent="event.base" >
         <constructor-arg name="sessionService" ref="sessionService" />
         <constructor-arg name="processDataDAO" ref="processDataDAO" />
@@ -100,7 +96,7 @@
         <property name="batchSize" value="${proc.scheduleBatchSize}" />
         <property name="chart" value="true" />
     </bean>
-    <bean id="producer.process" class="org.alfresco.bm.event.producer.RedirectEventProducer" parent="producer.base" >
+    <bean id="producer.process" class="org.alfresco.bm.driver.event.producer.RedirectEventProducer" parent="producer.base" >
         <constructor-arg name="newEventName" value="executeProcess" />
         <constructor-arg name="delay" value="1" />
     </bean>
@@ -110,6 +106,6 @@
         <constructor-arg name="testFileService" ref="testFileService" />
         <property name="chart" value="true" />
     </bean>
-    <bean id="producer.processDone" class="org.alfresco.bm.event.producer.TerminateEventProducer" parent="producer.base" />
+    <bean id="producer.processDone" class="org.alfresco.bm.driver.event.producer.TerminateEventProducer" parent="producer.base" />
     
 </beans>

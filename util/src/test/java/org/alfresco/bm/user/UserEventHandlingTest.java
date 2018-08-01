@@ -21,8 +21,8 @@ package org.alfresco.bm.user;
 import java.util.Properties;
 
 import org.alfresco.bm.data.DataCreationState;
-import org.alfresco.bm.event.Event;
-import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.driver.event.Event;
+import org.alfresco.bm.common.EventResult;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

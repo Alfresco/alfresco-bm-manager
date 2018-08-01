@@ -22,10 +22,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.alfresco.bm.data.DataCreationState;
-import org.alfresco.bm.event.Event;
-import org.alfresco.bm.event.EventProcessor;
-import org.alfresco.bm.event.EventResult;
-import org.alfresco.mongo.MongoDBForTestsFactory;
+import org.alfresco.bm.driver.event.Event;
+import org.alfresco.bm.driver.event.EventProcessor;
+import org.alfresco.bm.common.EventResult;
+import org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
