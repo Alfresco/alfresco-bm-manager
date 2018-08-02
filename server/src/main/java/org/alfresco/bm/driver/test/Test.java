@@ -339,7 +339,7 @@ public class Test implements LifecycleListener,
         initNetworkDetails();
         
         // The core BM Server application does NOT drive anything
-        boolean isDriver = !release.toLowerCase().startsWith("alfresco-benchmark-server-");
+        boolean isDriver = !release.toLowerCase().startsWith("alfresco-bmf-manager");
         if (isDriver)
         {
             // Ensure that there is a representation of the test in the DB

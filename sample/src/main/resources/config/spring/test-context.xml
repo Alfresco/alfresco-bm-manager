@@ -86,6 +86,14 @@
         The 'producer.processDone' effectively absorbs the 'processDone' events.
     -->
 
+    <!--bean id="event.start" class="org.alfresco.bm.driver.event.producer.RedirectEventProducer" parent="event.base" >
+        <constructor-arg name="newEventName" value="scheduleProcesses" />
+    </bean-->
+    <!-- Good practice to start with an event rename as the 'start' event is reserved -->
+    <bean id="event.start" class="org.alfresco.bm.driver.event.RenameEventProcessor" parent="event.base" >
+        <constructor-arg name="outputEventName" value="scheduleProcesses" />
+        <property name="chart" value="false"/>
+    </bean>
 
     <bean id="event.scheduleProcesses" class="org.alfresco.bm.process.ScheduleProcesses" parent="event.base" >
         <constructor-arg name="sessionService" ref="sessionService" />
