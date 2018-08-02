@@ -29,23 +29,16 @@ import org.alfresco.bm.common.ResultService.ResultHandler;
 import org.alfresco.bm.common.spring.TestRunServicesCache;
 import org.alfresco.bm.manager.api.AbstractRestResource;
 import org.alfresco.bm.manager.report.CSVReporter;
-import org.alfresco.bm.manager.report.XLSXReporter;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.StreamingOutput;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -95,17 +88,14 @@ public class ResultsRestAPI extends AbstractRestResource
         ResultService resultService = services.getResultService(test, run);
         if (resultService == null)
         {
-            throwAndLogException(
-                    Status.NOT_FOUND,
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND,
                     "Unable to find results for test run " + test + "." + run + ".  Check that the run was configured properly and started.");
         }
         return resultService;
     }
     
-    @GET
-    @Path("/csv")
-    @Produces("text/csv")
-    public StreamingOutput getReportCSV()
+    @GetMapping(path="/csv", produces ={"text/csv"})
+    public StreamingResponseBody getReportCSV()
     {
         if (logger.isDebugEnabled())
         {
@@ -122,33 +112,29 @@ public class ResultsRestAPI extends AbstractRestResource
             services.getTestService().getTestRunState(test, run);
             
             // Construct the utility that aggregates the results
-            StreamingOutput so = new StreamingOutput()
-            {
+            return new StreamingResponseBody() {
                 @Override
-                public void write(OutputStream output) throws WebApplicationException
+                public void writeTo(OutputStream output) throws IOException
                 {
                     CSVReporter csvReporter = new CSVReporter(services, test, run);
                     csvReporter.export(output);
                 }
             };
-            return so;
         }
-        catch (WebApplicationException e)
+        catch(HttpClientErrorException e) 
         {
             throw e;
         }
         catch (Exception e)
         {
-            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
-            return null;
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    
         }
     }
     
     
-    @GET
-    @Path("/xlsx")
-    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public StreamingOutput getReportXLSX()
+    @GetMapping(path="/xlsx", produces ={"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"} )
+    public StreamingResponseBody getReportXLSX()
     {
         if (logger.isDebugEnabled())
         {
@@ -165,35 +151,27 @@ public class ResultsRestAPI extends AbstractRestResource
             services.getTestService().getTestRunState(test, run);
             
             // Construct the utility that aggregates the results
-            StreamingOutput so = new StreamingOutput()
-            {
+            return new StreamingResponseBody() {
                 @Override
-                public void write(OutputStream output) throws IOException, WebApplicationException
+                public void writeTo(OutputStream output) throws IOException
                 {
-                    Writer writer = new OutputStreamWriter(output);
-
-                    XLSXReporter xlsxReporter = new XLSXReporter(services, test, run);
-                    xlsxReporter.export(output);
-                    writer.flush();
-                    writer.close();
+                    CSVReporter csvReporter = new CSVReporter(services, test, run);
+                    csvReporter.export(output);
                 }
             };
-            return so;
         }
-        catch (WebApplicationException e)
+        
+        catch (HttpClientErrorException e)
         {
             throw e;
         }
         catch (Exception e)
         {
-            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
-            return null;
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
     
-    @GET
-    @Path("/eventNames")
-    @Produces(MediaType.APPLICATION_JSON)
+    @GetMapping(path="/eventNames",produces = {"application/json"})
     public String getEventResultEventNames()
     {
         final BasicDBList events = new BasicDBList();
@@ -211,9 +189,8 @@ public class ResultsRestAPI extends AbstractRestResource
         return JSON.serialize(events);
     }
     
-    @GET
-    @Path("/allEventsFilterName")
-    @Produces(MediaType.APPLICATION_JSON)
+ 
+    @GetMapping(path="/allEventsFilterName",produces = {"application/json"})
     public String getAllEventsFilterName()
     {
         final BasicDBList events = new BasicDBList();
@@ -235,15 +212,13 @@ public class ResultsRestAPI extends AbstractRestResource
      * @return                      JSON representing the event start time (x-axis) and the smoothed average execution time
      *                              along with data such as the events per second, failures per second, etc.
      */
-    @GET
-    @Path("/ts")
-    @Produces(MediaType.APPLICATION_JSON)
+    @GetMapping(path="/ts",produces = {"application/json"})
     public String getTimeSeriesResults(
-            @DefaultValue("0") @QueryParam("fromTime") long fromTime,
-            @DefaultValue("SECONDS") @QueryParam("timeUnit") String timeUnit,
-            @DefaultValue("1") @QueryParam("reportPeriod") long reportPeriod,
-            @DefaultValue("1") @QueryParam("smoothing") int smoothing,
-            @DefaultValue("true") @QueryParam("chartOnly") boolean chartOnly)
+            @RequestParam(value= "fromTime",defaultValue="O") long fromTime,
+            @RequestParam(value="timeUnit", defaultValue="SECONDS") String timeUnit,
+            @RequestParam(value="reportPeriod", defaultValue="1") long reportPeriod,
+            @RequestParam(value="smoothing", defaultValue="1") int smoothing,
+            @RequestParam(value="chartOnly", defaultValue="true") boolean chartOnly)
     {
         if (logger.isDebugEnabled())
         {
@@ -259,21 +234,25 @@ public class ResultsRestAPI extends AbstractRestResource
         }
         if (reportPeriod < 1)
         {
-            throwAndLogException(Status.BAD_REQUEST, "'reportPeriod' must be 1 or more.");
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "'reportPeriod' must be 1 or more.");
         }
         if (smoothing < 1)
         {
-            throwAndLogException(Status.BAD_REQUEST, "'smoothing' must be 1 or more.");
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "'smoothing' must be 1 or more.");
         }
         TimeUnit timeUnitEnum = null;
         try
         {
             timeUnitEnum = TimeUnit.valueOf(timeUnit.toUpperCase());
         }
+        catch(HttpClientErrorException e)
+        {
+            throw e;
+        }
         catch (Exception e)
         {
             // Invalid time unit
-            throwAndLogException(Status.BAD_REQUEST, e);
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
         
         final ResultService resultService = getResultService();
@@ -350,27 +329,24 @@ public class ResultsRestAPI extends AbstractRestResource
             return json;
 
         }
-        catch (WebApplicationException e)
+        catch(HttpClientErrorException e)
         {
             throw e;
         }
         catch (Exception e)
         {
-            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
-            return null;
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
     
 
     
-    @GET
-    @Path("/eventResults")
-    @Produces(MediaType.APPLICATION_JSON)
+    @GetMapping(path="/eventResults", produces = {"application/json"})
     public String getEventResults(
-            @DefaultValue(ALL_EVENT_NAMES) @QueryParam("filterEventName") String filterEventName,
-            @DefaultValue("All") @QueryParam("filterSuccess") String filterSuccess,
-            @DefaultValue("0") @QueryParam("skipResults")int skipResults,
-            @DefaultValue("10") @QueryParam("numberOfResults") int numberOfResults)
+            @RequestParam(value="filterEventName", defaultValue=ALL_EVENT_NAMES) String filterEventName,
+            @RequestParam(value="filterSuccess", defaultValue="All") String filterSuccess,
+            @RequestParam(value="skipResults", defaultValue="0")int skipResults,
+            @RequestParam(value="numberOfResults", defaultValue="10") int numberOfResults)
     {
         
         EventResultFilter filter = getFilter(filterSuccess);

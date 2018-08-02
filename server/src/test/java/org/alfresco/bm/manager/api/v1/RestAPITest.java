@@ -18,59 +18,6 @@
  */
 package org.alfresco.bm.manager.api.v1;
 
-import com.google.gson.Gson;
-import com.mongodb.DB;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.ServerAddress;
-import org.alfresco.bm.common.PropSetBean;
-import org.alfresco.bm.common.TestDetails;
-import org.alfresco.bm.common.TestRunDetails;
-import org.alfresco.bm.common.TestRunSchedule;
-import org.alfresco.bm.driver.test.TestRun;
-import org.alfresco.bm.common.spring.TestRunServicesCache;
-import org.alfresco.bm.common.TestRunState;
-import org.alfresco.bm.common.TestServiceImpl;
-import org.alfresco.bm.common.mongo.MongoTestDAO;
-import org.alfresco.bm.manager.report.DataReportService;
-import org.alfresco.bm.common.mongo.MongoClientFactory;
-import org.alfresco.bm.common.mongo.MongoDBFactory;
-import org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory;
-import org.alfresco.bm.common.util.exception.ObjectNotFoundException;
-import org.alfresco.bm.common.util.log.LogService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.poi.POIXMLProperties;
-import org.apache.poi.POIXMLProperties.CoreProperties;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.bson.types.ObjectId;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.PropertiesPropertySource;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.StreamingOutput;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-
 import static org.alfresco.bm.common.TestConstants.FIELD_COMPLETED;
 import static org.alfresco.bm.common.TestConstants.FIELD_DEFAULT;
 import static org.alfresco.bm.common.TestConstants.FIELD_DURATION;
@@ -106,6 +53,61 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+
+import org.alfresco.bm.common.PropSetBean;
+import org.alfresco.bm.common.TestDetails;
+import org.alfresco.bm.common.TestRunDetails;
+import org.alfresco.bm.common.TestRunSchedule;
+import org.alfresco.bm.common.TestRunState;
+import org.alfresco.bm.common.TestServiceImpl;
+import org.alfresco.bm.common.mongo.MongoClientFactory;
+import org.alfresco.bm.common.mongo.MongoDBFactory;
+import org.alfresco.bm.common.mongo.MongoTestDAO;
+import org.alfresco.bm.common.spring.TestRunServicesCache;
+import org.alfresco.bm.common.util.exception.ObjectNotFoundException;
+import org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory;
+import org.alfresco.bm.common.util.log.LogService;
+import org.alfresco.bm.driver.test.TestRun;
+import org.alfresco.bm.manager.report.DataReportService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.poi.POIXMLProperties;
+import org.apache.poi.POIXMLProperties.CoreProperties;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.types.ObjectId;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import com.google.gson.Gson;
+import com.mongodb.DB;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.ServerAddress;
 
 /**
  * @see TestRestAPI V1
@@ -143,11 +145,7 @@ public class RestAPITest
         String database = mockDBFactory.getObject().getName();
 
         // Create an application context (don't start, yet)
-        ctx = new ClassPathXmlApplicationContext(
-                new String[] {
-                        PATH_APP_CONTEXT
-                },
-                false);
+        ctx = new ClassPathXmlApplicationContext(new String[] { PATH_APP_CONTEXT }, false);
 
         // Pass our properties to the new context
         Properties ctxProperties = new Properties();
@@ -164,15 +162,9 @@ public class RestAPITest
             ctxProperties.put(PROP_APP_DIR, ".");
         }
         ConfigurableEnvironment ctxEnv = ctx.getEnvironment();
-        ctxEnv.getPropertySources().addFirst(
-                new PropertiesPropertySource(
-                        "RestAPITest",
-                        ctxProperties));
+        ctxEnv.getPropertySources().addFirst(new PropertiesPropertySource("RestAPITest", ctxProperties));
         // Override all properties with system properties
-        ctxEnv.getPropertySources().addFirst(
-                new PropertiesPropertySource(
-                        "system",
-                        System.getProperties()));
+        ctxEnv.getPropertySources().addFirst(new PropertiesPropertySource("system", System.getProperties()));
         // Start the context now
         ctx.refresh();
 
@@ -229,7 +221,7 @@ public class RestAPITest
      * make sure the system name is NOT contained as from 3.2 on
      * 
      * @param collection
-     *        (Set<String>) collection to check
+     *            (Set<String>) collection to check
      * @return
      */
     private Set<String> removeSystemValues(Set<String> collection)
@@ -289,9 +281,7 @@ public class RestAPITest
         long actual = Double.valueOf(map.get(field).toString()).longValue();
         long startTime = time - 30000L;
         long endTime = time + 30000L;
-        assertTrue(
-                "Incorrect time range for field '" + field + "' around " + time + ": \n" + json,
-                startTime <= actual && actual <= endTime);
+        assertTrue("Incorrect time range for field '" + field + "' around " + time + ": \n" + json, startTime <= actual && actual <= endTime);
     }
 
     private void checkDoubleValue(String json, String field, Double value)
@@ -319,88 +309,85 @@ public class RestAPITest
             assertNotSame("State was incorrect for " + test + "." + run + ". ", state, checkState);
         }
         // Now check by querying for the state
-        assertEquals(expected,
-                api.getTestRuns(
-                        test, 0, 2,
-                        state.toString()).contains("\"name\" : \"" + run + "\""));
+        assertEquals(expected, api.getTestRuns(test, 0, 2, state.toString()).contains("\"name\" : \"" + run + "\""));
         // Check that the appropriate fields have been set for the given state
         String checkJson = api.getTestRunSummary(test, run);
         switch (checkState)
         {
-            case NOT_SCHEDULED:
-                checkTimeValue(checkJson, FIELD_SCHEDULED, -1L);
-                checkTimeValue(checkJson, FIELD_STARTED, -1L);
-                checkTimeValue(checkJson, FIELD_STOPPED, -1L);
-                checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
-                checkLongValue(checkJson, FIELD_DURATION, 0L);
-                checkDoubleValue(checkJson, FIELD_PROGRESS, 0.0);
-                checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 0L);
-                checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
-                checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 0L);
-                checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
-                break;
-            case SCHEDULED:
-                checkTimeValue(checkJson, FIELD_SCHEDULED, now);
-                checkTimeValue(checkJson, FIELD_STARTED, -1L);
-                checkTimeValue(checkJson, FIELD_STOPPED, -1L);
-                checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
-                checkLongValue(checkJson, FIELD_DURATION, 0L);
-                checkDoubleValue(checkJson, FIELD_PROGRESS, 0.0);
-                checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 0L);
-                checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
-                checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 0L);
-                checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
-                break;
-            case STARTED:
-                checkTimeValue(checkJson, FIELD_SCHEDULED, now);
-                checkTimeValue(checkJson, FIELD_STARTED, now);
-                checkTimeValue(checkJson, FIELD_STOPPED, -1L);
-                checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
-                checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
-                checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
-                break;
-            case COMPLETED:
-                checkTimeValue(checkJson, FIELD_SCHEDULED, now);
-                checkTimeValue(checkJson, FIELD_STARTED, now);
-                checkTimeValue(checkJson, FIELD_STOPPED, -1L);
-                checkTimeValue(checkJson, FIELD_COMPLETED, now);
-                checkTimeValue(checkJson, FIELD_DURATION, 30001L);      // The
-                                                                        // range
-                                                                        // is +-
-                                                                        // 30s,
-                                                                        // so we
-                                                                        // check
-                                                                        // it's
-                                                                        // in
-                                                                        // range
-                                                                        // 1ms-60001ms
-                checkDoubleValue(checkJson, FIELD_PROGRESS, 1.0);
-                checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 21L);
-                checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
-                checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 21L);
-                checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
-                break;
-            case STOPPED:
-                checkTimeValue(checkJson, FIELD_SCHEDULED, now);
-                checkTimeValue(checkJson, FIELD_STARTED, now);
-                checkTimeValue(checkJson, FIELD_STOPPED, now);
-                checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
-                checkTimeValue(checkJson, FIELD_DURATION, 30001L);      // The
-                                                                        // range
-                                                                        // is +-
-                                                                        // 30s,
-                                                                        // so we
-                                                                        // check
-                                                                        // it's
-                                                                        // in
-                                                                        // range
-                                                                        // 1ms-60001ms
-                checkDoubleValue(checkJson, FIELD_PROGRESS, 0.0);
-                checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 0L);
-                checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
-                checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 0L);
-                checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
-                break;
+        case NOT_SCHEDULED:
+            checkTimeValue(checkJson, FIELD_SCHEDULED, -1L);
+            checkTimeValue(checkJson, FIELD_STARTED, -1L);
+            checkTimeValue(checkJson, FIELD_STOPPED, -1L);
+            checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
+            checkLongValue(checkJson, FIELD_DURATION, 0L);
+            checkDoubleValue(checkJson, FIELD_PROGRESS, 0.0);
+            checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 0L);
+            checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
+            checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 0L);
+            checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
+            break;
+        case SCHEDULED:
+            checkTimeValue(checkJson, FIELD_SCHEDULED, now);
+            checkTimeValue(checkJson, FIELD_STARTED, -1L);
+            checkTimeValue(checkJson, FIELD_STOPPED, -1L);
+            checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
+            checkLongValue(checkJson, FIELD_DURATION, 0L);
+            checkDoubleValue(checkJson, FIELD_PROGRESS, 0.0);
+            checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 0L);
+            checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
+            checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 0L);
+            checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
+            break;
+        case STARTED:
+            checkTimeValue(checkJson, FIELD_SCHEDULED, now);
+            checkTimeValue(checkJson, FIELD_STARTED, now);
+            checkTimeValue(checkJson, FIELD_STOPPED, -1L);
+            checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
+            checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
+            checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
+            break;
+        case COMPLETED:
+            checkTimeValue(checkJson, FIELD_SCHEDULED, now);
+            checkTimeValue(checkJson, FIELD_STARTED, now);
+            checkTimeValue(checkJson, FIELD_STOPPED, -1L);
+            checkTimeValue(checkJson, FIELD_COMPLETED, now);
+            checkTimeValue(checkJson, FIELD_DURATION, 30001L); // The
+                                                               // range
+                                                               // is +-
+                                                               // 30s,
+                                                               // so we
+                                                               // check
+                                                               // it's
+                                                               // in
+                                                               // range
+                                                               // 1ms-60001ms
+            checkDoubleValue(checkJson, FIELD_PROGRESS, 1.0);
+            checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 21L);
+            checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
+            checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 21L);
+            checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
+            break;
+        case STOPPED:
+            checkTimeValue(checkJson, FIELD_SCHEDULED, now);
+            checkTimeValue(checkJson, FIELD_STARTED, now);
+            checkTimeValue(checkJson, FIELD_STOPPED, now);
+            checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
+            checkTimeValue(checkJson, FIELD_DURATION, 30001L); // The
+                                                               // range
+                                                               // is +-
+                                                               // 30s,
+                                                               // so we
+                                                               // check
+                                                               // it's
+                                                               // in
+                                                               // range
+                                                               // 1ms-60001ms
+            checkDoubleValue(checkJson, FIELD_PROGRESS, 0.0);
+            checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 0L);
+            checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
+            checkLongValue(checkJson, FIELD_RESULTS_TOTAL, 0L);
+            checkDoubleValue(checkJson, FIELD_SUCCESS_RATE, 1.0);
+            break;
         }
     }
 
@@ -520,9 +507,9 @@ public class RestAPITest
         {
             api.getTestRun("TEST01", "001");
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
-            assertEquals(Status.NOT_FOUND.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
     }
 
@@ -636,18 +623,18 @@ public class RestAPITest
 
         // Schedule the run
         TestRunSchedule testRunSchedule = new TestRunSchedule();
-        testRunSchedule.setVersion(5);          // Wrong version
+        testRunSchedule.setVersion(5); // Wrong version
         testRunSchedule.setScheduled(System.currentTimeMillis());
         try
         {
             api.scheduleTestRun("T03", "01", testRunSchedule);
             fail("Version number not checked for test run scheduling.");
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
             // Expected
         }
-        testRunSchedule.setVersion(0);          // Correct
+        testRunSchedule.setVersion(0); // Correct
         json = api.scheduleTestRun("T03", "01", testRunSchedule);
         assertTrue("'scheduled' not set", json.contains("" + testRunSchedule.getScheduled()));
 
@@ -674,9 +661,9 @@ public class RestAPITest
         {
             api.createTest(testDetails);
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
-            if (e.getResponse().getStatus() == Status.CONFLICT.getStatusCode())
+            if (e.getStatusCode() == HttpStatus.CONFLICT)
             {
                 // Test already exists
             }
@@ -707,18 +694,18 @@ public class RestAPITest
             api.getTestRunSummary("Fred", "01");
             fail("Missing test must throw NOT FOUND.");
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
-            assertEquals(Status.NOT_FOUND.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
         try
         {
             api.getTestRunSummary("T04", "Fred");
             fail("Missing test run must throw NOT FOUND.");
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
-            assertEquals(Status.NOT_FOUND.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
 
         // It should not have started
@@ -736,9 +723,9 @@ public class RestAPITest
             // Using an incorrect version
             api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
-            assertEquals(Status.CONFLICT.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.CONFLICT, e.getStatusCode());
         }
 
         // Point to the correct MongoDB
@@ -770,13 +757,13 @@ public class RestAPITest
 
         // Now schedule it
         TestRunSchedule schedule = new TestRunSchedule();
-        schedule.setScheduled(System.currentTimeMillis() + 20000L);         // It
-                                                                            // is
-                                                                            // scheduled
-                                                                            // for
-                                                                            // 20s
-                                                                            // from
-                                                                            // now
+        schedule.setScheduled(System.currentTimeMillis() + 20000L); // It
+                                                                    // is
+                                                                    // scheduled
+                                                                    // for
+                                                                    // 20s
+                                                                    // from
+                                                                    // now
         schedule.setVersion(0);
         json = api.scheduleTestRun("T04", "01", schedule);
 
@@ -792,7 +779,7 @@ public class RestAPITest
         checkTestRunState("T04", "01", TestRunState.STARTED, false);
 
         // Now update the schedule to make it runnable immediately
-        schedule.setScheduled(System.currentTimeMillis() - 20000L);             // Overdue
+        schedule.setScheduled(System.currentTimeMillis() - 20000L); // Overdue
         schedule.setVersion(1);
         json = api.scheduleTestRun("T04", "01", schedule);
         test.forcePing();
@@ -810,9 +797,9 @@ public class RestAPITest
             api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
             fail("Should not be able to override properties of a running test.");
         }
-        catch (WebApplicationException e)
+        catch (HttpServerErrorException e)
         {
-            assertEquals(Status.FORBIDDEN.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
 
         // Terminate
@@ -828,9 +815,9 @@ public class RestAPITest
             api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
             fail("Should not be able to override properties of a terminated test.");
         }
-        catch (WebApplicationException e)
+        catch (HttpServerErrorException e)
         {
-            assertEquals(Status.FORBIDDEN.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
 
         // The test run should have stopped
@@ -853,8 +840,7 @@ public class RestAPITest
 
     /**
      * Check that progress updates are made automatically and that the test run
-     * automatically
-     * stops and closes down.
+     * automatically stops and closes down.
      */
     @Test
     public synchronized void testScenario05() throws Exception
@@ -912,7 +898,7 @@ public class RestAPITest
             if (testRunStateJson.contains(TestRunState.COMPLETED.toString()))
             {
                 completed = true;
-                break;              // This is what we were looking for
+                break; // This is what we were looking for
             }
         }
         checkTestRunState("T05", "01", TestRunState.COMPLETED, true);
@@ -929,9 +915,9 @@ public class RestAPITest
             api.terminateTestRun("T05", "01");
             fail("Cannot terminate a test run that has completed.");
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
-            assertEquals(Status.CONFLICT.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.CONFLICT, e.getStatusCode());
         }
 
         // The test run should have completed
@@ -967,32 +953,33 @@ public class RestAPITest
         // The test run should not have started as the mongo host is invalid
         // from server 2.1 on the test would be STOPPED if incorrect server
         // connection - because otherwise it will restart over and over again.
-        // depending on the test check speed the status would be scheduled or
+        // depending on the test check speed the HttpStatus would be scheduled
+        // or
         // stopped - but must never be started!
         checkTestRunState("T06", "01", TestRunState.STARTED, false);
 
-//        // Now check that the logs reflect the situation
-//        LogWatcher logWatcher = ctx.getBean(LogWatcher.class);
-//        boolean found = false;
-//        for (String logFilename : logWatcher.getLogFilenames())
-//        {
-//            File logFile = new File(logFilename);
-//            Scanner scanner = new Scanner(logFile);
-//            try
-//            {
-//                String scanned = scanner.findWithinHorizon("localhostFAIL", 0);
-//                if (scanned != null)
-//                {
-//                    found = true;
-//                    break;
-//                }
-//            }
-//            finally
-//            {
-//                scanner.close();
-//            }
-//        }
-//        assertTrue("Failed to find error message for MongoDB host.", found);
+        // // Now check that the logs reflect the situation
+        // LogWatcher logWatcher = ctx.getBean(LogWatcher.class);
+        // boolean found = false;
+        // for (String logFilename : logWatcher.getLogFilenames())
+        // {
+        // File logFile = new File(logFilename);
+        // Scanner scanner = new Scanner(logFile);
+        // try
+        // {
+        // String scanned = scanner.findWithinHorizon("localhostFAIL", 0);
+        // if (scanned != null)
+        // {
+        // found = true;
+        // break;
+        // }
+        // }
+        // finally
+        // {
+        // scanner.close();
+        // }
+        // }
+        // assertTrue("Failed to find error message for MongoDB host.", found);
 
         test.stop();
     }
@@ -1000,8 +987,7 @@ public class RestAPITest
     /**
      * Utility method to create and execute a test run
      */
-    private void executeTestRun(String testName, String testDescription, String runName, String runDescription)
-            throws Exception
+    private void executeTestRun(String testName, String testDescription, String runName, String runDescription) throws Exception
     {
         createTestRun(testName, testDescription, runName, runDescription);
         org.alfresco.bm.driver.test.Test test = ctx.getBean(org.alfresco.bm.driver.test.Test.class);
@@ -1035,7 +1021,7 @@ public class RestAPITest
             if (TestRunState.COMPLETED.name().equals(testRunSummaryMap.get(FIELD_STATE)))
             {
                 completed = true;
-                break;              // This is what we were looking for
+                break; // This is what we were looking for
             }
         }
         checkTestRunState(testName, runName, TestRunState.COMPLETED, true);
@@ -1068,18 +1054,18 @@ public class RestAPITest
             resultsAPI.getReportCSV();
             Assert.fail("Expected exception regarding missing test.");
         }
-        catch (WebApplicationException e)
+        catch (HttpClientErrorException e)
         {
-            assertEquals(Status.NOT_FOUND.getStatusCode(), e.getResponse().getStatus());
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
 
         ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T07", "01");
 
         // Get the results CSV
-        StreamingOutput csvOutput = resultsAPI.getReportCSV();
+        StreamingResponseBody csvOutput = resultsAPI.getReportCSV();
         ByteArrayOutputStream csvBos = new ByteArrayOutputStream();
         csvBos.close();
-        csvOutput.write(csvBos);
+        csvOutput.writeTo(csvBos);
         String csvResults = new String(csvBos.toByteArray());
         // Check
         assertTrue(csvResults.contains("Data:,bm21-data.T07.01.results"));
@@ -1095,9 +1081,9 @@ public class RestAPITest
         assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]"));
 
         // Get the XLSX report
-        StreamingOutput xlsxOutput = resultsAPI.getReportXLSX();
+        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX();
         ByteArrayOutputStream xlsxBos = new ByteArrayOutputStream();
-        xlsxOutput.write(xlsxBos);
+        xlsxOutput.writeTo(xlsxBos);
         xlsxBos.close();
         ByteArrayInputStream xlsxBis = new ByteArrayInputStream(xlsxBos.toByteArray());
         XSSFWorkbook xlsxWorkbook = new XSSFWorkbook(xlsxBis);
@@ -1113,8 +1099,7 @@ public class RestAPITest
         POIXMLProperties xlsxProperties = xlsxWorkbook.getProperties();
         CoreProperties xlsxCoreProperties = xlsxProperties.getCoreProperties();
         Assert.assertNotNull("No XLSX description: " + xlsxFile, xlsxCoreProperties.getDescription());
-        Assert.assertTrue("Title in XLSX must contain test run FQN: " + xlsxFile,
-                xlsxCoreProperties.getTitle().contains("T07.01"));
+        Assert.assertTrue("Title in XLSX must contain test run FQN: " + xlsxFile, xlsxCoreProperties.getTitle().contains("T07.01"));
         Assert.assertTrue("Description in XLSX must contain test name and description: " + xlsxFile,
                 xlsxCoreProperties.getDescription().contains("A test for scenario 07."));
         Assert.assertTrue("Description in XLSX must contain test name and description." + xlsxFile,
@@ -1128,18 +1113,15 @@ public class RestAPITest
     @Test
     public synchronized void testScenario08() throws Exception
     {
-        MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null)
-                .getObject();
+        MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
         DB testMongoDB = new MongoDBFactory(testMongoClient, MONGO_TEST_DATABASE).getObject();
         Set<String> testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0,
-                testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
 
         executeTestRun("T08", "A test for scenario 08.", "01", "Scenario 08 - Run 01");
 
         testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 5,
-                testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 5, testRunCollections.size());
         Assert.assertTrue(testRunCollections.contains("T08.01.events"));
         Assert.assertTrue(testRunCollections.contains("T08.01.results"));
         Assert.assertTrue(testRunCollections.contains("T08.01.sessions"));
@@ -1147,8 +1129,7 @@ public class RestAPITest
         // Delete the test run
         api.deleteTestRun("T08", "01", true);
         testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 2,
-                testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 2, testRunCollections.size());
     }
 
     /**
@@ -1157,19 +1138,16 @@ public class RestAPITest
     @Test
     public synchronized void testScenario09() throws Exception
     {
-        MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null)
-                .getObject();
+        MongoClient testMongoClient = new MongoClientFactory(new MongoClientURI(MONGO_PREFIX + mongoHost), null, null).getObject();
         DB testMongoDB = new MongoDBFactory(testMongoClient, MONGO_TEST_DATABASE).getObject();
         Set<String> testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0,
-                testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 0, testRunCollections.size());
 
         executeTestRun("T09", "A test for scenario 09.", "01", "Scenario 09 - Run 01");
         executeTestRun("T09", "A test for scenario 09.", "02", "Scenario 09 - Run 02");
 
         testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 8,
-                testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 8, testRunCollections.size());
         Assert.assertTrue(testRunCollections.contains("T09.01.events"));
         Assert.assertTrue(testRunCollections.contains("T09.01.results"));
         Assert.assertTrue(testRunCollections.contains("T09.01.sessions"));
@@ -1180,8 +1158,7 @@ public class RestAPITest
         // Delete the test run
         api.deleteTest("T09", true);
         testRunCollections = removeSystemValues(testMongoDB.getCollectionNames());
-        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 2,
-                testRunCollections.size());
+        Assert.assertEquals("Unexpected number of collections in results: " + testRunCollections, 2, testRunCollections.size());
     }
 
     @Test
@@ -1236,9 +1213,9 @@ public class RestAPITest
 
         // create and download an XSLX
         ResultsRestAPI resultsAPI = api.getTestRunResultsAPI(test, run);
-        StreamingOutput xlsxOutput = resultsAPI.getReportXLSX();
+        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX();
         ByteArrayOutputStream xlsxBos = new ByteArrayOutputStream();
-        xlsxOutput.write(xlsxBos);
+        xlsxOutput.writeTo(xlsxBos);
         xlsxBos.close();
         ByteArrayInputStream xlsxBis = new ByteArrayInputStream(xlsxBos.toByteArray());
         XSSFWorkbook xlsxWorkbook = new XSSFWorkbook(xlsxBis);
@@ -1249,18 +1226,15 @@ public class RestAPITest
         xlsxFos.close();
 
         // validate data in DB
-        assertNull("Expected no description row for sheet 1, but found one?",
-                reportService.getDescription(null, test, run, sheet1));
-        assertNull("Expected no description row for sheet 2, but found one?",
-                reportService.getDescription(null, test, run, sheet2));
+        assertNull("Expected no description row for sheet 1, but found one?", reportService.getDescription(null, test, run, sheet1));
+        assertNull("Expected no description row for sheet 2, but found one?", reportService.getDescription(null, test, run, sheet2));
         List<String> descList = reportService.getDescription(null, test, run, sheet3);
         assertNotNull("Expected a description row for sheet 3, but can't find any ...", descList);
         int count = 0;
         for (String desc : descList)
         {
-            assertEquals(
-                    "Description of sheet 3 mismatch. Expected '" + descriptions[count] + "' found '" + desc + "'.",
-                    descriptions[count++], desc);
+            assertEquals("Description of sheet 3 mismatch. Expected '" + descriptions[count] + "' found '" + desc + "'.", descriptions[count++],
+                    desc);
         }
 
         // validate number of sheets
@@ -1276,8 +1250,7 @@ public class RestAPITest
             {
                 List<String> valuesFromMongo = reportService.getNextValueRow(dbCursor);
                 countTestEntries++;
-                assertEquals("Expected 5 columns in extra data, found: " + valuesFromMongo.size(), 5,
-                        valuesFromMongo.size());
+                assertEquals("Expected 5 columns in extra data, found: " + valuesFromMongo.size(), 5, valuesFromMongo.size());
             }
         }
         assertEquals("Expected 6 lines of extra data ... found: " + countTestEntries, 6, countTestEntries);
@@ -1287,8 +1260,7 @@ public class RestAPITest
 
         // validate
         assertNull("Sheet names expected to be empty.", reportService.getSheetNames(null, test, run));
-        assertNull("Description of sheet 3 expected to be empty.",
-                reportService.getDescription(null, test, run, sheet3));
+        assertNull("Description of sheet 3 expected to be empty.", reportService.getDescription(null, test, run, sheet3));
 
         // clean-up: delete XLSX file
         xlsxWorkbook.close();

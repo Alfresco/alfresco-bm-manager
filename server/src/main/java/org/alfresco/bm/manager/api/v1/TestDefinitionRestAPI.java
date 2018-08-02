@@ -23,17 +23,15 @@ import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 import org.alfresco.bm.common.mongo.MongoTestDAO;
 import org.alfresco.bm.manager.api.AbstractRestResource;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+
 
 /**
  * <b>REST API V1</b><br/>
@@ -48,7 +46,7 @@ import javax.ws.rs.core.Response.Status;
  * @author Derek Hulley
  * @since 2.0
  */
-@Path("/v1/test-defs")
+@RequestMapping(path="/v1/test-defs")
 public class TestDefinitionRestAPI extends AbstractRestResource
 {
     private final MongoTestDAO testDAO;
@@ -61,13 +59,11 @@ public class TestDefinitionRestAPI extends AbstractRestResource
         this.testDAO = testDAO;
     }
     
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @GetMapping(produces = {"application/json"})
     public String getTestDefs(
-            @DefaultValue("true") @QueryParam("activeOnly") boolean activeOnly,
-            @DefaultValue("0") @QueryParam("skip") int skip,
-            @DefaultValue("50") @QueryParam("count") int count
-            )
+            @RequestParam(value="activeOnly", defaultValue="true") boolean activeOnly,
+            @RequestParam(value="skip", defaultValue="0") int skip,
+            @RequestParam(value="count", defaultValue="50") int count)
     {
         if (logger.isDebugEnabled())
         {
@@ -92,23 +88,21 @@ public class TestDefinitionRestAPI extends AbstractRestResource
             }
             return json;
         }
-        catch (WebApplicationException e)
+        catch(HttpClientErrorException e)
         {
             throw e;
         }
         catch (Exception e)
         {
-            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
-            return null;
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
-    @GET
-    @Path("/{release}/{schema}")
-    @Produces(MediaType.APPLICATION_JSON)
+
+    @GetMapping(path="/{release}/{schema}", produces = {"application/json"})
     public String getTestDef(
-            @PathParam("release") String release,
-            @PathParam("schema") int schema
+            @PathVariable("release") String release,
+            @PathVariable("schema") int schema
             )
     {
         if (logger.isDebugEnabled())
@@ -124,7 +118,7 @@ public class TestDefinitionRestAPI extends AbstractRestResource
             DBObject dbObject = testDAO.getTestDef(release, schema);
             if (dbObject == null)
             {
-                throwAndLogException(Status.NOT_FOUND, "Did not find a test definition for " + release + ":" + schema);
+                throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Did not find a test definition for " + release + ":" + schema);
             }
             String json = JSON.serialize(dbObject);
             if (logger.isDebugEnabled())
@@ -133,14 +127,13 @@ public class TestDefinitionRestAPI extends AbstractRestResource
             }
             return json;
         }
-        catch (WebApplicationException e)
+        catch(HttpClientErrorException e)
         {
             throw e;
         }
         catch (Exception e)
         {
-            throwAndLogException(Status.INTERNAL_SERVER_ERROR, e);
-            return null;
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 }

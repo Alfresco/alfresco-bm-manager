@@ -34,8 +34,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.ws.rs.core.StreamingOutput;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -391,12 +391,12 @@ public class BMTestRunner
     public static String getResultsCSV(ResultsRestAPI resultsAPI)
     {
         // Get the summary CSV results for the time period and check some of the values
-        StreamingOutput out = resultsAPI.getReportCSV();
+        StreamingResponseBody out = resultsAPI.getReportCSV();
         ByteArrayOutputStream bos = new ByteArrayOutputStream(2048);
         String summary = "";
         try
         {
-            out.write(bos);
+            out.writeTo(bos);
             summary = bos.toString("UTF-8");
         }
         catch (IOException e)

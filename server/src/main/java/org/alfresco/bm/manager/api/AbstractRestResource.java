@@ -18,28 +18,20 @@
  */
 package org.alfresco.bm.manager.api;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
-import org.alfresco.bm.common.util.exception.NotFoundException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.alfresco.bm.common.TestConstants.FIELD_DEFAULT;
 import static org.alfresco.bm.common.TestConstants.FIELD_MASK;
 import static org.alfresco.bm.common.TestConstants.FIELD_PROPERTIES;
 import static org.alfresco.bm.common.TestConstants.FIELD_VALUE;
 import static org.alfresco.bm.common.TestConstants.MASK;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 
 /**
  * Support for REST resources.
@@ -52,7 +44,7 @@ public abstract class AbstractRestResource
 {
     protected final Log logger;
     protected final Gson gson;
-    
+
     /**
      * @since 2.0
      */
@@ -62,59 +54,7 @@ public abstract class AbstractRestResource
         GsonBuilder gsonBuilder = new GsonBuilder();
         gson = gsonBuilder.create();
     }
-    
-    /**
-     * Generate a web exception for the given response status and message
-     * 
-     * @param status                the response status
-     * @param msg                   a message to report
-     * @throws WebApplicationException with the given status and wrapping the message and exception stack
-     */
-    protected void throwAndLogException(Status status, String msg)
-    {
-        // Only log an error if it's an internal server error
-        switch (status)
-        {
-            case INTERNAL_SERVER_ERROR:
-                logger.error(msg);
-                break;
-            default:
-                logger.info(msg);
-        }
-        
-        Map<String, String> jsonMap = new HashMap<String, String>(5);
-        jsonMap.put("error", msg);
-        
-        String json = gson.toJson(jsonMap);
-        
-        Response response = Response.status(status).type(MediaType.APPLICATION_JSON).entity(json).build();
-        throw new WebApplicationException(response);
-    }
-    
-    /**
-     * @throws WebApplicationException with the given status and wrapping the exception stack
-     */
-    protected void throwAndLogException(Status status, Exception e)
-    {
-        Throwable cause = ExceptionUtils.getRootCause(e);
-        // Handle any well-known exceptions
-        if (e instanceof NotFoundException || (cause != null && cause instanceof NotFoundException))
-        {
-            status = Status.NOT_FOUND;
-        }
-        // Only log locally if it's an internal server error
-        switch (status)
-        {
-            case INTERNAL_SERVER_ERROR:
-                logger.error(e);
-                break;
-            default:
-                logger.info(e);
-        }
-        
-        throw new WebApplicationException(e, status);
-    }
-    
+
     /**
      * Does a deep copy of an object to allow for subsequent modification
      */
@@ -129,13 +69,14 @@ public abstract class AbstractRestResource
         }
         return dbObjectBuilder.get();
     }
-    
+
     /**
      * Find and mask property values.
      * <p/>
      * Properties will be searched for deeply.
      * 
-     * @param dbObject           the object to modify
+     * @param dbObject
+     *            the object to modify
      */
     public static DBObject maskValues(DBObject dbObject)
     {
