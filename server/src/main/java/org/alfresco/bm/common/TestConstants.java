@@ -49,7 +49,7 @@ public final class TestConstants
     public static final String RUN_NAME_REGEX = "[a-zA-Z0-9_]*$";
     public static final String PROP_NAME_REGEX = "^[a-zA-Z][a-zA-Z0-9\\.\\-\\_]*$";
     
-    public static final String PROP_APP_CONTEXT_PATH = "app.contextPath";
+    public static final String PROP_APP_CONTEXT_PATH = "server.contextPath";
     public static final String PROP_APP_DIR = "app.dir";
     public static final String PROP_APP_RELEASE = "app.release";
     public static final String PROP_APP_DESCRIPTION = "app.description";
