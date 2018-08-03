@@ -27,8 +27,10 @@ import org.alfresco.bm.common.EventResultFilter;
 import org.alfresco.bm.common.ResultService;
 import org.alfresco.bm.common.ResultService.ResultHandler;
 import org.alfresco.bm.common.spring.TestRunServicesCache;
+import org.alfresco.bm.common.util.exception.NotFoundException;
 import org.alfresco.bm.manager.api.AbstractRestResource;
 import org.alfresco.bm.manager.report.CSVReporter;
+import org.alfresco.bm.manager.report.XLSXReporter;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,30 +49,32 @@ import java.util.concurrent.TimeUnit;
  * <b>REST API V1</b><br/>
  * <p>
  * The URL pattern:
- *     <ul>
- *         <li>&lt;API URL&gt;/v1/tests/{test}/runs/{run}/results</pre></li>
- *     </ul>
+ * <ul>
+ * <li>&lt;API URL&gt;/v1/tests/{test}/runs/{run}/results</pre></li>
+ * </ul>
  * </p>
  * This class presents APIs for retrieving test run results and related information.
  * <p/>
  * It is a meant to be a sub-resource, hence there is no defining path annotation.
- * 
+ *
  * @author Derek Hulley
  * @since 2.0
  */
 public class ResultsRestAPI extends AbstractRestResource
 {
-    /** states not to filter by event names when query event results */
-    public static final String ALL_EVENT_NAMES = "(All Events)"; 
-    
+    /**
+     * states not to filter by event names when query event results
+     */
+    public static final String ALL_EVENT_NAMES = "(All Events)";
+
     private final TestRunServicesCache services;
     private final String test;
     private final String run;
-    
+
     /**
-     * @param services                  object providing access to necessary test run services
-     * @param test                      the name of the test
-     * @param run                       the name of the run
+     * @param services object providing access to necessary test run services
+     * @param test     the name of the test
+     * @param run      the name of the run
      */
     public ResultsRestAPI(TestRunServicesCache services, String test, String run)
     {
@@ -78,9 +82,9 @@ public class ResultsRestAPI extends AbstractRestResource
         this.test = test;
         this.run = run;
     }
-    
+
     /**
-     * @return              the {@link ResultService} for the test run
+     * @return the {@link ResultService} for the test run
      * @throws WebApplicationException if the service could not be found
      */
     private ResultService getResultService()
@@ -89,30 +93,27 @@ public class ResultsRestAPI extends AbstractRestResource
         if (resultService == null)
         {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND,
-                    "Unable to find results for test run " + test + "." + run + ".  Check that the run was configured properly and started.");
+                "Unable to find results for test run " + test + "." + run + ".  Check that the run was configured properly and started.");
         }
         return resultService;
     }
-    
-    @GetMapping(path="/csv", produces ={"text/csv"})
+
+    @GetMapping(path = "/csv", produces = { "text/csv" })
     public StreamingResponseBody getReportCSV()
     {
         if (logger.isDebugEnabled())
         {
-            logger.debug(
-                    "Inbound: " +
-                    "[test:" + test +
-                    ",run:" + run +
-                    "]");
+            logger.debug("Inbound: " + "[test:" + test + ",run:" + run + "]");
         }
-        
+
         try
         {
             // First confirm that the test exists
             services.getTestService().getTestRunState(test, run);
-            
+
             // Construct the utility that aggregates the results
-            return new StreamingResponseBody() {
+            return new StreamingResponseBody()
+            {
                 @Override
                 public void writeTo(OutputStream output) throws IOException
                 {
@@ -121,46 +122,10 @@ public class ResultsRestAPI extends AbstractRestResource
                 }
             };
         }
-        catch(HttpClientErrorException e) 
+        catch (NotFoundException e)
         {
-            throw e;
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, e.getMessage());
         }
-        catch (Exception e)
-        {
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-    
-        }
-    }
-    
-    
-    @GetMapping(path="/xlsx", produces ={"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"} )
-    public StreamingResponseBody getReportXLSX()
-    {
-        if (logger.isDebugEnabled())
-        {
-            logger.debug(
-                    "Inbound: " +
-                    "[test:" + test +
-                    ",run:" + run +
-                    "]");
-        }
-        
-        try
-        {
-            // First confirm that the test exists
-            services.getTestService().getTestRunState(test, run);
-            
-            // Construct the utility that aggregates the results
-            return new StreamingResponseBody() {
-                @Override
-                public void writeTo(OutputStream output) throws IOException
-                {
-                    CSVReporter csvReporter = new CSVReporter(services, test, run);
-                    csvReporter.export(output);
-                }
-            };
-        }
-        
         catch (HttpClientErrorException e)
         {
             throw e;
@@ -170,12 +135,47 @@ public class ResultsRestAPI extends AbstractRestResource
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
-    
-    @GetMapping(path="/eventNames",produces = {"application/json"})
+
+    @GetMapping(path = "/xlsx", produces = { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
+    public StreamingResponseBody getReportXLSX()
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Inbound: " + "[test:" + test + ",run:" + run + "]");
+        }
+
+        try
+        {
+            // First confirm that the test exists
+            services.getTestService().getTestRunState(test, run);
+
+            // Construct the utility that aggregates the results
+            return new StreamingResponseBody()
+            {
+                @Override
+                public void writeTo(OutputStream output) throws IOException
+                {
+                    XLSXReporter xlsxReporter = new XLSXReporter(services, test, run);
+                    xlsxReporter.export(output);
+                }
+            };
+        }
+
+        catch (HttpClientErrorException e)
+        {
+            throw e;
+        }
+        catch (Exception e)
+        {
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @GetMapping(path = "/eventNames", produces = { "application/json" })
     public String getEventResultEventNames()
     {
         final BasicDBList events = new BasicDBList();
-        
+
         // always add the "all events" name in the first position
         events.add(ALL_EVENT_NAMES);
 
@@ -188,49 +188,39 @@ public class ResultsRestAPI extends AbstractRestResource
 
         return JSON.serialize(events);
     }
-    
- 
-    @GetMapping(path="/allEventsFilterName",produces = {"application/json"})
+
+    @GetMapping(path = "/allEventsFilterName", produces = { "application/json" })
     public String getAllEventsFilterName()
     {
         final BasicDBList events = new BasicDBList();
         events.add(ALL_EVENT_NAMES);
         return JSON.serialize(events);
     }
-    
+
     /**
      * Retrieve an approximate number of results, allowing for a smoothing factor
      * (<a href=http://en.wikipedia.org/wiki/Moving_average#Simple_moving_average>Simple Moving Average</a>) -
      * the number of data results to including in the moving average.
-     * 
-     * @param fromTime              the approximate time to start from
-     * @param timeUnit              the units of the 'reportPeriod' (default SECONDS).  See {@link TimeUnit}.
-     * @param reportPeriod          how often a result should be output.  This is expressed as a multiple of the 'timeUnit'.
-     * @param smoothing             the number of results to include in the Simple Moving Average calculations
-     * @param chartOnly             <tt>true</tt> to filter out results that are not of interest in performance charts
-     * 
-     * @return                      JSON representing the event start time (x-axis) and the smoothed average execution time
-     *                              along with data such as the events per second, failures per second, etc.
+     *
+     * @param fromTime     the approximate time to start from
+     * @param timeUnit     the units of the 'reportPeriod' (default SECONDS).  See {@link TimeUnit}.
+     * @param reportPeriod how often a result should be output.  This is expressed as a multiple of the 'timeUnit'.
+     * @param smoothing    the number of results to include in the Simple Moving Average calculations
+     * @param chartOnly    <tt>true</tt> to filter out results that are not of interest in performance charts
+     * @return JSON representing the event start time (x-axis) and the smoothed average execution time
+     * along with data such as the events per second, failures per second, etc.
      */
-    @GetMapping(path="/ts",produces = {"application/json"})
-    public String getTimeSeriesResults(
-            @RequestParam(value= "fromTime",defaultValue="O") long fromTime,
-            @RequestParam(value="timeUnit", defaultValue="SECONDS") String timeUnit,
-            @RequestParam(value="reportPeriod", defaultValue="1") long reportPeriod,
-            @RequestParam(value="smoothing", defaultValue="1") int smoothing,
-            @RequestParam(value="chartOnly", defaultValue="true") boolean chartOnly)
+    @GetMapping(path = "/ts", produces = { "application/json" })
+    public String getTimeSeriesResults(@RequestParam(value = "fromTime", defaultValue = "O") long fromTime,
+        @RequestParam(value = "timeUnit", defaultValue = "SECONDS") String timeUnit,
+        @RequestParam(value = "reportPeriod", defaultValue = "1") long reportPeriod, @RequestParam(value = "smoothing", defaultValue = "1") int smoothing,
+        @RequestParam(value = "chartOnly", defaultValue = "true") boolean chartOnly)
     {
         if (logger.isDebugEnabled())
         {
             logger.debug(
-                    "Inbound: " +
-                    "[test:" + test +
-                    ",fromTime:" + fromTime +
-                    ",timeUnit:" + timeUnit +
-                    ",reportPeriod:" + reportPeriod +
-                    ",smoothing:" + smoothing +
-                    ",chartOnly:" + chartOnly +
-                    "]");
+                "Inbound: " + "[test:" + test + ",fromTime:" + fromTime + ",timeUnit:" + timeUnit + ",reportPeriod:" + reportPeriod + ",smoothing:" + smoothing
+                    + ",chartOnly:" + chartOnly + "]");
         }
         if (reportPeriod < 1)
         {
@@ -245,7 +235,7 @@ public class ResultsRestAPI extends AbstractRestResource
         {
             timeUnitEnum = TimeUnit.valueOf(timeUnit.toUpperCase());
         }
-        catch(HttpClientErrorException e)
+        catch (HttpClientErrorException e)
         {
             throw e;
         }
@@ -254,22 +244,20 @@ public class ResultsRestAPI extends AbstractRestResource
             // Invalid time unit
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        
+
         final ResultService resultService = getResultService();
 
         // Calculate the window size
         long reportPeriodMs = timeUnitEnum.toMillis(reportPeriod);
         long windowSize = reportPeriodMs * smoothing;
-        
+
         // This is just too convenient an API
         final BasicDBList events = new BasicDBList();
         ResultHandler handler = new ResultHandler()
         {
             @Override
-            public boolean processResult(
-                    long fromTime, long toTime,
-                    Map<String, DescriptiveStatistics> statsByEventName,
-                    Map<String, Integer> failuresByEventName)
+            public boolean processResult(long fromTime, long toTime, Map<String, DescriptiveStatistics> statsByEventName,
+                Map<String, Integer> failuresByEventName)
             {
                 for (Map.Entry<String, DescriptiveStatistics> entry : statsByEventName.entrySet())
                 {
@@ -283,22 +271,12 @@ public class ResultsRestAPI extends AbstractRestResource
                         return false;
                     }
                     // Per second
-                    double numPerSec = (double) stats.getN() / ( (double) (toTime-fromTime) / 1000.0);
-                    double failuresPerSec = (double) failures / ( (double) (toTime-fromTime) / 1000.0);
+                    double numPerSec = (double) stats.getN() / ((double) (toTime - fromTime) / 1000.0);
+                    double failuresPerSec = (double) failures / ((double) (toTime - fromTime) / 1000.0);
                     // Push into an object
-                    DBObject eventObj = BasicDBObjectBuilder
-                            .start()
-                            .add("time", toTime)
-                            .add("name", eventName)
-                            .add("mean", stats.getMean())
-                            .add("min", stats.getMin())
-                            .add("max", stats.getMax())
-                            .add("stdDev", stats.getStandardDeviation())
-                            .add("num", stats.getN())
-                            .add("numPerSec", numPerSec)
-                            .add("fail", failures)
-                            .add("failPerSec", failuresPerSec)
-                            .get();
+                    DBObject eventObj = BasicDBObjectBuilder.start().add("time", toTime).add("name", eventName).add("mean", stats.getMean())
+                        .add("min", stats.getMin()).add("max", stats.getMax()).add("stdDev", stats.getStandardDeviation()).add("num", stats.getN())
+                        .add("numPerSec", numPerSec).add("fail", failures).add("failPerSec", failuresPerSec).get();
                     // Add the object to the list of events
                     events.add(eventObj);
                 }
@@ -312,7 +290,7 @@ public class ResultsRestAPI extends AbstractRestResource
             resultService.getResults(handler, fromTime, windowSize, reportPeriodMs, chartOnly);
             // Muster into JSON
             String json = events.toString();
-            
+
             // Done
             if (logger.isDebugEnabled())
             {
@@ -329,7 +307,7 @@ public class ResultsRestAPI extends AbstractRestResource
             return json;
 
         }
-        catch(HttpClientErrorException e)
+        catch (HttpClientErrorException e)
         {
             throw e;
         }
@@ -338,52 +316,48 @@ public class ResultsRestAPI extends AbstractRestResource
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
-    
 
-    
-    @GetMapping(path="/eventResults", produces = {"application/json"})
-    public String getEventResults(
-            @RequestParam(value="filterEventName", defaultValue=ALL_EVENT_NAMES) String filterEventName,
-            @RequestParam(value="filterSuccess", defaultValue="All") String filterSuccess,
-            @RequestParam(value="skipResults", defaultValue="0")int skipResults,
-            @RequestParam(value="numberOfResults", defaultValue="10") int numberOfResults)
+    @GetMapping(path = "/eventResults", produces = { "application/json" })
+    public String getEventResults(@RequestParam(value = "filterEventName", defaultValue = ALL_EVENT_NAMES) String filterEventName,
+        @RequestParam(value = "filterSuccess", defaultValue = "All") String filterSuccess,
+        @RequestParam(value = "skipResults", defaultValue = "0") int skipResults,
+        @RequestParam(value = "numberOfResults", defaultValue = "10") int numberOfResults)
     {
-        
+
         EventResultFilter filter = getFilter(filterSuccess);
         final ResultService resultService = getResultService();
         String nameFilterString = filterEventName.equals(ALL_EVENT_NAMES) ? "" : filterEventName;
-        
+
         // get event details
         List<EventDetails> details = resultService.getEventDetails(filter, nameFilterString, skipResults, numberOfResults);
-        
+
         // serialize back ....
         BasicDBList retList = new BasicDBList();
-        for(EventDetails detail : details)
+        for (EventDetails detail : details)
         {
             retList.add(detail.toDBObject());
         }
-        return JSON.serialize( retList );
-    } 
-    
+        return JSON.serialize(retList);
+    }
+
     /**
      * Returns the enum for a given string or the default value.
-     * 
+     *
      * @param filterEvents (String) one of the string values of EventResultFilter
-     * 
-     * @return (EventResultFilter) - "all" as default, or success / fail 
+     * @return (EventResultFilter) - "all" as default, or success / fail
      */
     private EventResultFilter getFilter(String filterEvents)
     {
         try
         {
-            return EventResultFilter.valueOf( filterEvents);
+            return EventResultFilter.valueOf(filterEvents);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             logger.error("Error converting " + filterEvents + " to EventResultFilter.", e);
         }
-        
+
         return EventResultFilter.All;
     }
-    
+
 }

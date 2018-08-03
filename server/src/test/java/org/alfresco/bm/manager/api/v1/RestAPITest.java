@@ -18,6 +18,58 @@
  */
 package org.alfresco.bm.manager.api.v1;
 
+import com.google.gson.Gson;
+import com.mongodb.DB;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.ServerAddress;
+import org.alfresco.bm.common.PropSetBean;
+import org.alfresco.bm.common.TestDetails;
+import org.alfresco.bm.common.TestRunDetails;
+import org.alfresco.bm.common.TestRunSchedule;
+import org.alfresco.bm.common.TestRunState;
+import org.alfresco.bm.common.TestServiceImpl;
+import org.alfresco.bm.common.mongo.MongoClientFactory;
+import org.alfresco.bm.common.mongo.MongoDBFactory;
+import org.alfresco.bm.common.mongo.MongoTestDAO;
+import org.alfresco.bm.common.spring.TestRunServicesCache;
+import org.alfresco.bm.common.util.exception.ObjectNotFoundException;
+import org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory;
+import org.alfresco.bm.common.util.log.LogService;
+import org.alfresco.bm.driver.test.TestRun;
+import org.alfresco.bm.manager.report.DataReportService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.poi.POIXMLProperties;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.types.ObjectId;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+
 import static org.alfresco.bm.common.TestConstants.FIELD_COMPLETED;
 import static org.alfresco.bm.common.TestConstants.FIELD_DEFAULT;
 import static org.alfresco.bm.common.TestConstants.FIELD_DURATION;
@@ -54,65 +106,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-
-import org.alfresco.bm.common.PropSetBean;
-import org.alfresco.bm.common.TestDetails;
-import org.alfresco.bm.common.TestRunDetails;
-import org.alfresco.bm.common.TestRunSchedule;
-import org.alfresco.bm.common.TestRunState;
-import org.alfresco.bm.common.TestServiceImpl;
-import org.alfresco.bm.common.mongo.MongoClientFactory;
-import org.alfresco.bm.common.mongo.MongoDBFactory;
-import org.alfresco.bm.common.mongo.MongoTestDAO;
-import org.alfresco.bm.common.spring.TestRunServicesCache;
-import org.alfresco.bm.common.util.exception.ObjectNotFoundException;
-import org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory;
-import org.alfresco.bm.common.util.log.LogService;
-import org.alfresco.bm.driver.test.TestRun;
-import org.alfresco.bm.manager.report.DataReportService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.poi.POIXMLProperties;
-import org.apache.poi.POIXMLProperties.CoreProperties;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.bson.types.ObjectId;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.PropertiesPropertySource;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-
-import com.google.gson.Gson;
-import com.mongodb.DB;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.ServerAddress;
-
 /**
- * @see TestRestAPI V1
- * 
  * @author Derek Hulley
+ * @see TestRestAPI V1
  * @since 2.0
  */
 @RunWith(JUnit4.class)
@@ -219,9 +215,8 @@ public class RestAPITest
 
     /**
      * make sure the system name is NOT contained as from 3.2 on
-     * 
-     * @param collection
-     *            (Set<String>) collection to check
+     *
+     * @param collection (Set<String>) collection to check
      * @return
      */
     private Set<String> removeSystemValues(Set<String> collection)
@@ -244,8 +239,7 @@ public class RestAPITest
         // Now connect a real mongo client to it
         MongoClient mongoClient = new MongoClient(mongoAddress);
         // won't be removed in V3.x of MongoDB .... new code uses new API ....
-        @SuppressWarnings("deprecation")
-        DB dbCheck = mongoClient.getDB(dbName);
+        @SuppressWarnings("deprecation") DB dbCheck = mongoClient.getDB(dbName);
 
         // See if we can add/remove stuff and that it works
         assertTrue(dao.createTest("TESTconnectToMongoDB", "connectToMongoDB", "R1", 1));
@@ -351,16 +345,8 @@ public class RestAPITest
             checkTimeValue(checkJson, FIELD_STARTED, now);
             checkTimeValue(checkJson, FIELD_STOPPED, -1L);
             checkTimeValue(checkJson, FIELD_COMPLETED, now);
-            checkTimeValue(checkJson, FIELD_DURATION, 30001L); // The
-                                                               // range
-                                                               // is +-
-                                                               // 30s,
-                                                               // so we
-                                                               // check
-                                                               // it's
-                                                               // in
-                                                               // range
-                                                               // 1ms-60001ms
+            // The range is +- 30s, so we check it's in range 1ms-60001ms
+            checkTimeValue(checkJson, FIELD_DURATION, 30001L);
             checkDoubleValue(checkJson, FIELD_PROGRESS, 1.0);
             checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 21L);
             checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
@@ -372,16 +358,8 @@ public class RestAPITest
             checkTimeValue(checkJson, FIELD_STARTED, now);
             checkTimeValue(checkJson, FIELD_STOPPED, now);
             checkTimeValue(checkJson, FIELD_COMPLETED, -1L);
-            checkTimeValue(checkJson, FIELD_DURATION, 30001L); // The
-                                                               // range
-                                                               // is +-
-                                                               // 30s,
-                                                               // so we
-                                                               // check
-                                                               // it's
-                                                               // in
-                                                               // range
-                                                               // 1ms-60001ms
+            // The range is +- 30s, so we check it's in range 1ms-60001ms
+            checkTimeValue(checkJson, FIELD_DURATION, 30001L);
             checkDoubleValue(checkJson, FIELD_PROGRESS, 0.0);
             checkLongValue(checkJson, FIELD_RESULTS_SUCCESS, 0L);
             checkLongValue(checkJson, FIELD_RESULTS_FAIL, 0L);
@@ -733,10 +711,8 @@ public class RestAPITest
         propSetBean.setVersion(0);
         api.setTestRunProperty("T04", "01", PROP_MONGO_TEST_HOST, propSetBean);
 
-        // Monitor the test. We do this here so that we don't have to wait a
-        // long time for the monitor to kick in.
-        // The defaults here do not matter as the test definition was written in
-        // the @Before phase
+        // Monitor the test. We do this here so that we don't have to wait a long time for the monitor to kick in.
+        // The defaults here do not matter as the test definition was written in  the @Before phase
         org.alfresco.bm.driver.test.Test test = ctx.getBean(org.alfresco.bm.driver.test.Test.class);
 
         // Extract the test run wrapper
@@ -757,24 +733,17 @@ public class RestAPITest
 
         // Now schedule it
         TestRunSchedule schedule = new TestRunSchedule();
-        schedule.setScheduled(System.currentTimeMillis() + 20000L); // It
-                                                                    // is
-                                                                    // scheduled
-                                                                    // for
-                                                                    // 20s
-                                                                    // from
-                                                                    // now
+        // It is scheduled for 20s from now
+        schedule.setScheduled(System.currentTimeMillis() + 20000L);
         schedule.setVersion(0);
         json = api.scheduleTestRun("T04", "01", schedule);
 
-        // Poke the test and check that the test run's new state brings it into
-        // view
+        // Poke the test and check that the test run's new state brings it into view
         test.forcePing();
         testRun = test.getTestRun(testRunId);
         assertNotNull("The test should have found the test run as it is now scheduled.", testRun);
         assertNull("The test run has not hit scheduled time so it must have started its context.", testRun.getCtx());
-        // The test run should not have started as the scheduled time will not
-        // have passed
+        // The test run should not have started as the scheduled time will not  have passed
         checkTestRunState("T04", "01", TestRunState.SCHEDULED, true);
         checkTestRunState("T04", "01", TestRunState.STARTED, false);
 
@@ -797,7 +766,7 @@ public class RestAPITest
             api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
             fail("Should not be able to override properties of a running test.");
         }
-        catch (HttpServerErrorException e)
+        catch (HttpClientErrorException e)
         {
             assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
@@ -815,7 +784,7 @@ public class RestAPITest
             api.setTestRunProperty("T04", "01", "proc.pwd", propSetBean);
             fail("Should not be able to override properties of a terminated test.");
         }
-        catch (HttpServerErrorException e)
+        catch (HttpClientErrorException e)
         {
             assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
@@ -847,10 +816,8 @@ public class RestAPITest
     {
         createTestRun("T05", "A test for scenario 05.", "01", "Scenario 05 - Run 01");
 
-        // Monitor the test. We do this here so that we don't have to wait a
-        // long time for the monitor to kick in.
-        // The defaults here do not matter as the test definition was written in
-        // the @Before phase
+        // Monitor the test. We do this here so that we don't have to wait a long time for the monitor to kick in.
+        // The defaults here do not matter as the test definition was written in the @Before phase
         org.alfresco.bm.driver.test.Test test = ctx.getBean(org.alfresco.bm.driver.test.Test.class);
 
         // Force an immediate ping update
@@ -947,8 +914,7 @@ public class RestAPITest
         schedule.setVersion(0);
         api.scheduleTestRun("T06", "01", schedule);
 
-        // Poke the test and check that the test run's new state brings it into
-        // view
+        // Poke the test and check that the test run's new state brings it into view
         test.forcePing();
         // The test run should not have started as the mongo host is invalid
         // from server 2.1 on the test would be STOPPED if incorrect server
@@ -1088,6 +1054,7 @@ public class RestAPITest
         ByteArrayInputStream xlsxBis = new ByteArrayInputStream(xlsxBos.toByteArray());
         XSSFWorkbook xlsxWorkbook = new XSSFWorkbook(xlsxBis);
         xlsxBis.close();
+
         // Write it to a temp file just for fun
         File xlsxFile = File.createTempFile(UUID.randomUUID().toString(), ".xlsx");
         FileOutputStream xlsxFos = new FileOutputStream(xlsxFile);
@@ -1097,13 +1064,13 @@ public class RestAPITest
 
         // Check
         POIXMLProperties xlsxProperties = xlsxWorkbook.getProperties();
-        CoreProperties xlsxCoreProperties = xlsxProperties.getCoreProperties();
+        POIXMLProperties.CoreProperties xlsxCoreProperties = xlsxProperties.getCoreProperties();
         Assert.assertNotNull("No XLSX description: " + xlsxFile, xlsxCoreProperties.getDescription());
         Assert.assertTrue("Title in XLSX must contain test run FQN: " + xlsxFile, xlsxCoreProperties.getTitle().contains("T07.01"));
         Assert.assertTrue("Description in XLSX must contain test name and description: " + xlsxFile,
-                xlsxCoreProperties.getDescription().contains("A test for scenario 07."));
+            xlsxCoreProperties.getDescription().contains("A test for scenario 07."));
         Assert.assertTrue("Description in XLSX must contain test name and description." + xlsxFile,
-                xlsxCoreProperties.getDescription().contains("Scenario 07 - Run 01"));
+            xlsxCoreProperties.getDescription().contains("Scenario 07 - Run 01"));
         xlsxWorkbook.close();
     }
 
@@ -1173,7 +1140,7 @@ public class RestAPITest
 
     /**
      * Extra data creation and export of XSLX Workbook
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -1233,8 +1200,7 @@ public class RestAPITest
         int count = 0;
         for (String desc : descList)
         {
-            assertEquals("Description of sheet 3 mismatch. Expected '" + descriptions[count] + "' found '" + desc + "'.", descriptions[count++],
-                    desc);
+            assertEquals("Description of sheet 3 mismatch. Expected '" + descriptions[count] + "' found '" + desc + "'.", descriptions[count++], desc);
         }
 
         // validate number of sheets
