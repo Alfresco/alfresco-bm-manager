@@ -24,10 +24,12 @@ import org.alfresco.bm.common.spring.LifecycleController;
 import org.alfresco.bm.common.util.log.LogService;
 import org.alfresco.bm.common.util.log.LogService.LogLevel;
 import org.alfresco.bm.manager.api.AbstractRestResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -49,10 +51,14 @@ import com.mongodb.util.JSON;
  * @author Derek Hulley
  * @since 2.0
  */
-@RequestMapping("/v1/status")
+
+@RestController
+@RequestMapping("api/v1/status")
 public class StatusAPI extends AbstractRestResource
 {
+    @Autowired
     private final LifecycleController lifeCycleController;
+    @Autowired
     private final LogService logService;
 
     /**

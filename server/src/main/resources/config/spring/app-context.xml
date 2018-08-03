@@ -8,6 +8,8 @@
     <!-- API     -->
     <!--         -->
     
+    <!-- The beans are now configured using spring boot @RestController -->
+    <!--
     <bean id="api.v1.testDefs" class="org.alfresco.bm.manager.api.v1.TestDefinitionRestAPI">
         <constructor-arg name="testDAO" ref="testDAO" />
     </bean>
@@ -18,11 +20,12 @@
         <constructor-arg name="logService" ref="logService" />
         <constructor-arg name="testRunServices" ref="testRunServices" />
     </bean>
+    
     <bean id="api.v1.status" class="org.alfresco.bm.manager.api.v1.StatusAPI">
         <constructor-arg name="lifeCycleController" ref="appLifeCycleController" />
         <constructor-arg name="logService" ref="logService" />
     </bean>
- 
+    -->
     <!--            -->
     <!-- Properties -->
     <!--            -->

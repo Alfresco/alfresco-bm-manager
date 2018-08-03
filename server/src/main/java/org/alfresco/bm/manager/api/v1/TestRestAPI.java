@@ -44,6 +44,7 @@ import org.alfresco.bm.common.util.exception.RunStateException;
 import org.alfresco.bm.common.util.log.LogService;
 import org.alfresco.bm.common.util.log.LogService.LogLevel;
 import org.alfresco.bm.manager.api.AbstractRestResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -81,12 +83,17 @@ import com.mongodb.util.JSON;
  * @since 2.0
  */
 
-@RequestMapping(path = "/v1/tests")
+@RestController
+@RequestMapping(path = "api/v1/tests")
 public class TestRestAPI extends AbstractRestResource
 {
+    @Autowired
     private final MongoTestDAO testDAO;
+    @Autowired
     private final TestService testService;
+    @Autowired
     private final LogService logService;
+    @Autowired
     private final TestRunServicesCache testRunServices;
 
     /**
@@ -145,8 +152,8 @@ public class TestRestAPI extends AbstractRestResource
         }
     }
 
-    @PostMapping(produces = { "application/json" }, consumes = { "application/json" })
-    public String createTest(TestDetails testDetails)
+    @PostMapping(consumes = "application/json", produces = "application/json")
+    public String createTest(@RequestBody TestDetails testDetails)
     {
         String name = testDetails.getName();
         String description = testDetails.getDescription();
@@ -282,7 +289,7 @@ public class TestRestAPI extends AbstractRestResource
     }
 
     @PutMapping(produces = { "application/json" }, consumes = { "application/json" })
-    public String updateTest(TestDetails testDetails)
+    public String updateTest(@RequestBody TestDetails testDetails)
     {
         String name = testDetails.getName();
         String oldName = testDetails.getOldName();
@@ -466,7 +473,7 @@ public class TestRestAPI extends AbstractRestResource
         }
     }
 
-    @GetMapping(path = "/{test}/props/{property}", produces = { "application/json" })
+    @GetMapping(path = "/{test}/props/{property:.+}", produces = { "application/json" })
     public String getTestProperty(@PathVariable("test") String test, @PathVariable("property") String property)
     {
         if (logger.isDebugEnabled())
@@ -508,8 +515,8 @@ public class TestRestAPI extends AbstractRestResource
         }
     }
 
-    @PutMapping(path = "/{test}/props/{property}", produces = { "application/json" }, consumes = { "application/json" })
-    public String setTestProperty(@PathVariable("test") String test, @PathVariable("property") String property, PropSetBean propBean)
+    @PutMapping(path = "/{test}/props/{property:.+}", produces = { "application/json" }, consumes = { "application/json" })
+    public String setTestProperty(@PathVariable("test") String test, @PathVariable("property") String property, @RequestBody PropSetBean propBean)
     {
         if (logger.isDebugEnabled())
         {
@@ -555,7 +562,7 @@ public class TestRestAPI extends AbstractRestResource
         return json;
     }
 
-    @DeleteMapping(path = "/{test}/props/{property}", produces = { "application/json" }, consumes = { "application/json" })
+    @DeleteMapping(path = "/{test}/props/{property:.+}", produces = { "application/json" }, consumes = { "application/json" })
     public String unsetTestProperty(@PathVariable("test") String test, @PathVariable("property") String property, @RequestBody PropSetBean propBean)
     {
         if (logger.isDebugEnabled())
@@ -970,7 +977,7 @@ public class TestRestAPI extends AbstractRestResource
      * propertyObj.get(FIELD_VALUE); } return propertyValue; }
      */
 
-    @GetMapping(path = "/{test}/runs/{run}/props/{property}", produces = { "application/json" })
+    @GetMapping(path = "/{test}/runs/{run}/props/{property:.+}", produces = { "application/json" })
     public String getTestRunProperty(@PathVariable("test") String test, @PathVariable("run") String run, @PathVariable("property") String property)
     {
         if (logger.isDebugEnabled())
@@ -1016,7 +1023,7 @@ public class TestRestAPI extends AbstractRestResource
         }
     }
 
-    @PutMapping(path = "/{test}/runs/{run}/props/{property}", produces = { "application/json" }, consumes = { "application/json" })
+    @PutMapping(path = "/{test}/runs/{run}/props/{property:.+}", produces = { "application/json" }, consumes = { "application/json" })
     public String setTestRunProperty(@PathVariable("test") String test, @PathVariable("run") String run, @PathVariable("property") String property,
             @RequestBody PropSetBean propBean)
     {
@@ -1271,12 +1278,6 @@ public class TestRestAPI extends AbstractRestResource
         }
         logService.log(null, test, run, LogLevel.WARN, "Test run terminated: " + test + "." + run);
         return json;
-    }
-
-    @RequestMapping(path = "/{test}/runs/{run}/results")
-    public ResultsRestAPI getTestRunResultsAPI(@PathVariable("test") String test, @PathVariable("run") String run)
-    {
-        return new ResultsRestAPI(testRunServices, test, run);
     }
 
     @GetMapping(path = "/{test}/runs/{run}/exportProps", produces = { "application/json" })

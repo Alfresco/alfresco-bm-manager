@@ -117,7 +117,7 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         SessionService sessionService = services.getSessionService(test, run);
         assertNotNull(resultService);
         TestRestAPI testAPI = new TestRestAPI(testDAO, testService, logService, services);
-        ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
+        ResultsRestAPI resultsAPI = new ResultsRestAPI(services);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
 
         // Dump one of each type of event for information
@@ -160,13 +160,13 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor
         assertEquals("Failure rate out of bounds. ", 60.0, (double) failures, 15.0);
         
         // Get the summary CSV results for the time period and check some of the values
-        String summary = BMTestRunner.getResultsCSV(resultsAPI);
+        String summary = BMTestRunner.getResultsCSV(resultsAPI, test, run);
         logger.info(summary);
         assertTrue(summary.contains(",,scheduleProcesses,     2,"));
         assertTrue(summary.contains(",,executeProcess,   200,"));
         
         // Get the chart results and check
-        String chartData = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 10, true);
+        String chartData = resultsAPI.getTimeSeriesResults(test, run, 0L, "seconds", 1, 10, true);
         if (logger.isDebugEnabled())
         {
             logger.debug("BM000X chart data: \n" + chartData);

@@ -32,9 +32,13 @@ import org.alfresco.bm.manager.api.AbstractRestResource;
 import org.alfresco.bm.manager.report.CSVReporter;
 import org.alfresco.bm.manager.report.XLSXReporter;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -60,34 +64,34 @@ import java.util.concurrent.TimeUnit;
  * @author Derek Hulley
  * @since 2.0
  */
+
+@RestController
+@RequestMapping(path = "/{test}/runs/{run}/results")
 public class ResultsRestAPI extends AbstractRestResource
 {
     /**
      * states not to filter by event names when query event results
      */
-    public static final String ALL_EVENT_NAMES = "(All Events)";
-
+    public static final String ALL_EVENT_NAMES = "(All Events)"; 
+    
+    @Autowired
     private final TestRunServicesCache services;
-    private final String test;
-    private final String run;
-
+    
     /**
      * @param services object providing access to necessary test run services
      * @param test     the name of the test
      * @param run      the name of the run
      */
-    public ResultsRestAPI(TestRunServicesCache services, String test, String run)
+    public ResultsRestAPI(TestRunServicesCache services)
     {
         this.services = services;
-        this.test = test;
-        this.run = run;
     }
 
     /**
      * @return the {@link ResultService} for the test run
      * @throws WebApplicationException if the service could not be found
      */
-    private ResultService getResultService()
+    private ResultService getResultService(String test, String run)
     {
         ResultService resultService = services.getResultService(test, run);
         if (resultService == null)
@@ -97,9 +101,9 @@ public class ResultsRestAPI extends AbstractRestResource
         }
         return resultService;
     }
-
-    @GetMapping(path = "/csv", produces = { "text/csv" })
-    public StreamingResponseBody getReportCSV()
+    
+    @GetMapping(path="/csv", produces ={"text/csv"})
+    public StreamingResponseBody getReportCSV(@PathVariable("test") String test, @PathVariable("run") String run)
     {
         if (logger.isDebugEnabled())
         {
@@ -136,8 +140,9 @@ public class ResultsRestAPI extends AbstractRestResource
         }
     }
 
+
     @GetMapping(path = "/xlsx", produces = { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
-    public StreamingResponseBody getReportXLSX()
+    public StreamingResponseBody getReportXLSX(@PathVariable("test") String test, @PathVariable("run") String run)
     {
         if (logger.isDebugEnabled())
         {
@@ -172,7 +177,7 @@ public class ResultsRestAPI extends AbstractRestResource
     }
 
     @GetMapping(path = "/eventNames", produces = { "application/json" })
-    public String getEventResultEventNames()
+    public String getEventResultEventNames(@PathVariable("test") String test, @PathVariable("run") String run)
     {
         final BasicDBList events = new BasicDBList();
 
@@ -180,7 +185,7 @@ public class ResultsRestAPI extends AbstractRestResource
         events.add(ALL_EVENT_NAMES);
 
         // distinct get all recorded event names from Mongo
-        List<String> eventNames = getResultService().getEventNames();
+        List<String> eventNames = getResultService(test, run).getEventNames();
         for (String eventName : eventNames)
         {
             events.add(eventName);
@@ -210,11 +215,13 @@ public class ResultsRestAPI extends AbstractRestResource
      * @return JSON representing the event start time (x-axis) and the smoothed average execution time
      * along with data such as the events per second, failures per second, etc.
      */
-    @GetMapping(path = "/ts", produces = { "application/json" })
-    public String getTimeSeriesResults(@RequestParam(value = "fromTime", defaultValue = "O") long fromTime,
-        @RequestParam(value = "timeUnit", defaultValue = "SECONDS") String timeUnit,
-        @RequestParam(value = "reportPeriod", defaultValue = "1") long reportPeriod, @RequestParam(value = "smoothing", defaultValue = "1") int smoothing,
-        @RequestParam(value = "chartOnly", defaultValue = "true") boolean chartOnly)
+    @GetMapping(path="/ts",produces = {"application/json"})
+    public String getTimeSeriesResults(@PathVariable("test") String test, @PathVariable("run") String run, 
+            @RequestParam(value= "fromTime",defaultValue="O") long fromTime,
+            @RequestParam(value="timeUnit", defaultValue="SECONDS") String timeUnit,
+            @RequestParam(value="reportPeriod", defaultValue="1") long reportPeriod,
+            @RequestParam(value="smoothing", defaultValue="1") int smoothing,
+            @RequestParam(value="chartOnly", defaultValue="true") boolean chartOnly)
     {
         if (logger.isDebugEnabled())
         {
@@ -244,8 +251,8 @@ public class ResultsRestAPI extends AbstractRestResource
             // Invalid time unit
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-
-        final ResultService resultService = getResultService();
+        
+        final ResultService resultService = getResultService(test, run);
 
         // Calculate the window size
         long reportPeriodMs = timeUnitEnum.toMillis(reportPeriod);
@@ -316,16 +323,17 @@ public class ResultsRestAPI extends AbstractRestResource
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
-
-    @GetMapping(path = "/eventResults", produces = { "application/json" })
-    public String getEventResults(@RequestParam(value = "filterEventName", defaultValue = ALL_EVENT_NAMES) String filterEventName,
-        @RequestParam(value = "filterSuccess", defaultValue = "All") String filterSuccess,
-        @RequestParam(value = "skipResults", defaultValue = "0") int skipResults,
-        @RequestParam(value = "numberOfResults", defaultValue = "10") int numberOfResults)
+    
+    @GetMapping(path="/eventResults", produces = {"application/json"})
+    public String getEventResults(@PathVariable("test") String test, @PathVariable("run") String run, 
+            @RequestParam(value="filterEventName", defaultValue=ALL_EVENT_NAMES) String filterEventName,
+            @RequestParam(value="filterSuccess", defaultValue="All") String filterSuccess,
+            @RequestParam(value="skipResults", defaultValue="0")int skipResults,
+            @RequestParam(value="numberOfResults", defaultValue="10") int numberOfResults)
     {
 
         EventResultFilter filter = getFilter(filterSuccess);
-        final ResultService resultService = getResultService();
+        final ResultService resultService = getResultService(test, run);
         String nameFilterString = filterEventName.equals(ALL_EVENT_NAMES) ? "" : filterEventName;
 
         // get event details

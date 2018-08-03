@@ -1013,11 +1013,11 @@ public class RestAPITest
 
         executeTestRun("T07", "A test for scenario 07.", "01", "Scenario 07 - Run 01");
 
+        ResultsRestAPI resultsAPI = new ResultsRestAPI(testRunServicesCache);
         // Get report for test run that does not exist
         try
         {
-            ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T07MISSING", "01");
-            resultsAPI.getReportCSV();
+            resultsAPI.getReportCSV("T07MISSING", "01");
             Assert.fail("Expected exception regarding missing test.");
         }
         catch (HttpClientErrorException e)
@@ -1025,10 +1025,8 @@ public class RestAPITest
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
 
-        ResultsRestAPI resultsAPI = api.getTestRunResultsAPI("T07", "01");
-
         // Get the results CSV
-        StreamingResponseBody csvOutput = resultsAPI.getReportCSV();
+        StreamingResponseBody csvOutput = resultsAPI.getReportCSV("T07MISSING", "01");
         ByteArrayOutputStream csvBos = new ByteArrayOutputStream();
         csvBos.close();
         csvOutput.writeTo(csvBos);
@@ -1040,14 +1038,14 @@ public class RestAPITest
         assertTrue(csvResults.contains("Duration"));
 
         // Get the JSON results
-        String chartJson = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 5, false);
+        String chartJson = resultsAPI.getTimeSeriesResults("T07MISSING", "01", 0L, "seconds", 1, 5, false);
         assertTrue(chartJson.startsWith("[ { \"time\" : "));
         assertTrue(chartJson.contains("[ { \"time\" : "));
         assertTrue(chartJson.contains("000 , \"name\" : \"start\" , \"mean\" : "));
         assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]"));
 
         // Get the XLSX report
-        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX();
+        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX("T07MISSING", "01");
         ByteArrayOutputStream xlsxBos = new ByteArrayOutputStream();
         xlsxOutput.writeTo(xlsxBos);
         xlsxBos.close();
@@ -1179,8 +1177,8 @@ public class RestAPITest
         reportService.setDescription(driver, test, run, sheet3, fieldNames, descriptions);
 
         // create and download an XSLX
-        ResultsRestAPI resultsAPI = api.getTestRunResultsAPI(test, run);
-        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX();
+        ResultsRestAPI resultsAPI = new ResultsRestAPI(testRunServicesCache);
+        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX(test, run);
         ByteArrayOutputStream xlsxBos = new ByteArrayOutputStream();
         xlsxOutput.writeTo(xlsxBos);
         xlsxBos.close();

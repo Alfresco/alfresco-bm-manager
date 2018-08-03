@@ -25,6 +25,7 @@ import org.alfresco.bm.common.TestDetails;
 import org.alfresco.bm.common.TestRunDetails;
 import org.alfresco.bm.common.TestRunSchedule;
 import org.alfresco.bm.common.TestRunState;
+import org.alfresco.bm.common.spring.TestRunServicesCache;
 import org.alfresco.bm.driver.test.Test;
 import org.alfresco.bm.manager.api.v1.ResultsRestAPI;
 import org.alfresco.bm.manager.api.v1.TestRestAPI;
@@ -388,10 +389,10 @@ public class BMTestRunner
     /**
      * Helper method to extract the csv results to a string that can be output in the logs
      */
-    public static String getResultsCSV(ResultsRestAPI resultsAPI)
+    public static String getResultsCSV(ResultsRestAPI resultsAPI, String test, String run)
     {
         // Get the summary CSV results for the time period and check some of the values
-        StreamingResponseBody out = resultsAPI.getReportCSV();
+        StreamingResponseBody out = resultsAPI.getReportCSV(test, run);
         ByteArrayOutputStream bos = new ByteArrayOutputStream(2048);
         String summary = "";
         try
