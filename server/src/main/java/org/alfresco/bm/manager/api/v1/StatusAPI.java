@@ -100,7 +100,7 @@ public class StatusAPI extends AbstractRestResource
     }
 
     @GetMapping(path = "/logs", produces = { "application/json" })
-    public String getLogs(@RequestParam("driverId") String driverId, @RequestParam("test") String test, @RequestParam("run") String run,
+    public String getLogs(@RequestParam(value = "driverId", required = false) String driverId, @RequestParam("test") String test, @RequestParam("run") String run,
             @RequestParam(value = "level", defaultValue = "INFO") String levelStr, @RequestParam(value = "from", defaultValue = "0") Long from,
             @RequestParam(value = "to", defaultValue = "" + Long.MAX_VALUE) Long to, @RequestParam(value = "skip", defaultValue = "0") int skip,
             @RequestParam(value = "count", defaultValue = "50") int count)

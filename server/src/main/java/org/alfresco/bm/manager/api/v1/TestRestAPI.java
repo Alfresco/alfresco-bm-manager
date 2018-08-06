@@ -115,7 +115,7 @@ public class TestRestAPI extends AbstractRestResource
     }
 
     @GetMapping(produces = { "application/json" })
-    public String getTests(@RequestParam("release") String release, @RequestParam("schema") Integer schema,
+    public String getTests(@RequestParam(value = "release", required = false) String release, @RequestParam(value = "schema", required = false) Integer schema,
             @RequestParam(value = "skip", defaultValue = "0") int skip, @RequestParam(value = "count", defaultValue = "50") int count)
     {
         if (logger.isDebugEnabled())

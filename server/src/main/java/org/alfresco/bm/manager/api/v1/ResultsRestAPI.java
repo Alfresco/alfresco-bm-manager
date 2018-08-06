@@ -66,7 +66,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @RestController
-@RequestMapping(path = "/{test}/runs/{run}/results")
+@RequestMapping(path = "api/v1/tests/{test}/runs/{run}/results")
 public class ResultsRestAPI extends AbstractRestResource
 {
     /**

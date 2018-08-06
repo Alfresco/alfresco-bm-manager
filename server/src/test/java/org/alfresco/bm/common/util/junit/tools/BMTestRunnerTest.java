@@ -23,6 +23,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.util.JSON;
 import org.alfresco.bm.common.ResultService;
 import org.alfresco.bm.common.spring.TestRunServicesCache;
+import org.alfresco.bm.manager.Application;
 import org.alfresco.bm.manager.report.CSVReporter;
 import org.alfresco.bm.common.util.log.LogService;
 import org.alfresco.bm.common.util.log.LogService.LogLevel;
@@ -33,8 +34,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
@@ -50,7 +54,9 @@ import static org.junit.Assert.assertEquals;
  * @author Derek Hulley
  * @since 2.0
  */
-@RunWith(JUnit4.class)
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
 public class BMTestRunnerTest
 {
     public static final String RELEASE = "BMTestRunnerTest";
