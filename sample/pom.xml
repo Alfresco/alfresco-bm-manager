@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>alfresco-bmf-sample</artifactId>
+    <artifactId>alfresco-bmf-sample-driver</artifactId>
     <name>Alfresco Benchmark Framework Sample Driver</name>
     <packaging>jar</packaging>
 

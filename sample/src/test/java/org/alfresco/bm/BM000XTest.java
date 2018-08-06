@@ -58,6 +58,13 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
 /**
+ * temporary, in order to run driver tests you need to add all the properties from the app.properties as system variables in order to run
+ * for some reason the app.properties is not loaded when running the junits. It is loaded when running the spring boot app
+ * e.g:
+ * -Dapp.release=alfresco-bmf-sample-driver-3.0.0-SNAPSHOT -Dapp.schema=12 -Dapp.inheritance="SAMPLE,COMMON,FILES,FILES_FTP,FILES_LOCAL" -Dsystem.capabilities=java -Dserver.contextPath=/ -Dserver.port=9081 -Dapp.dir=alfresco-bmf-sample-driver
+ */
+
+/**
  * Sample on how to run your test against a local Mongo instance.
  * This does not replace running the test in the full BM environment,
  * but allows initial debugging to take place.
