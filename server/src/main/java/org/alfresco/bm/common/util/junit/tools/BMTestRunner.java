@@ -25,7 +25,10 @@ import org.alfresco.bm.common.TestDetails;
 import org.alfresco.bm.common.TestRunDetails;
 import org.alfresco.bm.common.TestRunSchedule;
 import org.alfresco.bm.common.TestRunState;
+import org.alfresco.bm.common.TestServiceImpl;
+import org.alfresco.bm.common.mongo.MongoTestDAO;
 import org.alfresco.bm.common.spring.TestRunServicesCache;
+import org.alfresco.bm.common.util.log.LogService;
 import org.alfresco.bm.driver.test.Test;
 import org.alfresco.bm.manager.api.v1.ResultsRestAPI;
 import org.alfresco.bm.manager.api.v1.TestRestAPI;
@@ -244,7 +247,13 @@ public class BMTestRunner
             String release = test.getRelease();
             Integer schema = test.getSchema();
             
-            TestRestAPI api = ctx.getBean(TestRestAPI.class);
+            //TestRestAPI api = ctx.getBean(TestRestAPI.class);
+            MongoTestDAO dao = ctx.getBean(MongoTestDAO.class);
+            TestServiceImpl testService = ctx.getBean(TestServiceImpl.class);
+            LogService logService = ctx.getBean(LogService.class);
+            TestRunServicesCache testRunServicesCache = ctx.getBean(TestRunServicesCache.class);
+            
+            TestRestAPI api = new TestRestAPI(dao, testService, logService, testRunServicesCache);
             
             // Create a new test
             TestDetails testDetails = new TestDetails();

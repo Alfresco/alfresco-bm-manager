@@ -1026,7 +1026,7 @@ public class RestAPITest
         }
 
         // Get the results CSV
-        StreamingResponseBody csvOutput = resultsAPI.getReportCSV("T07MISSING", "01");
+        StreamingResponseBody csvOutput = resultsAPI.getReportCSV("T07", "01");
         ByteArrayOutputStream csvBos = new ByteArrayOutputStream();
         csvBos.close();
         csvOutput.writeTo(csvBos);
@@ -1038,14 +1038,14 @@ public class RestAPITest
         assertTrue(csvResults.contains("Duration"));
 
         // Get the JSON results
-        String chartJson = resultsAPI.getTimeSeriesResults("T07MISSING", "01", 0L, "seconds", 1, 5, false);
+        String chartJson = resultsAPI.getTimeSeriesResults("T07", "01", 0L, "seconds", 1, 5, false);
         assertTrue(chartJson.startsWith("[ { \"time\" : "));
         assertTrue(chartJson.contains("[ { \"time\" : "));
         assertTrue(chartJson.contains("000 , \"name\" : \"start\" , \"mean\" : "));
         assertTrue(chartJson.endsWith(" , \"fail\" : 0 , \"failPerSec\" : 0.0}]"));
 
         // Get the XLSX report
-        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX("T07MISSING", "01");
+        StreamingResponseBody xlsxOutput = resultsAPI.getReportXLSX("T07", "01");
         ByteArrayOutputStream xlsxBos = new ByteArrayOutputStream();
         xlsxOutput.writeTo(xlsxBos);
         xlsxBos.close();
