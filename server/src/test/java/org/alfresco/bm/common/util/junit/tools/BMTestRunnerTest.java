@@ -55,8 +55,7 @@ import static org.junit.Assert.assertEquals;
  * @since 2.0
  */
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = Application.class)
+@RunWith(JUnit4.class)
 public class BMTestRunnerTest
 {
     public static final String RELEASE = "BMTestRunnerTest";
