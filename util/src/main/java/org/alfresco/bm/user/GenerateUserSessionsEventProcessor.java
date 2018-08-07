@@ -18,7 +18,7 @@
  */
 package org.alfresco.bm.user;
 
-import org.alfresco.bm.event.RaiseEventsEventProcessor;
+import org.alfresco.bm.driver.event.RaiseEventsEventProcessor;
 
 /**
  * Triggers random user sessions.

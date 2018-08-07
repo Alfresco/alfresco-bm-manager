@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.alfresco.mongo.MongoDBForTestsFactory;
+import org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

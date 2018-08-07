@@ -1,33 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-    xsi:schemaLocation="http://www.springframework.org/schema/context
-          http://www.springframework.org/schema/context/spring-context-3.0.xsd
-          http://www.springframework.org/schema/data/mongo
-          http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd
-          http://www.springframework.org/schema/beans
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
  
     <!--         -->
     <!-- API     -->
     <!--         -->
     
-    <bean id="api.v1.testDefs" class="org.alfresco.bm.api.v1.TestDefinitionRestAPI">
+    <!-- The beans are now configured using spring boot @RestController -->
+    <!--
+    <bean id="api.v1.testDefs" class="org.alfresco.bm.manager.api.v1.TestDefinitionRestAPI">
         <constructor-arg name="testDAO" ref="testDAO" />
     </bean>
-    <bean id="api.v1.tests" class="org.alfresco.bm.api.v1.TestRestAPI">
+
+    <bean id="api.v1.tests" class="org.alfresco.bm.manager.api.v1.TestRestAPI">
         <constructor-arg name="testDAO" ref="testDAO" />
         <constructor-arg name="testService" ref="testService" />
         <constructor-arg name="logService" ref="logService" />
         <constructor-arg name="testRunServices" ref="testRunServices" />
     </bean>
-    <bean id="api.v1.status" class="org.alfresco.bm.api.v1.StatusAPI">
+    
+    <bean id="api.v1.status" class="org.alfresco.bm.manager.api.v1.StatusAPI">
         <constructor-arg name="lifeCycleController" ref="appLifeCycleController" />
         <constructor-arg name="logService" ref="logService" />
     </bean>
- 
+    -->
     <!--            -->
     <!-- Properties -->
     <!--            -->
@@ -60,10 +58,9 @@
     <!-- Lifecycle -->
     <!--           -->
     
-    <bean id="appLifeCycleController" class="org.alfresco.bm.test.LifecycleController">
+    <bean id="appLifeCycleController" class="org.alfresco.bm.common.spring.LifecycleController">
         <constructor-arg>
             <array>
-                <ref bean="logWatcher" />
                 <ref bean="logService" />
                 <ref bean="testDAO" />
                 <ref bean="testDefaults" />
@@ -77,25 +74,21 @@
     <!-- Test      -->
     <!--           -->
     
-    <bean id="testDefaults" class="org.alfresco.bm.test.TestDefaults">
+    <bean id="testDefaults" class="org.alfresco.bm.driver.test.TestDefaults">
         <constructor-arg name="rawProperties" ref="testRawProperties" />
         <constructor-arg name="inheritance" value="${app.inheritance}" />
     </bean>
     
-    <bean id="test" class="org.alfresco.bm.test.Test">
+    <bean id="test" class="org.alfresco.bm.driver.test.Test">
         <constructor-arg name="testDAO" ref="testDAO" />
         <constructor-arg name="logService" ref="logService" />
         <constructor-arg name="release" value="${app.release}" />
         <constructor-arg name="schema" value="${app.schema}" />
         <constructor-arg name="description" value="${app.description}" />
-        <constructor-arg name="contextPath" value="${app.contextPath}" />
+        <constructor-arg name="contextPath" value="${server.contextPath}" />
         <constructor-arg name="defaults" ref="testDefaults" />
         <property name="systemCapabilities" value="${system.capabilities}" />
         <property name="testRunMonitorPeriod" value="${test.run.monitor-period}" />
-    </bean>
-
-    <bean id="logWatcher" class="org.alfresco.bm.log.LogWatcher">
-        <constructor-arg name="logDir" value="${app.dir}" />
     </bean>
     
     <!--                 -->
@@ -106,13 +99,13 @@
         <constructor-arg name="uri" value="${mongo.config.uri}" />
     </bean>
     
-    <bean id="configMongoClient" class="org.alfresco.mongo.MongoClientFactory" >
+    <bean id="configMongoClient" class="org.alfresco.bm.common.mongo.MongoClientFactory" >
         <constructor-arg name="mongoClientURI" ref="configMongoURI" />
         <constructor-arg name="username" value="${mongo.config.username}" />
         <constructor-arg name="password" value="${mongo.config.password}" />
     </bean>
 
-    <bean id="configMongoDB" class="org.alfresco.mongo.MongoDBFactory" >
+    <bean id="configMongoDB" class="org.alfresco.bm.common.mongo.MongoDBFactory" >
         <constructor-arg name="mongoClient" ref="configMongoClient" />
         <constructor-arg name="database" value="${mongo.config.database}" />
     </bean>
@@ -125,13 +118,13 @@
         <constructor-arg name="uri" value="${mongo.log.uri}" />
     </bean>
 
-    <bean id="logMongoClient" class="org.alfresco.mongo.MongoClientFactory" >
+    <bean id="logMongoClient" class="org.alfresco.bm.common.mongo.MongoClientFactory" >
         <constructor-arg name="mongoClientURI" ref="configMongoURI" />
         <constructor-arg name="username" value="${mongo.log.username}" />
         <constructor-arg name="password" value="${mongo.log.password}" />
     </bean>
     
-    <bean id="logMongoDB" class="org.alfresco.mongo.MongoDBFactory" >
+    <bean id="logMongoDB" class="org.alfresco.bm.common.mongo.MongoDBFactory" >
         <constructor-arg name="mongoClient" ref="configMongoClient" />
         <constructor-arg name="database" value="${mongo.log.database}" />
     </bean>
@@ -141,22 +134,22 @@
     <!-- Services  -->
     <!--           -->
     
-    <bean id="logService" class="org.alfresco.bm.log.MongoLogService">
+    <bean id="logService" class="org.alfresco.bm.common.util.log.MongoLogService">
         <constructor-arg name="db" ref="logMongoDB" />
         <constructor-arg name="size" value="${mongo.log.size}" />
         <constructor-arg name="max" value="${mongo.log.max}" />
         <constructor-arg name="ttl" value="${mongo.log.ttl}" />
     </bean>
 
-    <bean id="testDAO" class="org.alfresco.bm.test.mongo.MongoTestDAO">
+    <bean id="testDAO" class="org.alfresco.bm.common.mongo.MongoTestDAO">
         <constructor-arg name="db" ref="configMongoDB" />
     </bean>
     
-    <bean id="testService" class="org.alfresco.bm.test.TestServiceImpl">
+    <bean id="testService" class="org.alfresco.bm.common.TestServiceImpl">
         <constructor-arg name="testDAO" ref="testDAO" />
     </bean>
 
-    <bean id="testRunServices" class="org.alfresco.bm.test.TestRunServicesCache">
+    <bean id="testRunServices" class="org.alfresco.bm.common.spring.TestRunServicesCache">
         <constructor-arg name="dao" ref="testDAO" />
     </bean>
 

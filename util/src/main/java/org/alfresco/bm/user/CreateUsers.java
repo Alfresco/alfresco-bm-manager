@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.alfresco.bm.data.DataCreationState;
-import org.alfresco.bm.event.AbstractEventProcessor;
-import org.alfresco.bm.event.Event;
-import org.alfresco.bm.event.EventResult;
-import org.alfresco.bm.util.ArgumentCheck;
+import org.alfresco.bm.driver.event.AbstractEventProcessor;
+import org.alfresco.bm.driver.event.Event;
+import org.alfresco.bm.common.EventResult;
+import org.alfresco.bm.common.util.ArgumentCheck;
 
 /**
  * <h1>Input</h1>

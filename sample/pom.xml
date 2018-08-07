@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>alfresco-benchmark-sample</artifactId>
-    <packaging>war</packaging>
+
+    <parent>
+        <groupId>org.alfresco</groupId>
+        <artifactId>alfresco-bmf-manager-project</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>alfresco-bmf-sample-driver</artifactId>
+    <name>Alfresco Benchmark Framework Sample Driver</name>
+    <packaging>jar</packaging>
+
     <properties>
         <bm.tomcat.port>9081</bm.tomcat.port>
         <bm.tomcat.ip>localhost</bm.tomcat.ip>
@@ -11,37 +21,36 @@
         <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
     </properties>
 
-    <parent>
-        <groupId>org.alfresco</groupId>
-        <artifactId>alfresco-benchmark</artifactId>
-        <version>2.2.1-SNAPSHOT</version>
-    </parent>
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alfresco-benchmark-server</artifactId>
+            <artifactId>alfresco-bmf-manager</artifactId>
             <version>${project.version}</version>
-            <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alfresco-benchmark-util</artifactId>
+            <artifactId>alfresco-bmf-util</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
-    <!-- Uncomment this for your project
-    <scm>
-        <connection>scm:svn:SomeURL></connection>
-    </scm>
-    -->
-    <!-- Reconfigure this for your project -->
+
     <build>
         <resources>
             <resource>
@@ -57,29 +66,36 @@
                 <includes>
                     <include>**</include>
                 </includes>
-                <filtering>false</filtering>
+                <filtering>true</filtering>
             </resource>
         </resources>
         <plugins>
             <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <configuration>
-                    <url>${bm.tomcat.url}</url>
-                    <!-- Add the following server to your security settings -->
-                    <server>${bm.tomcat.server}</server>
-                    <port>${bm.tomcat.port}</port>
-                    <path>/${project.artifactId}</path>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${dependency.spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.1.1</version>
-                <configuration>
-                    <attachClasses>true</attachClasses>
-                </configuration>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+
 </project>

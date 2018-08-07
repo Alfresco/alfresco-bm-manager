@@ -20,8 +20,8 @@ package org.alfresco.bm.http;
 
 import java.io.IOException;
 
-import org.alfresco.bm.event.AbstractEventProcessor;
-import org.alfresco.bm.event.EventProcessor;
+import org.alfresco.bm.driver.event.AbstractEventProcessor;
+import org.alfresco.bm.driver.event.EventProcessor;
 import org.alfresco.http.AuthenticationDetailsProvider;
 import org.alfresco.http.HttpClientProvider;
 import org.alfresco.http.HttpRequestCallback;

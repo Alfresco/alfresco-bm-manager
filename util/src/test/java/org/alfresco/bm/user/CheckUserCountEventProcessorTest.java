@@ -6,9 +6,8 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Properties;
 
 import org.alfresco.bm.data.DataCreationState;
-import org.alfresco.bm.event.Event;
-import org.alfresco.bm.event.EventProcessor;
-import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.driver.event.Event;
+import org.alfresco.bm.common.EventResult;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.After;
 import org.junit.Before;

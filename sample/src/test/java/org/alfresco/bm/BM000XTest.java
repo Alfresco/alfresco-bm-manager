@@ -30,22 +30,22 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.alfresco.bm.api.v1.ResultsRestAPI;
-import org.alfresco.bm.api.v1.TestRestAPI;
-import org.alfresco.bm.event.Event;
-import org.alfresco.bm.event.EventRecord;
-import org.alfresco.bm.event.EventService;
-import org.alfresco.bm.event.ResultService;
-import org.alfresco.bm.log.LogService;
-import org.alfresco.bm.log.LogService.LogLevel;
-import org.alfresco.bm.session.SessionService;
-import org.alfresco.bm.test.TestConstants;
-import org.alfresco.bm.test.TestRunServicesCache;
-import org.alfresco.bm.test.TestService;
-import org.alfresco.bm.test.mongo.MongoTestDAO;
-import org.alfresco.bm.tools.BMTestRunner;
-import org.alfresco.bm.tools.BMTestRunnerListener;
-import org.alfresco.bm.tools.BMTestRunnerListenerAdaptor;
+import org.alfresco.bm.manager.api.v1.ResultsRestAPI;
+import org.alfresco.bm.manager.api.v1.TestRestAPI;
+import org.alfresco.bm.driver.event.Event;
+import org.alfresco.bm.common.EventRecord;
+import org.alfresco.bm.driver.event.EventService;
+import org.alfresco.bm.common.ResultService;
+import org.alfresco.bm.common.util.log.LogService;
+import org.alfresco.bm.common.util.log.LogService.LogLevel;
+import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.TestConstants;
+import org.alfresco.bm.common.spring.TestRunServicesCache;
+import org.alfresco.bm.common.TestService;
+import org.alfresco.bm.common.mongo.MongoTestDAO;
+import org.alfresco.bm.common.util.junit.tools.BMTestRunner;
+import org.alfresco.bm.common.util.junit.tools.BMTestRunnerListener;
+import org.alfresco.bm.common.util.junit.tools.BMTestRunnerListenerAdaptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
@@ -58,6 +58,13 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
 /**
+ * temporary, in order to run driver tests you need to add all the properties from the app.properties as system variables in order to run
+ * for some reason the app.properties is not loaded when running the junits. It is loaded when running the spring boot app
+ * e.g:
+ * -Dapp.release=alfresco-bmf-sample-driver-3.0.0-SNAPSHOT -Dapp.schema=12 -Dapp.inheritance="SAMPLE,COMMON,FILES,FILES_FTP,FILES_LOCAL" -Dsystem.capabilities=java -Dserver.contextPath=/ -Dserver.port=9081 -Dapp.dir=alfresco-bmf-sample-driver
+ */
+
+/**
  * Sample on how to run your test against a local Mongo instance.
  * This does not replace running the test in the full BM environment,
  * but allows initial debugging to take place.
@@ -66,7 +73,7 @@ import com.mongodb.DBObject;
  * @since 1.0
  */
 @RunWith(JUnit4.class)
-public class BM000XTest extends BMTestRunnerListenerAdaptor implements TestConstants
+public class BM000XTest extends BMTestRunnerListenerAdaptor
 {
     private static Log logger = LogFactory.getLog(BM000XTest.class);
     
@@ -117,7 +124,7 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor implements TestConst
         SessionService sessionService = services.getSessionService(test, run);
         assertNotNull(resultService);
         TestRestAPI testAPI = new TestRestAPI(testDAO, testService, logService, services);
-        ResultsRestAPI resultsAPI = testAPI.getTestRunResultsAPI(test, run);
+        ResultsRestAPI resultsAPI = new ResultsRestAPI(services);
         // Let's check the results before the DB gets thrown away (we didn't make it ourselves)
 
         // Dump one of each type of event for information
@@ -160,13 +167,13 @@ public class BM000XTest extends BMTestRunnerListenerAdaptor implements TestConst
         assertEquals("Failure rate out of bounds. ", 60.0, (double) failures, 15.0);
         
         // Get the summary CSV results for the time period and check some of the values
-        String summary = BMTestRunner.getResultsCSV(resultsAPI);
+        String summary = BMTestRunner.getResultsCSV(resultsAPI, test, run);
         logger.info(summary);
         assertTrue(summary.contains(",,scheduleProcesses,     2,"));
         assertTrue(summary.contains(",,executeProcess,   200,"));
         
         // Get the chart results and check
-        String chartData = resultsAPI.getTimeSeriesResults(0L, "seconds", 1, 10, true);
+        String chartData = resultsAPI.getTimeSeriesResults(test, run, 0L, "seconds", 1, 10, true);
         if (logger.isDebugEnabled())
         {
             logger.debug("BM000X chart data: \n" + chartData);

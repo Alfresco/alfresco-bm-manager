@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-    xsi:schemaLocation="http://www.springframework.org/schema/context
-          http://www.springframework.org/schema/context/spring-context-3.0.xsd
-          http://www.springframework.org/schema/data/mongo
-          http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd
-          http://www.springframework.org/schema/beans
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
  
@@ -29,7 +23,7 @@
         This behaviour can be overridden.  See the javadocs of AbstractEventProcessor.
     -->
     
-    <bean id="event.start" class="org.alfresco.bm.event.RaiseEventsEventProcessor" parent="event.base" >
+    <bean id="event.start" class="org.alfresco.bm.driver.event.RaiseEventsEventProcessor" parent="event.base" >
         <constructor-arg name="outputEventName" value="randomSample" />
         <constructor-arg name="timeBetweenEvents" value="5" />
         <constructor-arg name="outputEventCount" value="20" />
@@ -43,7 +37,7 @@
         <property name="chart" value="false" />
     </bean>
     
-    <bean id="event.randomSample" class="org.alfresco.bm.event.DelayingSampleEventProcessor" parent="event.base" >
+    <bean id="event.randomSample" class="org.alfresco.bm.driver.event.DelayingSampleEventProcessor" parent="event.base" >
         <constructor-arg name="outputEventName" value="randomSampleDone" />
         <constructor-arg name="minTime" value="50" />
         <constructor-arg name="maxTime" value="100" />
@@ -51,11 +45,11 @@
         <property name="chart" value="true" />
     </bean>
     
-    <bean id="producer.randomSampleDone" class="org.alfresco.bm.event.producer.TerminateEventProducer" parent="producer.base" />
+    <bean id="producer.randomSampleDone" class="org.alfresco.bm.driver.event.producer.TerminateEventProducer" parent="producer.base" />
     
     <!-- NB: We replace the MongoDB factory with in-memory versions here -->
     <!--     Test will not do this step normally but the unit testing code for the benchmark-server project requires it -->
     
-    <bean id="testMongoFactory" class="org.alfresco.mongo.MongoDBForTestsFactory" />
+    <bean id="testMongoFactory" class="org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory" />
     
 </beans>

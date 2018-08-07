@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-    xsi:schemaLocation="http://www.springframework.org/schema/context
-          http://www.springframework.org/schema/context/spring-context-3.0.xsd
-          http://www.springframework.org/schema/data/mongo
-          http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd
-          http://www.springframework.org/schema/beans
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
  
     <!--          -->
@@ -20,7 +14,7 @@
     <!-- Lifecycle -->
     <!--           -->
     
-    <bean id="testLifeCycleController" class="org.alfresco.bm.test.LifecycleController">
+    <bean id="testLifeCycleController" class="org.alfresco.bm.common.spring.LifecycleController">
         <constructor-arg>
             <array>
                 <ref bean="eventController" />
@@ -32,7 +26,7 @@
     <!-- Logging and Data Results   -->
     <!--                            -->
 
-    <bean id="testRunService" class="org.alfresco.bm.test.TestRunService">
+    <bean id="testRunService" class="org.alfresco.bm.driver.test.TestRunService">
         <constructor-arg name="logService" ref="logService" />
         <constructor-arg name="testDAO" ref="testDAO" />
         <constructor-arg name="driverId" value="${driverId}" />
@@ -41,7 +35,7 @@
     </bean>
 
     <!-- DEPRECATED from 2.1.2 on! Please use testRunService instead -->
-    <bean id="testRunLogService" class="org.alfresco.bm.log.TestRunLogService">
+    <bean id="testRunLogService" class="org.alfresco.bm.common.util.log.TestRunLogService">
         <constructor-arg name="logService" ref="logService" />
         <constructor-arg name="driverId" value="${driverId}" />
         <constructor-arg name="test" value="${test}" />
@@ -56,7 +50,7 @@
     <!--                 -->
 
     <!-- The CompletionEstimator looking at the test elapsed time -->
-    <bean id="completionEstimator.elapsedTime" class="org.alfresco.bm.test.ElapsedTimeCompletionEstimator">
+    <bean id="completionEstimator.elapsedTime" class="org.alfresco.bm.driver.test.ElapsedTimeCompletionEstimator">
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="timeUnitStr" value="${test.durationUnit}" />
@@ -64,13 +58,13 @@
     </bean>
 
     <!-- The CompletionEstimator looking at the presence of any events -->
-    <bean id="completionEstimator.unknown" class="org.alfresco.bm.test.UnknownCompletionEstimator">
+    <bean id="completionEstimator.unknown" class="org.alfresco.bm.driver.test.UnknownCompletionEstimator">
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
     </bean>
 
     <!-- Every test must have a bean with this name -->
-    <bean id="completionEstimator" class="org.alfresco.bm.test.CompoundCompletionEstimator">
+    <bean id="completionEstimator" class="org.alfresco.bm.driver.test.CompoundCompletionEstimator">
         <constructor-arg name="eventService" ref="eventService" />
         <constructor-arg name="resultService" ref="resultService" />
         <constructor-arg name="estimators">
@@ -85,27 +79,27 @@
     <!-- EventProducers  -->
     <!--                 -->
     
-    <bean id="eventProducers" class="org.alfresco.bm.event.producer.EventProducerRegistry" />
-    <bean id="producer.base" abstract="true" class="org.alfresco.bm.event.producer.AbstractEventProducer" init-method="register">
+    <bean id="eventProducers" class="org.alfresco.bm.driver.event.producer.EventProducerRegistry" />
+    <bean id="producer.base" abstract="true" class="org.alfresco.bm.driver.event.producer.AbstractEventProducer" init-method="register">
         <property name="registry" ref="eventProducers" />
     </bean>
-    <bean id="producer.terminate" class="org.alfresco.bm.event.producer.TerminateEventProducer" parent="producer.base" />
+    <bean id="producer.terminate" class="org.alfresco.bm.driver.event.producer.TerminateEventProducer" parent="producer.base" />
 
     <!--                 -->
     <!-- EventProcessors -->
     <!--                 -->
     
-    <bean id="eventProcessors" class="org.alfresco.bm.event.EventProcessorRegistry" />
-    <bean id="event.base" abstract="true" class="org.alfresco.bm.event.AbstractEventProcessor" init-method="register">
+    <bean id="eventProcessors" class="org.alfresco.bm.driver.event.EventProcessorRegistry" />
+    <bean id="event.base" abstract="true" class="org.alfresco.bm.driver.event.AbstractEventProcessor" init-method="register">
         <property name="registry" ref="eventProcessors" />
     </bean>
-    <bean id="event.start" class="org.alfresco.bm.event.DoNothingEventProcessor" parent="event.base" />
+    <bean id="event.start" class="org.alfresco.bm.driver.event.DoNothingEventProcessor" parent="event.base" />
     
     <!--                  -->
     <!-- Event Controller -->
     <!--                  -->
 
-    <bean id="eventController" class="org.alfresco.bm.server.EventController" >
+    <bean id="eventController" class="org.alfresco.bm.driver.event.EventController" >
         <constructor-arg name="driverId" value="${driverId}" />
         <constructor-arg name="testRunFqn" value="${testRunFqn}" />
         <constructor-arg name="eventService" ref="eventService" />

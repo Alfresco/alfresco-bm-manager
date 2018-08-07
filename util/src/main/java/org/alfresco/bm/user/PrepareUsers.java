@@ -19,9 +19,9 @@
 package org.alfresco.bm.user;
 
 import org.alfresco.bm.data.DataCreationState;
-import org.alfresco.bm.event.AbstractEventProcessor;
-import org.alfresco.bm.event.Event;
-import org.alfresco.bm.event.EventResult;
+import org.alfresco.bm.driver.event.AbstractEventProcessor;
+import org.alfresco.bm.driver.event.Event;
+import org.alfresco.bm.common.EventResult;
 
 import com.mongodb.DuplicateKeyException;
 
