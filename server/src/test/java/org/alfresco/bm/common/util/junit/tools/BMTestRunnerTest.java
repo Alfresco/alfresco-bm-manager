@@ -1,32 +1,44 @@
 /*
- * Copyright (C) 2005-2014 Alfresco Software Limited.
- *
- * This file is part of Alfresco
- *
+ * #%L
+ * Alfresco Benchmark Framework Manager
+ * %%
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * %%
+ * This file is part of the Alfresco software. 
+ * If the software was purchased under a paid Alfresco license, the terms of 
+ * the paid license agreement will prevail.  Otherwise, the software is 
+ * provided under the following open source license terms:
+ * 
  * Alfresco is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * 
  * Alfresco is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
+ * #L%
  */
 package org.alfresco.bm.common.util.junit.tools;
 
-import com.mongodb.DBCursor;
-import com.mongodb.ServerAddress;
-import com.mongodb.util.JSON;
+import static org.alfresco.bm.common.TestConstants.PROP_APP_RELEASE;
+import static org.alfresco.bm.common.TestConstants.PROP_APP_SCHEMA;
+import static org.alfresco.bm.common.TestConstants.PROP_MONGO_TEST_DATABASE;
+import static org.alfresco.bm.common.TestConstants.PROP_TEST_RUN_MONITOR_PERIOD;
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Properties;
+
 import org.alfresco.bm.common.ResultService;
 import org.alfresco.bm.common.spring.TestRunServicesCache;
-import org.alfresco.bm.manager.Application;
-import org.alfresco.bm.manager.report.CSVReporter;
 import org.alfresco.bm.common.util.log.LogService;
 import org.alfresco.bm.common.util.log.LogService.LogLevel;
+import org.alfresco.bm.manager.report.CSVReporter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,20 +46,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.ByteArrayOutputStream;
-import java.util.Properties;
-
-import static org.alfresco.bm.common.TestConstants.PROP_APP_RELEASE;
-import static org.alfresco.bm.common.TestConstants.PROP_APP_SCHEMA;
-import static org.alfresco.bm.common.TestConstants.PROP_MONGO_TEST_DATABASE;
-import static org.alfresco.bm.common.TestConstants.PROP_TEST_RUN_MONITOR_PERIOD;
-import static org.junit.Assert.assertEquals;
+import com.mongodb.DBCursor;
+import com.mongodb.ServerAddress;
+import com.mongodb.util.JSON;
 /**
  * @see BMTestRunner
  * 
