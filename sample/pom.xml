@@ -5,13 +5,13 @@
 
     <parent>
         <groupId>org.alfresco</groupId>
-        <artifactId>alfresco-bmf-manager-project</artifactId>
+        <artifactId>alfresco-bm-manager-project</artifactId>
         <version>3.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>alfresco-bmf-sample-driver</artifactId>
-    <name>Alfresco Benchmark Framework Sample Driver</name>
+    <artifactId>alfresco-bm-sample-driver</artifactId>
+    <name>Alfresco Benchmark Sample Driver</name>
     <packaging>jar</packaging>
 
     <properties>
@@ -24,12 +24,12 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alfresco-bmf-manager</artifactId>
+            <artifactId>alfresco-bm-manager</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alfresco-bmf-util</artifactId>
+            <artifactId>alfresco-bm-util</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
