@@ -1,6 +1,6 @@
 /*
  * #%L
- * Alfresco Benchmark Framework Manager
+ * Alfresco Benchmark Manager
  * %%
  * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
@@ -346,7 +346,7 @@ public class Test implements LifecycleListener,
         initNetworkDetails();
         
         // The core BM Server application does NOT drive anything
-        boolean isDriver = !release.toLowerCase().startsWith("alfresco-bmf-manager");
+        boolean isDriver = !release.toLowerCase().startsWith("alfresco-bm-manager");
         if (isDriver)
         {
             // Ensure that there is a representation of the test in the DB

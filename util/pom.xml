@@ -5,20 +5,20 @@
 
     <parent>
         <groupId>org.alfresco</groupId>
-        <artifactId>alfresco-bmf-manager-project</artifactId>
+        <artifactId>alfresco-bm-manager-project</artifactId>
         <version>3.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>alfresco-bmf-util</artifactId>
-    <name>Alfresco Benchmark Framework Util</name>
+    <artifactId>alfresco-bm-util</artifactId>
+    <name>Alfresco Benchmark Util</name>
     <packaging>jar</packaging>
 
     <dependencies>
         <!-- Server -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alfresco-bmf-manager</artifactId>
+            <artifactId>alfresco-bm-manager</artifactId>
             <version>${project.version}</version>
             <classifier>classes</classifier>
         </dependency>
