@@ -5,13 +5,13 @@
 
     <parent>
         <groupId>org.alfresco</groupId>
-        <artifactId>alfresco-bmf-manager-project</artifactId>
+        <artifactId>alfresco-bm-manager-project</artifactId>
         <version>3.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>alfresco-bmf-manager</artifactId>
-    <name>Alfresco Benchmark Framework Manager</name>
+    <artifactId>alfresco-bm-manager</artifactId>
+    <name>Alfresco Benchmark Manager</name>
     <packaging>jar</packaging>
 
     <properties>
