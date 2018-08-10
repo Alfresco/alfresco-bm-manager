@@ -1,0 +1,92 @@
+@startuml
+
+cloud "Angular UI" {
+    [UI]
+}
+cloud "Other REST client"{
+    [REST client]
+}
+
+cloud "BM REST API" {
+[REST client] --> REST.Entry.Point
+[UI] --> REST.Entry.Point
+    [TestDefinitionRestAPI]
+    [TestRestAPI]
+    [StatusAPI]
+    [ResultsRestAPI]
+}
+
+cloud "Service Layer"{
+    [TestService]
+    [LogService]
+
+    [TestRunServiceCache]
+        ["uses test-services-context.xml"] #White
+        [EventService]
+        [SessionService]
+        [ResultService]
+        [DataReportService]
+}
+
+cloud "Reports"{
+    [CSVReport]
+    [XLSXReport]
+}
+
+cloud "Mongo DAO Layer"{
+    [MongoTestDAO]
+}
+
+cloud "Mongo Config DB Layer"{
+    [Config MongoDBFactory]
+}
+
+cloud "Mongo Test Data DB Layer"{
+    [Test Data MongoDBFactory]
+}
+
+database "Config Mongo DB" {
+    [Config Collections]
+}
+
+database "BM Test Data Mongo DB" {
+    [Test Data Collections]
+}
+
+[TestRunServiceCache] -right-> ["uses test-services-context.xml"] : uses
+[TestRunServiceCache] --> [EventService]
+[TestRunServiceCache] --> [SessionService]
+[TestRunServiceCache] --> [ResultService]
+[TestRunServiceCache] --> [DataReportService]
+
+[TestRunServiceCache] -left-> [TestService]
+
+[StatusAPI] --> [LogService]
+
+[TestDefinitionRestAPI] --> [MongoTestDAO]
+[TestRestAPI] --> [MongoTestDAO]
+[TestRestAPI] --> [TestService]
+[TestRestAPI] --> [LogService]
+[TestRestAPI] --> [TestRunServiceCache] : deleteTestRun
+
+[TestService] --> [MongoTestDAO]
+
+[ResultsRestAPI] -down-> [TestRunServiceCache]
+[ResultsRestAPI] -right-> [CSVReport]
+[ResultsRestAPI] -right-> [XLSXReport]
+
+[CSVReport] --> [TestRunServiceCache]
+[XLSXReport] --> [TestRunServiceCache]
+
+[Config MongoDBFactory] --> [Config Collections]
+[Test Data MongoDBFactory] --> [Test Data Collections]
+
+[LogService] --> [Config MongoDBFactory]
+[MongoTestDAO] --> [Config MongoDBFactory]
+
+[EventService] --> [Test Data MongoDBFactory]
+[SessionService] --> [Test Data MongoDBFactory]
+[ResultService] --> [Test Data MongoDBFactory]
+[DataReportService] --> [Test Data MongoDBFactory]
+
+@enduml

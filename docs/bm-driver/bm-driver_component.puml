@@ -1,0 +1,47 @@
+@startuml
+
+
+cloud "Service Layer"{
+    [TestService]
+    [LogService]
+    [EventService]
+    [SessionService]
+    [ResultService]
+    [DataReportService]
+}
+
+cloud "Mongo DAO Layer"{
+    [MongoTestDAO]
+}
+
+cloud "Mongo Config DB Layer"{
+    [Config MongoDBFactory]
+}
+
+cloud "Mongo Test Data DB Layer"{
+    [Test Data MongoDBFactory]
+}
+
+database "Config Mongo DB" {
+    [Config Collections]
+}
+
+database "BM Test Data Mongo DB" {
+    [Test Data Collections]
+}
+
+
+[TestService] --> [MongoTestDAO]
+
+[Config MongoDBFactory] --> [Config Collections]
+[Test Data MongoDBFactory] --> [Test Data Collections]
+
+[LogService] --> [Config MongoDBFactory]
+[MongoTestDAO] --> [Config MongoDBFactory]
+
+[EventService] --> [Test Data MongoDBFactory]
+[SessionService] --> [Test Data MongoDBFactory]
+[ResultService] --> [Test Data MongoDBFactory]
+[DataReportService] --> [Test Data MongoDBFactory]
+
+@enduml
