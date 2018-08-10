@@ -1,0 +1,48 @@
+version: "3"
+
+# The alfresco-bm-manager project contains the docker-compose of the manager
+# This is for the benchmark testing drivers
+
+# Each image used here should be build in advance from the specific project
+services:
+    alfresco-bm-load-users-1:
+        image: ${REGISTRY}alfresco/alfresco-bm-load-users:${ALFRESCO_BM_LOAD_USERS_TAG}
+        environment:
+            JAVA_OPTS : "
+                -Dmongo.config.host=mongo
+                -Dserver.port=9082
+                "
+        ports:
+            - 9082:9082
+        networks:
+            - server_bm_network
+
+    alfresco-bm-load-users-2:
+        image: ${REGISTRY}alfresco/alfresco-bm-load-users:${ALFRESCO_BM_LOAD_USERS_TAG}
+        environment:
+            JAVA_OPTS : "
+                -Dmongo.config.host=mongo
+                -Dserver.port=9083
+                "
+        ports:
+            - 9083:9083
+        networks:
+            - server_bm_network
+
+    # alfresco-bm-responsivness:
+    #     image: ${REGISTRY}alfresco/alfresco-bm-responsivness:${ALFRESCO_BM_RESPONSIVNESS_TAG}
+    #     environment:
+    #         JAVA_OPTS : "
+    #             -Dmongo.config.host=mongo
+    #             -Dserver.port=9084
+    #             "
+    #     ports:
+    #         - 9084:9084
+    #     networks:
+    #         - server_bm_network
+
+networks:
+    server_bm_network:
+        external: true
+
+

@@ -10,8 +10,16 @@ services:
                 "
         ports:
             - 9080:9080
+        networks:
+            - bm_network
 
     mongo:
         image: mongo:${MONGO_TAG}
         ports:
             - 27017:27017
+        networks:
+            - bm_network
+
+networks:
+    bm_network:
+        driver: bridge
