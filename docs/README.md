@@ -2,6 +2,6 @@
 
 ### Main components:
 
-* [bm-manager](/docs/bm-manager/readme.md)
-* generic [bm-driver](/docs/bm-driver/readme.md)
+* [bm-manager](/docs/bm-manager/README.md)
+* generic [bm-driver](/docs/bm-driver/README.md)
  

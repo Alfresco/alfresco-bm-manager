@@ -37,7 +37,7 @@ and understand how it all works when you want to debug it.
 
 1. A class (with @SpringbootApplication annotation usually) loads the same ```classpath:config/spring/app-context.xml``` , 
 see sample: ```org.alfresco.bm.SampleMBFDriverApplication```, just like the bm-manager; This means that everything described in the
-[manager startup code](docs/bm-manager/readme.md) is still true for the bm-driver, **Except** for the ```@RestController```s that 
+[manager startup code](docs/bm-manager/README.md) is still true for the bm-driver, **Except** for the ```@RestController```s that 
 in the bm-driver case are no longer scanned and loaded.
 
 2. This means that all the beans defined in the ```config/spring/app-context.xml``` are still available in the bm-driver, which is 
@@ -47,10 +47,10 @@ Here is a reminder of what beans we have in the ```config/spring/app-context.xml
 * properties management _(this will be explained further down for the bm-driver)_;
 * DAO service and connection management to mongo (these are started with the BM Config Mongo DB in this context):
  see package ```org.alfresco.bm.common.mongo```;_(see details below)_
-* testService - see description on the [bm-manager doc](docs/bm-manager/readme.md); This connects to the BM Config Mongo DB
+* testService - see description on the [bm-manager doc](docs/bm-manager/README.md); This connects to the BM Config Mongo DB
 * testRunServices (class TestRunServiceCache)(I don't think this is used in the bm-driver context, as the services from the 
 test-services-context.xml file are loaded directly by the TestRun.start() context load from the test-common-context.xml) 
-- see description on the [bm-manager doc](docs/bm-manager/readme.md) if you want to understand what this is used for on the 
+- see description on the [bm-manager doc](docs/bm-manager/README.md) if you want to understand what this is used for on the 
 bm-maanger side
 * logs (logService)
 * lifecycleController - **unfortunately**(see [REPO-3741](https://issues.alfresco.com/jira/browse/REPO-3741))
