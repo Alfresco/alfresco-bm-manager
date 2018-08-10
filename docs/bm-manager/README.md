@@ -121,7 +121,7 @@ the ```MongoTestDAO```) and the ```LogService``` to
 to force the user to specify one when starting the bm-manager app up;
   * and any other : config/startup/*.properties 
   
-* The bean "testDefaults" is not used in the bm-manager code. It is explained in the [bm-driver documentation](docs/bm-driver/README.md)
+* The bean "testDefaults" is not used in the bm-manager code. It is explained in the [bm-driver documentation](/docs/bm-driver/README.md)
 
 ### Package structure:
 * Classes under ```org.alfresco.bm.manager``` are the only one specific to the bm-manager. They include the bm-manager REST API and the report generation (csv and xlsx);
