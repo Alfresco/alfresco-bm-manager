@@ -36,7 +36,7 @@ import org.alfresco.bm.driver.event.AbstractEventProcessor;
 import org.alfresco.bm.driver.event.Event;
 import org.alfresco.bm.common.EventResult;
 import org.alfresco.bm.driver.file.TestFileService;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 
 import com.mongodb.DBObject;
 

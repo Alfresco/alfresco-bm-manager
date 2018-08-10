@@ -28,7 +28,7 @@ package org.alfresco.bm.driver.event;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import org.alfresco.bm.common.EventResult;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 
 import java.util.ArrayList;
 import java.util.List;

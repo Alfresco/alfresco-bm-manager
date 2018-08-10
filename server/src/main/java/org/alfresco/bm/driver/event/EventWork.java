@@ -32,7 +32,7 @@ import org.alfresco.bm.common.util.log.LogService.LogLevel;
 import org.alfresco.bm.common.util.log.TestRunLogService;
 import org.alfresco.bm.driver.event.producer.EventProducer;
 import org.alfresco.bm.driver.event.producer.EventProducerRegistry;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.logging.Log;

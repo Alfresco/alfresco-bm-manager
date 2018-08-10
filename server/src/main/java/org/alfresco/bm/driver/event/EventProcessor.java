@@ -27,7 +27,7 @@ package org.alfresco.bm.driver.event;
 
 import org.alfresco.bm.common.EventResult;
 import org.alfresco.bm.common.ResultService;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 import org.apache.commons.lang3.time.StopWatch;
 
 /**
