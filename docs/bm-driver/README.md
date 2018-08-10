@@ -47,7 +47,7 @@ Here is a reminder of what beans we have in the ```config/spring/app-context.xml
 * properties management _(this will be explained further down for the bm-driver)_;
 * DAO service and connection management to mongo (these are started with the BM Config Mongo DB in this context):
  see package ```org.alfresco.bm.common.mongo```;_(see details below)_
-* testService - see description on the [bm-manager doc](/../bm-manager/README.md); This connects to the BM Config Mongo DB
+* testService - see description on the [bm-manager doc](../bm-manager/README.md); This connects to the BM Config Mongo DB
 * testRunServices (class TestRunServiceCache)(I don't think this is used in the bm-driver context, as the services from the 
 test-services-context.xml file are loaded directly by the TestRun.start() context load from the test-common-context.xml) 
 - see description on the [bm-manager doc](../bm-manager/README.md) if you want to understand what this is used for on the 
