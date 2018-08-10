@@ -7,8 +7,25 @@ cloud "Service Layer"{
     [EventService]
     [SessionService]
     [ResultService]
-    [DataReportService]
+    [TestRunService]
 }
+
+[EventController]
+
+[Test]
+
+[TestRunPingTask]
+
+[TestRun]
+
+[EventWork]
+
+[EventProcessor]
+
+[EventProducerRegistry]
+[EventProcessorRegistry]
+
+[TestDefaults]
 
 cloud "Mongo DAO Layer"{
     [MongoTestDAO]
@@ -42,6 +59,32 @@ database "BM Test Data Mongo DB" {
 [EventService] --> [Test Data MongoDBFactory]
 [SessionService] --> [Test Data MongoDBFactory]
 [ResultService] --> [Test Data MongoDBFactory]
-[DataReportService] --> [Test Data MongoDBFactory]
 
+
+[Test] --> [LogService]
+[Test] --> [MongoTestDAO]
+[Test] --> [TestRunPingTask]
+[Test] --> [TestDefaults]
+
+[TestRunPingTask] ..> [TestRun]
+
+[TestRun] --> [MongoTestDAO]
+[TestRun] --> [LogService]
+[TestRun] ..> [EventController]
+
+[EventController] --> [EventProcessorRegistry]
+[EventController] --> [EventProducerRegistry]
+[EventController] --> [EventService]
+[EventController] --> [ResultService]
+[EventController] --> [SessionService]
+[EventController] ..> [EventWork]
+
+[EventWork] --> [EventProcessor]
+[EventWork] --> [EventProducerRegistry]
+[EventWork] --> [EventService]
+[EventWork] --> [ResultService]
+[EventWork] --> [SessionService]
+
+[TestRunService] --> [MongoTestDAO]
+[EventProcessor] ..> [Test Data MongoDBFactory]
 @enduml
