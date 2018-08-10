@@ -215,6 +215,8 @@ delays,...)
 
 ### Other components and services:
 TODO
+completionEstimator...
+
 #### testRunService
  don't confuse with testRunServices!
  

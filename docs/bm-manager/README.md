@@ -1,4 +1,4 @@
-# Alfreco Benchmark Manager 
+# Alfresco Benchmark Manager 
 a.k.a Benchmark Server 
 
 ## What is it?
