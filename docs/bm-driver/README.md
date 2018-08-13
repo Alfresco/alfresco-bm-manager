@@ -101,7 +101,7 @@ This means that from time to time this dm-driver updates its ping time in the 't
 The bm-manager uses this information to detect the "alive" drivers.
 4. ```testRunPingTask``` **this is the most important task** that the bm-driver does: This thread (```TestRunPingTask```) queries 
 the BM Config Mongo DB for the presence of new scheduled BM Test Runs that it can execute 
-````testDAO.getTests(release, schema, testsSkip, 100);```: it looks into the 'test.runs' collection for test runs with:
+```testDAO.getTests(release, schema, testsSkip, 100);```: it looks into the 'test.runs' collection for test runs with:
    * scheduled state 
    * bm-driver compatibility  
 
