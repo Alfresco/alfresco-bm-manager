@@ -1,48 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+        <groupId>org.alfresco</groupId>
+        <artifactId>alfresco-bm-manager-project</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    
     <groupId>${groupId}</groupId>
-    <artifactId>${artifactId}</artifactId>
-    <version>${version}</version>
-    <packaging>war</packaging>
+	<artifactId>${artifactId}</artifactId>
+	<version>${version}</version>
+	<packaging>jar</packaging>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <server.version>${server-version}</server.version>
-        <junit.version>${junit-version}</junit.version>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<server.version>${server-version}</server.version>
+		<junit.version>${junit-version}</junit.version>
+	</properties>
 
-        <bm.tomcat.port>9090</bm.tomcat.port>
-        <bm.tomcat.ip>localhost</bm.tomcat.ip>
-        <bm.tomcat.url>http://${bm.tomcat.ip}:${bm.tomcat.port}/manager/text</bm.tomcat.url>
-        <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
-    </properties>
-
-    <dependencies>
+	 <dependencies>
         <dependency>
             <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-benchmark-server</artifactId>
+            <artifactId>alfresco-bm-manager</artifactId>
             <version>${server.version}</version>
-            <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-benchmark-util</artifactId>
+            <artifactId>alfresco-bm-util</artifactId>
             <version>${server.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
             <version>${junit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
-    <!-- Uncomment this for your project
-    <scm>
-        <connection>scm:svn:SomeURL></connection>
-    </scm>
-    -->
-    <!-- Reconfigure this for your project -->
+
     <build>
         <resources>
             <resource>
@@ -58,29 +67,36 @@
                 <includes>
                     <include>**</include>
                 </includes>
-                <filtering>false</filtering>
+                <filtering>true</filtering>
             </resource>
         </resources>
         <plugins>
             <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <configuration>
-                    <url>${bm.tomcat.url}</url>
-                    <!-- Add the following server to your security settings -->
-                    <server>${bm.tomcat.server}</server>
-                    <port>${bm.tomcat.port}</port>
-                    <path>/${project.name}-${project.version}</path>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${dependency.spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.1.1</version>
-                <configuration>
-                    <attachClasses>true</attachClasses>
-                </configuration>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
 </project>
+
+

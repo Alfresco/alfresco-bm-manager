@@ -14,13 +14,6 @@
     <name>Alfresco Benchmark Sample Driver</name>
     <packaging>jar</packaging>
 
-    <properties>
-        <bm.tomcat.port>9081</bm.tomcat.port>
-        <bm.tomcat.ip>localhost</bm.tomcat.ip>
-        <bm.tomcat.url>http://${bm.tomcat.ip}:${bm.tomcat.port}/manager/text</bm.tomcat.url>
-        <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
