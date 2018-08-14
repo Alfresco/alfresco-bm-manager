@@ -32,12 +32,12 @@ Subversion:
 3.Start server
 
     cd server   
-    mvn tomcat7:run -Dmongo.config.host=\<mongo-host\>
+    mvn clean spring-boot:run -Dmongo.config.host=\<mongo-host\>
 
 4.Start sample load driver
 
     cd ../sample    
-    mvn tomcat7:run -Dmongo.config.host=\<mongo-host\> 
+    mvn clean spring-boot:run -Dmongo.config.host==\<mongo-host\> 
 
 5.Access server UI
 
