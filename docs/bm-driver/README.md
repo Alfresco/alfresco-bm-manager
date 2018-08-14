@@ -101,7 +101,7 @@ This means that from time to time this dm-driver updates its ping time in the 't
 The bm-manager uses this information to detect the "alive" drivers.
 4. ```testRunPingTask``` **this is the most important task** that the bm-driver does: This thread (```TestRunPingTask```) queries 
 the BM Config Mongo DB for the presence of new scheduled BM Test Runs that it can execute 
-```testDAO.getTests(release, schema, testsSkip, 100);```: it looks into the 'test.runs' collection for test runs with:
+```testDAO.getTests(release, schema, testsSkip, 100)```: it looks into the 'test.runs' collection for test runs with:
    * scheduled state 
    * bm-driver compatibility  
 
@@ -165,7 +165,7 @@ Let's look at some of the important things it does:
      collection in the BM Test Data Mongo DB
 2. After the "testrun" context is started, the checkState() method can advance through the BM Test Runs states (until completion),
 executing all the events that are produced or have to be processed; This is done by the EventController (description below) by 
-the ```TestRun``` class calling ```updateDriverIds()``` method thus marking this bm-driver as validr processor for events on the 
+the ```TestRun``` class calling ```updateDriverIds()``` method thus marking this bm-driver a valid processor for events on the 
 events queue;
 3. ```EventController``` the javadoc explains it pretty well and feel free to go through the 
 ```org.alfresco.bm.driver.event.EventController.runImpl()``` method as well;
@@ -214,24 +214,15 @@ It gets scheduled for execution according to the settings specified to the bm-dr
 delays,...)
 
 ### Other components and services:
-TODO
-completionEstimator...
 
-#### testRunService
- don't confuse with testRunServices!
- 
-Todo
+The progress of the test runs is calculated using the ```CompletionEstimator``` classes. These measure the completion ratio based on
+the number of completed sessions, on the number of a specific type of event or based on elapsed time.
+
+TestRunService (not to be confused with TestRunServices) is used to log messages in the database for a specific test run.
 
 #### Entire component diagram:
 
 See [bm-driver_component.png](bm-driver_component.png);
-
-
-## Flow Diagram
-TODO maybe merge with component diagram
-
-
-
 
 #### Samples:
 
@@ -256,7 +247,6 @@ E.g. test.driver entry:
 }
 ```
 
-
 ### Properties:
 * Just like on the server: bean "appPlaceholderConfigurer" loads the "normal spring" properties from the 
    * config/startup/app.properties: app.release, app.schema, app.inheritance, server.contextPath, server.port
@@ -273,16 +263,21 @@ what properties will be saved as the defaults properties for that particular dri
    BM Test Data Mongo DB, 
    **not** the BM Config Mongo DB)
    * This mechanism allows a bm-driver (and schema) to inherit default properties for various event types and common functionality, 
-	but also to override any specify new properties for its custom needs;  
-	   * E.g. 1: probably all drivers will use a mongo db to store the specific BM Test Data, therefore it is simpler to keep a single 
-	template with the all the properties needed in one place; 
-	   * E.g. 2: some tests will need to know where they can find a list of users already created in Alfresco, 
-	   therefore it is sensible to consider a default set of settings for this functionality that would suite most use cases, 
-	   but also allow other drivers to override these settings
+    but also to override any specify new properties for its custom needs;  
+       * E.g. 1: probably all drivers will use a mongo db to store the specific BM Test Data, therefore it is simpler to keep a single 
+    template with the all the properties needed in one place; 
+       * E.g. 2: some tests will need to know where they can find a list of users already created in Alfresco, 
+       therefore it is sensible to consider a default set of settings for this functionality that would suite most use cases, 
+       but also allow other drivers to override these settings
 
 
 ## Junit (integration) tests
-TODO
+
+The tests can be split into two categories: standard junits that test the methods (e.g ```org.alfresco.bm.user.CreateUsersWithRestV1APITest```
+from alfresco-bm-load-users which tests the setting of user groups based on chance) and junit integration tests that are loading spring contexts.
+Junits that test the whole test run process are using BMTestRunner (e.g ```UsersLoadBMFDriverTest.runDefaultSignup``` or ```BMDataLoadTest.testBasic```)
 
 ### BMTestRunner
-TODO
+The ```org.alfresco.bm.common.util.junit.tools.BMTestRunner``` class is used to execute a test run with TestProperties and MongoHost passed as arguments.
+The method ```BMTestRunner.run``` creates a test, a test run and schedules the test to be run using the BM Manager's Rest API. While the test runs it checks
+if the test has started or if it is hanging and finally if it is completed.

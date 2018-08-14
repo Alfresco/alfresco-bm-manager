@@ -67,6 +67,7 @@ database "BM Test Data Mongo DB" {
 [Test] --> [TestDefaults]
 
 [TestRunPingTask] ..> [TestRun]
+[TestRunPingTask] --> [MongoTestDAO]
 
 [TestRun] --> [MongoTestDAO]
 [TestRun] --> [LogService]
