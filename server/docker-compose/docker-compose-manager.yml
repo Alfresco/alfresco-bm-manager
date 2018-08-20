@@ -1,5 +1,5 @@
 version: "3"
-# This is the docker compose for Alfresco Benchmark Manager and all drivers
+# This is the docker compose for Alfresco Benchmark Manager
 
 services:
     alfresco-bm-manager:
@@ -14,4 +14,4 @@ services:
     mongo:
         image: mongo:${MONGO_TAG}
         ports:
-            - 27017:27017
+            - ${MONGO_PORT}:27017
