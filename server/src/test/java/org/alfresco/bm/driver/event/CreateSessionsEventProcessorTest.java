@@ -28,7 +28,7 @@ package org.alfresco.bm.driver.event;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import org.alfresco.bm.common.EventResult;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.bm.driver.session;
+package org.alfresco.bm.common.session;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;

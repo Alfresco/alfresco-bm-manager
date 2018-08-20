@@ -26,7 +26,7 @@
 package org.alfresco.bm.user;
 
 import org.alfresco.bm.driver.event.CreateSessionsEventProcessor;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 
 /**
  * Schedules random user sessions according to the session concurrency required.

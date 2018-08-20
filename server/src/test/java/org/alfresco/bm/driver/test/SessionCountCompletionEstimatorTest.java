@@ -27,7 +27,7 @@ package org.alfresco.bm.driver.test;
 
 import org.alfresco.bm.driver.event.EventService;
 import org.alfresco.bm.common.ResultService;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

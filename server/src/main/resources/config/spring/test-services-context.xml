@@ -41,7 +41,7 @@
         <constructor-arg name="collection" value="${testRunFqn}.results" />
     </bean>
     
-    <bean id="testMongoSessionService" class="org.alfresco.bm.driver.session.MongoSessionService">
+    <bean id="testMongoSessionService" class="org.alfresco.bm.common.session.MongoSessionService">
         <constructor-arg name="db" ref="testMongoDB" />
         <constructor-arg name="collection" value="${testRunFqn}.sessions" />
     </bean>

@@ -30,7 +30,7 @@ import org.alfresco.bm.common.EventResult;
 import org.alfresco.bm.common.mongo.MongoEventService;
 import org.alfresco.bm.common.mongo.MongoResultService;
 import org.alfresco.bm.driver.event.producer.EventProducerRegistry;
-import org.alfresco.bm.driver.session.MongoSessionService;
+import org.alfresco.bm.common.session.MongoSessionService;
 import org.alfresco.bm.common.util.junit.tools.MongoDBForTestsFactory;
 import org.alfresco.bm.common.util.log.LogService;
 import org.alfresco.bm.common.util.log.MongoLogService;

@@ -35,7 +35,7 @@ import org.alfresco.bm.common.mongo.MongoTestDAO;
 import org.alfresco.bm.common.util.ArgumentCheck;
 import org.alfresco.bm.common.util.exception.ObjectNotFoundException;
 import org.alfresco.bm.driver.event.EventService;
-import org.alfresco.bm.driver.session.SessionService;
+import org.alfresco.bm.common.session.SessionService;
 import org.alfresco.bm.manager.report.DataReportService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;

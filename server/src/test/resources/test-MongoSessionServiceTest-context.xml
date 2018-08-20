@@ -23,7 +23,7 @@
     <!-- Session  -->
     <!--          -->
 
-    <bean id="sessionService" class="org.alfresco.bm.driver.session.MongoSessionService">
+    <bean id="sessionService" class="org.alfresco.bm.common.session.MongoSessionService">
         <constructor-arg name="db" ref="mongoDBFactory" />
         <constructor-arg name="collection" value="${mongoCollection}" /> 
     </bean>
