@@ -1,0 +1,23 @@
+version: "3"
+# This is the docker compose for Alfresco Benchmark Manager and all drivers
+
+services:
+    alfresco-bm-load-users-1:
+        image: ${REGISTRY}alfresco/alfresco-bm-load-users:${ALFRESCO_BM_LOAD_USERS_TAG}
+        environment:
+            JAVA_OPTS : "
+                -Dmongo.config.host=${MONGO_HOST}
+                -Dserver.port=9082
+                "
+        ports:
+            - 9082:9082
+
+    # alfresco-bm-responsivness:
+    #     image: ${REGISTRY}alfresco/alfresco-bm-responsivness:${ALFRESCO_BM_RESPONSIVNESS_TAG}
+    #     environment:
+    #         JAVA_OPTS : "
+    #             -Dmongo.config.host=${MONGO_HOST}
+    #             -Dserver.port=9084
+    #             "
+    #     ports:
+    #         - 9084:9084
