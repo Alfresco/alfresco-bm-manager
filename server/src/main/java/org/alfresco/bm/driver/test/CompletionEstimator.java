@@ -49,7 +49,7 @@ public interface CompletionEstimator
     boolean isStarted();
     
     /**
-     * Shortcut method to determine if the test run has started or not.
+     * Shortcut method to determine if the test run has completed or not.
      * If it has completed, the {@link #getCompletion() completion} value will be <tt>1.0</tt>
      * 
      * @return              <tt>true</tt> if the test run has finished

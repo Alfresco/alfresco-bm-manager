@@ -17,8 +17,22 @@ Subversion:
 
     svn checkout https://github.com/Alfresco/alfresco-bm-manager.git
     cd alfresco-bm-manager
+    
+### Prerequisites
+There are a few components we need before we can kick off any tests.
 
-### Use Maven
+#### 1. Java
+Before you can start any form of testing with the Alfresco Benchmark Framework, you need to install Java SDK version 1.7.0_51 or later on the Benchmark Management Manager host and on each host running the Benchmark Driver Server.
+
+#### 2. Maven
+Maven is used as the build tool so make sure you have Apache Maven 3 installed. 
+
+#### 3. MongoDB
+There also needs to be an instance of MongoDB, version 2.6.3 or later. The Benchmark Framework servers expects the port number to be *27017*.
+
+Additionally, installing **Robo 3T** (MongoDB GUI) is helpfull to see the database connection.
+
+### Start Alfresco Benchmark Driver and run Test Suite
 
 1.Build
 
@@ -32,12 +46,12 @@ Subversion:
 3.Start server
 
     cd server   
-    mvn tomcat7:run -Dmongo.config.host=\<mongo-host\>
+    mvn clean spring-boot:run -Dmongo.config.host=\<mongo-host\>
 
 4.Start sample load driver
 
     cd ../sample    
-    mvn tomcat7:run -Dmongo.config.host=\<mongo-host\> 
+    mvn clean spring-boot:run -Dmongo.config.host==\<mongo-host\> 
 
 5.Access server UI
 

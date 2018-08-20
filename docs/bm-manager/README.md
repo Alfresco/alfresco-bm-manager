@@ -1,12 +1,12 @@
 # Alfresco Benchmark Manager 
-a.k.a Benchmark Server 
+a.k.a Alfresco Benchmark Server 
 
 ## What is it?
 It is a spring boot app that coordinates and monitors the Alfresco Benchmark Drivers applications 
 in order for a user to be able to create test definitions and test runs that would run against 
 a configured Alfresco Content Services installation. 
 
-It has the ability to create reports about test runs;
+It has the ability to create reports about test runs.
 
 It has a set of REST APIs that control everything that the app can do.
 
@@ -18,7 +18,7 @@ Start with:
 ```
 mvn clean spring-boot:run -Dmongo.config.host=localhost
 ```
-The default port is 9080 but you can control that by adding the ```-Dserver.port=ZZZZ``` to the command above;
+The default port is 9080 but you can control that by adding the ```-Dserver.port=ZZZZ``` to the command above.
 
 Access the UI at: http://localhost:9080/alfresco-bm-manager
 
@@ -46,12 +46,12 @@ The beans in the ```config/spring/app-context.xml``` provide the following suppo
 * properties management _(this will be explained further down)_;
 * DAO service and connection management to mongo (these are started with the BM Config Mongo DB in this context):
  see package ```org.alfresco.bm.common.mongo```;_(see details below)_
-* testService - see description blow
+* testService _(see description below)_
 * testRunServices (class TestRunServiceCache)(this includes: resultService, eventService, sessionService, dataReportService but will be configured 
 later/not at startup (but rather during/after BM Test Run execution) to connect to the specific BM Test Data Mongo DB) 
-- see description blow
+_(see description below)_ 
 * logs (logService)
-* lifecycleController - **unfortunately**(see [REPO-3741](https://issues.alfresco.com/jira/browse/REPO-3741))
+* lifecycleController - **unfortunately** (see [REPO-3741](https://issues.alfresco.com/jira/browse/REPO-3741))
 
 **Note** ** Bean "test"(```org.alfresco.bm.driver.test.Test```) defined in ```config/spring/app-context.xml``` 
 detects in this line:  
@@ -62,26 +62,25 @@ that it is not running in the _driver_ context and therefore does not register a
 (scheduled) in the BM config mongo DB - the manger does not run tests.
 
 ### Component diagram and flow
-See [bm-manager_component.png](bm-manager_component.png);
-From top to bottom:
+ ![bm-manager_component.png;](./bm-manager_component.png)
 
 #### Interaction level
 1. The users, using the Angular UI app included in bm-manager or a custom app that makes REST API calls, controls the bm-manager 
-functionality;
+functionality.
 
 #### REST API layer
 1. The ```TestDefinitionRestAPI``` @RestController using the ```MongoTestDAO``` connects to the Config Mongo DB and ensures 
 CRUD operations for:
    * Properties (default or specific) BM Test (Definitions, Runs)
 2. The ```TestRestAPI``` @RestController is using the ```MongoTestDao``` and ```TestService``` class (that also uses 
-the ```MongoTestDAO```) and the ```LogService``` to 
-   * Ensures CRUD and monitor/control operations for: BM Test Definitions and BM Test Runs; 
-   * This controller also uses the ```TestRunsServiceCache``` to ensure that when a BM Test Run is deleted from the Config Mongo DB, 
-   the associated data from the BM Test Data Mongo DB is also deleted/cleared; See description for ```TestRunsServiceCache``` below. 
+the ```MongoTestDAO```) and the ```LogService``` to: 
+   * ensures CRUD and monitor/control operations for: BM Test Definitions and BM Test Runs; 
+   * this controller also uses the ```TestRunsServiceCache``` to ensure that when a BM Test Run is deleted from the Config Mongo DB, 
+   the associated data from the BM Test Data Mongo DB is also deleted/cleared _(see description for ```TestRunsServiceCache``` below)_. 
 3. The ```StatusAPI``` @RestController bean uses the ```logService``` to get (live) logs and start up status for BM Test Runs
 4. The ```ResultsRestAPI``` @RestController uses  the ```TestRunServiceCache``` bean and also the ```XLSXReport``` and ```CSVReport``` to:
-   * generate reports
-   * get events specific to a BM Test Run
+   * generate reports;
+   * get events specific to a BM Test Run.
 
 #### Service layer
 1. TestService controls/gets information about BM Test Runs;
@@ -93,8 +92,8 @@ the ```MongoTestDAO```) and the ```LogService``` to
    3. ResultService
    4. DataReportService
 
-   Each of these 4 services (accessible through TestRunServiceCache) are loaded and configured with the exact configuration and properties used by a particular BM Test Runs; 
-   This way, any code that wants to have data from the **BM Test Data Mongo DB** for a particular BM Test Run can do so. 
+   Each of these 4 services (accessible through TestRunServiceCache) are loaded and configured with the exact configuration and properties used by a particular BM Test Runs. 
+   In this way, any code that wants to have data from the **BM Test Data Mongo DB** for a particular BM Test Run can do so. 
    This is very useful for code that wants to extract the reports, results and events for a certain BM Test Run.  
    
 #### Reports layer
@@ -116,10 +115,10 @@ the ```MongoTestDAO```) and the ```LogService``` to
 
 #### Properties:
 * Bean "appPlaceholderConfigurer" loads the "normal spring" properties for the bm-manager from the 
-  * config/startup/app.properties: app.release, app.schema, app.inheritance, server.contextPath, server.port
+  * config/startup/app.properties: app.release, app.schema, app.inheritance, server.contextPath, server.port;
   * config/startup/mongo.properties: **Note:** A default value for the mongo.config.host is not specified, 
 to force the user to specify one when starting the bm-manager app up;
-  * and any other : config/startup/*.properties 
+  * and any other: config/startup/*.properties 
   
 * The bean "testDefaults" is not used in the bm-manager code. It is explained in the 
 [bm-driver documentation](../bm-driver/README.md)
