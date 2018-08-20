@@ -2,7 +2,7 @@ version: "3"
 # This is the docker compose for Alfresco Benchmark drivers
 
 services:
-    alfresco-bm-load-users-1:
+    alfresco-bm-load-users:
         image: ${REGISTRY}alfresco/alfresco-bm-load-users:${ALFRESCO_BM_LOAD_USERS_TAG}
         environment:
             JAVA_OPTS : "
