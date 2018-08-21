@@ -6,7 +6,6 @@
         <groupId>org.alfresco</groupId>
         <artifactId>alfresco-bm-manager-project</artifactId>
         <version>3.0.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
    
     <artifactId>alfresco-bm-sample-archetype</artifactId>

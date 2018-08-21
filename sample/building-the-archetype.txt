@@ -7,8 +7,8 @@ Copy the 'src' folder to the archetype
 > cd archetype
 
 Update dependency versions numbers
-find . -name archetype-metadata.xml | xargs sed -i -e 's/2.2.1-SNAPSHOT/2.2.1/g'
-find . -name archetype.properties | xargs sed -i -e 's/server-version=2.2.1-SNAPSHOT/server-version=2.2.1/g'
+find . -name archetype-metadata.xml | xargs sed -i -e 's/3.0.0-SNAPSHOT/3.0.0/g'
+find . -name archetype.properties | xargs sed -i -e 's/server-version=3.0.0-SNAPSHOT/server-version=3.0.0/g'
 Remove backup files (if created in the previous step):
     git status
     rm src/main/resources/META-INF/maven/archetype-metadata.xml-e
@@ -35,21 +35,23 @@ Deploy archetype
 Clean up
 > rm -rf src/main/resources/archetype-resources/src
 
-To use, follow instructions on:
+To build, follow the instructions for version 2.0 on:
    http://wiki.alfresco.com/wiki/Benchmark_Framework_2.0:_Developing_Tests
-   If you are familiar with Maven then it is just this:
+   
+If you are familiar with Maven then it is just this:
       mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate
             -DarchetypeRepository=http://artifacts.alfresco.com/nexus/content/groups/public/archetype-catalog.xml
             -DarchetypeGroupId=org.alfresco
-            -DarchetypeArtifactId=alfresco-benchmark-sample-archetype
+            -DarchetypeArtifactId=alfresco-bm-sample-archetype
    Parameters can be chosen at the prompt or specified up front:
+      -DgroupId=org.example
       -Dpackage=com.example
       -DartifactId=mytest
       -Dversion=1.0-SNAPSHOT
       -Djunit-version=4.11
-      -Dserver-version=2.0.0-SNAPSHOT
+      -Dserver-version=3.0.0-SNAPSHOT
 
 Use the New Project
 > cd mytest
 > mvn clean install
-> mvn tomcat7:run -Dmongo.config.host=localhost
+> mvn clean spring-boot:run -Dmongo.config.host=localhost
