@@ -88,6 +88,9 @@ Additionally, installing **Robo 3T** (MongoDB GUI) is helpfull to see the databa
 
     At any time - usually when the test run completes - click through on the test run.  
     Click the download button and open the CSV file in a spreadsheet.
+    
+### Create an archetype
+Please use [this guide](sample/building-the-archetype.md) to create an archetype and start the new project.
 
 ### Contributing guide
 Please use [this guide](CONTRIBUTING.md) to make a contribution to the project.
