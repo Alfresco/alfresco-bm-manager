@@ -27,7 +27,7 @@ Access the UI at: http://localhost:9080/alfresco-bm-manager
 Alfresco Benchmark Manager can be started using docker-compose. To start it make sure Docker and Docker Compose are installed, then browse to **server\docker-compose**:
 1. Set the MONGO_PORT in .env property file to choose the port which will be exposed for MongoDb
 2. Set REGISTRY to the docker registry which contains the BM Manager image
-2. Run:
+3. Run:
 ```
 docker-compose -f docker-compose-manager.yml up
 ```

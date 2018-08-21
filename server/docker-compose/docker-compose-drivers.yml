@@ -9,8 +9,6 @@ services:
                 -Dmongo.config.host=${MONGO_HOST}:${MONGO_PORT}
                 -Dserver.port=9082
                 "
-        ports:
-            - 9082:9082
 
     alfresco-bm-rest-api:
         image: ${REGISTRY}alfresco/alfresco-bm-rest-api:${ALFRESCO_BM_REST_API_TAG}
@@ -19,5 +17,3 @@ services:
                 -Dmongo.config.host=${MONGO_HOST}:${MONGO_PORT}
                 -Dserver.port=9083
                 "
-        ports:
-            - 9083:9083

@@ -24,7 +24,7 @@ You can control the port by adding: ```-Dserver.port=ZZZZ``` to the command abov
 Alfresco Benchmark Drivers can be started using docker-compose. To start it make sure Docker and Docker Compose are installed, then browse to **server\docker-compose** in Alfresco Benchmark Manager local repository:
 1. Set the MONGO_HOST and MONGO_PORT in .env property file to choose the MongoDb host/port to which the drivers will connect
 2. Set REGISTRY to the docker registry which contains all the BM Driver images
-2. Run:
+3. Run:
 ```
 docker-compose -f docker-compose-drivers.yml up
 ```
