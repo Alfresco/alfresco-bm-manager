@@ -12,13 +12,13 @@
 
     <artifactId>alfresco-bm-manager</artifactId>
     <name>Alfresco Benchmark Manager</name>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <properties>
-        <bm.tomcat.port>9080</bm.tomcat.port>
-        <bm.tomcat.ip>localhost</bm.tomcat.ip>
-        <bm.tomcat.url>http://${bm.tomcat.ip}:${bm.tomcat.port}/manager/text</bm.tomcat.url>
-        <bm.tomcat.server>dev-tomcat</bm.tomcat.server>
+        <image.name>alfresco/alfresco-bm-manager</image.name>
+        <image.tag>latest</image.tag>
+        <image.registry>quay.io</image.registry>
+        <docker.project_version>${project.version}</docker.project_version>
     </properties>
 
     <dependencies>
@@ -199,7 +199,157 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>fabric8-maven-plugin</artifactId>
+                <version>${dependency.fabric8.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${image.name}:${image.tag}</name>
+                            <build>
+                                <dockerFileDir>${project.basedir}/</dockerFileDir>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>enterpriseDocker</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>fabric8-maven-plugin</artifactId>
+                        <version>${dependency.fabric8.version}</version>
+                        <executions>
+                            <execution>
+                                <id>build-image</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>internal</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>fabric8-maven-plugin</artifactId>
+                        <version>${dependency.fabric8.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>${image.registry}/${image.name}:${image.tag}</name>
+                                    <build>
+                                        <dockerFileDir>${project.basedir}/</dockerFileDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-push-image</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                    <!-- <goal>push</goal> -->
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>master</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>fabric8-maven-plugin</artifactId>
+                        <version>${dependency.fabric8.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>${image.registry}/${image.name}</name>
+                                    <build>
+                                        <dockerFileDir>${project.basedir}/</dockerFileDir>
+                                    </build>
+                                </image>
+                                <image>
+                                    <name>${image.name}</name>
+                                    <build>
+                                        <dockerFileDir>${project.basedir}/</dockerFileDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-push-image</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>fabric8-maven-plugin</artifactId>
+                        <version>${dependency.fabric8.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>${image.name}:${project.version}</name>
+                                    <registry>${image.registry}</registry>
+                                    <build>
+                                        <dockerFileDir>${project.basedir}/</dockerFileDir>
+                                    </build>
+                                </image>
+                                <image>
+                                    <name>${image.name}:${project.version}</name>
+                                    <build>
+                                        <dockerFileDir>${project.basedir}/</dockerFileDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-push-image</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
