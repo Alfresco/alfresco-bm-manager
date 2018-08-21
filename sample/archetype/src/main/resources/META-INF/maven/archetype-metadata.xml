@@ -5,7 +5,7 @@
   
   <requiredProperties>
     <requiredProperty key="server-version">
-      <defaultValue>2.2.1-SNAPSHOT</defaultValue>
+      <defaultValue>3.0.0-SNAPSHOT</defaultValue>
     </requiredProperty>
     <requiredProperty key="junit-version">
       <defaultValue>4.11</defaultValue>
@@ -13,16 +13,10 @@
   </requiredProperties>
   
   <fileSets>
-    <fileSet filtered="false" encoding="UTF-8">
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
       <directory>src/main/java</directory>
       <includes>
         <include>**/*.java</include>
-      </includes>
-    </fileSet>
-    <fileSet filtered="false" encoding="UTF-8">
-      <directory>src/main/webapp</directory>
-      <includes>
-        <include>**/*.xml</include>
       </includes>
     </fileSet>
     <fileSet filtered="false" encoding="UTF-8">
@@ -32,7 +26,7 @@
         <include>**/*.properties</include>
       </includes>
     </fileSet>
-    <fileSet filtered="false" encoding="UTF-8">
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
       <directory>src/test/java</directory>
       <includes>
         <include>**/*.java</include>
