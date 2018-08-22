@@ -108,7 +108,6 @@ public class SiteDataServiceImpl implements SiteDataService, InitializingBean
         DBObject idxSiteMember = BasicDBObjectBuilder.start()
                 .append(SiteMemberData.FIELD_SITE_ID, 1)
                 .append(SiteMemberData.FIELD_USERNAME, 1)
-                .append("unique", Boolean.TRUE)
                 .get();
         DBObject optSiteMember = BasicDBObjectBuilder.start()
                 .append("name", "idx_SiteMember")
