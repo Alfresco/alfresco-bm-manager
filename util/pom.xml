@@ -23,7 +23,14 @@
             <classifier>classes</classifier>
         </dependency>
 
+        <dependency>
+            <groupId>org.alfresco.tas</groupId>
+            <artifactId>restapi-test</artifactId>
+            <version>5.2.0-12-SNAPSHOT</version>
+        </dependency>
+
         <!-- springsocial Alfresco -->
+        <!-- TODO this needs to go -->
         <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-benchmark-spring-social</artifactId>
