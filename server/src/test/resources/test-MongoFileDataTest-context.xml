@@ -28,7 +28,7 @@
         <constructor-arg name="collection" value="${test.mongoCollection}" /> 
     </bean>
     
-    <bean id="ftpTestFileService" class="org.alfresco.bm.driver.file.FtpTestFileService">
+<!--     <bean id="ftpTestFileService" class="org.alfresco.bm.driver.file.FtpTestFileService">
         <constructor-arg name="fileDataService" ref="fileDataService" />
         <constructor-arg name="localDir" value="${test.localDir}" /> 
         <constructor-arg name="ftpHost" value="ftp.mirrorservice.org" /> 
@@ -36,9 +36,9 @@
         <constructor-arg name="ftpUsername" value="anonymous" /> 
         <constructor-arg name="ftpPassword" value="" /> 
         <constructor-arg name="ftpPath" value="/sites/www.linuxfromscratch.org/images" />
-        <!-- If you change the FTP test connection please make sure the test file exists with size > 0 in the the ftpPath! -->
+        If you change the FTP test connection please make sure the test file exists with size > 0 in the the ftpPath!
         <property name="testFileName" value="lfs-logo.png"/>
-    </bean>
+    </bean> -->
     
     <bean id="localTestFileService" class="org.alfresco.bm.driver.file.LocalTestFileService">
         <constructor-arg name="fileDataService" ref="fileDataService" />
