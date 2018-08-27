@@ -25,36 +25,42 @@
  */
 package org.alfresco.bm;
 
+import static org.alfresco.bm.common.TestConstants.PROP_APP_RELEASE;
+import static org.alfresco.bm.common.TestConstants.PROP_APP_SCHEMA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.alfresco.bm.manager.api.v1.ResultsRestAPI;
-import org.alfresco.bm.manager.api.v1.TestRestAPI;
-import org.alfresco.bm.driver.event.Event;
 import org.alfresco.bm.common.EventRecord;
-import org.alfresco.bm.driver.event.EventService;
 import org.alfresco.bm.common.ResultService;
-import org.alfresco.bm.common.util.log.LogService;
-import org.alfresco.bm.common.util.log.LogService.LogLevel;
-import org.alfresco.bm.common.session.SessionService;
-import org.alfresco.bm.common.spring.TestRunServicesCache;
 import org.alfresco.bm.common.TestService;
 import org.alfresco.bm.common.mongo.MongoTestDAO;
+import org.alfresco.bm.common.session.SessionService;
+import org.alfresco.bm.common.spring.TestRunServicesCache;
 import org.alfresco.bm.common.util.junit.tools.BMTestRunner;
 import org.alfresco.bm.common.util.junit.tools.BMTestRunnerListener;
 import org.alfresco.bm.common.util.junit.tools.BMTestRunnerListenerAdaptor;
+import org.alfresco.bm.common.util.log.LogService;
+import org.alfresco.bm.common.util.log.LogService.LogLevel;
+import org.alfresco.bm.driver.event.Event;
+import org.alfresco.bm.driver.event.EventService;
+import org.alfresco.bm.manager.api.v1.ResultsRestAPI;
+import org.alfresco.bm.manager.api.v1.TestRestAPI;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -62,13 +68,6 @@ import org.springframework.context.ApplicationContext;
 
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-
-/**
- * temporary, in order to run driver tests you need to add all the properties from the app.properties as system variables in order to run
- * for some reason the app.properties is not loaded when running the junits. It is loaded when running the spring boot app
- * e.g:
- * -Dapp.release=alfresco-bm-sample-driver-3.0.0-SNAPSHOT -Dapp.schema=12 -Dapp.inheritance="SAMPLE,COMMON,FILES,FILES_FTP,FILES_LOCAL" -Dsystem.capabilities=java -Dserver.contextPath=/ -Dserver.port=9081 -Dapp.dir=alfresco-bm-sample-driver
- */
 
 /**
  * Sample on how to run your test against a local Mongo instance.
@@ -82,7 +81,34 @@ import com.mongodb.DBObject;
 public class BM000XTest extends BMTestRunnerListenerAdaptor
 {
     private static Log logger = LogFactory.getLog(BM000XTest.class);
-    
+
+    /*
+     * App.release and app.schema properties are read from the sample driver properties file and set as env variables.
+     * For some reason the app.properties is not loaded when running the junits,
+     * but it is loaded when running the spring boot app.
+     */
+    @Before
+    public void setSystemProperties() throws IOException
+    {
+        // Manually load properties from app.properties file
+        Properties properties = new Properties();
+        InputStream input = getClass().getResourceAsStream("/config/startup/app.properties");
+        properties.load(input);
+
+        System.setProperty(PROP_APP_RELEASE, properties.getProperty(PROP_APP_RELEASE));
+        System.setProperty(PROP_APP_SCHEMA, properties.getProperty(PROP_APP_SCHEMA));
+    }
+
+    /**
+     * Prevent interference when running all tests in random order
+     */
+    @After
+    public void resetSystemProperties()
+    {
+        System.clearProperty(PROP_APP_RELEASE);
+        System.clearProperty(PROP_APP_SCHEMA);
+    }
+
     @Test
     public void runQuick() throws Exception
     {

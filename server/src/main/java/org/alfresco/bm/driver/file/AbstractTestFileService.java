@@ -67,7 +67,8 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
     @Override
     public void afterPropertiesSet()
     {
-        indexFileData();
+        // TODO: FTP needs access to remote FTP server. This needs to be reimplemented
+        //indexFileData();
     }
     
     /**

@@ -133,8 +133,9 @@ public class ExecuteProcess extends AbstractEventProcessor
             return result;
         }
         
+        // TODO: FTP needs access to remote FTP server. This needs to be reimplemented
         // Get and check that we have access to the required test file
-        File file = testFileService.getFile();
+/*        File file = testFileService.getFile();
         if (file == null || !file.exists())
         {
             result = new EventResult(
@@ -142,7 +143,7 @@ public class ExecuteProcess extends AbstractEventProcessor
                     Collections.<Event>emptyList(),
                     false);
             return result;
-        }
+        }*/
         
         // Play or use the session data
         DBObject sessionObj = sessionService.getSessionData(sessionId);
