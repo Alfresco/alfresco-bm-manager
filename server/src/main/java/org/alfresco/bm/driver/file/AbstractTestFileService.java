@@ -4,21 +4,21 @@
  * %%
  * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
- * This file is part of the Alfresco software. 
- * If the software was purchased under a paid Alfresco license, the terms of 
- * the paid license agreement will prevail.  Otherwise, the software is 
+ * This file is part of the Alfresco software.
+ * If the software was purchased under a paid Alfresco license, the terms of
+ * the paid license agreement will prevail.  Otherwise, the software is
  * provided under the following open source license terms:
- * 
+ *
  * Alfresco is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Alfresco is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -47,42 +47,40 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
 {
     private static final String PROPERTIES_FILE = "TestFileService.properties";
     private static final String PROPERTY_FILESET = "fileset";
-    
+
     private static Log logger = LogFactory.getLog(AbstractTestFileService.class);
-    
+
     private final FileDataService fileDataService;
     private final String localDir;
-    
+
     private File mirrorDir;
     private String fileset;
-    
-    public AbstractTestFileService(
-            FileDataService fileDataService,
-            String localDir)
+
+    public AbstractTestFileService(FileDataService fileDataService, String localDir)
     {
         this.fileDataService = fileDataService;
         this.localDir = localDir;
     }
-    
+
     @Override
     public void afterPropertiesSet()
     {
         // TODO: FTP needs access to remote FTP server. This needs to be reimplemented
         //indexFileData();
     }
-    
+
     /**
      * Get the data mirror path (relative to the root location).  This is implementation-specific
      * as it depends on the way in which data is stored in the remote location.
-     * 
-     * @return              a relative path in which local files will be mirrored
+     *
+     * @return a relative path in which local files will be mirrored
      */
     protected abstract String getMirrorPath();
 
     /**
      * Provides a safe method to get the directory where physical files are mirrored.
      * This method is static and synchronized as access to the mirror directory
-     * is VM-wide 
+     * is VM-wide
      */
     private static synchronized File initMirrorDir(String localDir, String mirrorPath)
     {
@@ -114,7 +112,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
         // Done
         return mirrorFolder;
     }
-    
+
     /**
      * Looks for a {@link #PROPERTIES_FILE properties file} containing the name of the fileset that
      * this server uses.  The fileset is therefore unique to every local data location.
@@ -140,19 +138,23 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
             }
             catch (IOException e)
             {
-                throw new RuntimeException(
-                        "Failed to load properties from file: " + propsFile,
-                        e);
+                throw new RuntimeException("Failed to load properties from file: " + propsFile, e);
             }
             finally
             {
                 if (reader != null)
                 {
-                    try { reader.close(); } catch (IOException e) {}
+                    try
+                    {
+                        reader.close();
+                    }
+                    catch (IOException e)
+                    {
+                    }
                 }
             }
         }
-        
+
         // Read the property
         String fileset = properties.getProperty(PROPERTY_FILESET);
         if (fileset == null)
@@ -175,31 +177,42 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
             {
                 if (writer != null)
                 {
-                    try { writer.close(); } catch (IOException e) {}
+                    try
+                    {
+                        writer.close();
+                    }
+                    catch (IOException e)
+                    {
+                    }
                 }
             }
         }
         // Done
         return fileset;
     }
-    
+
     /**
      * List all files on the remote server
-     * 
-     * @return          a list of data with the {@link FileData#getRemoteName() remote name} populated
+     *
+     * @return a list of data with the {@link FileData#getRemoteName() remote name} populated
      */
     protected abstract List<FileData> listRemoteFiles();
 
     /**
      * Initialize the service by indexing the files on the FTP server
      */
-    private void indexFileData()
+    protected void indexFileData()
     {
+        if (mirrorDir != null)
+        {
+            //consider this as initialized
+            return;
+        }
         // Get the local path (implementation-specific)
         String mirrorPath = getMirrorPath();
         // Make sure that the mirror directory is present
         mirrorDir = initMirrorDir(localDir, mirrorPath);
-        
+
         // Get the fileset
         fileset = getFileset(mirrorDir);
 
@@ -209,7 +222,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
         {
             throw new RuntimeException("No remote tests files: " + this);
         }
-        
+
         // Index each of the files
         for (FileData remoteFileData : remoteFileDatas)
         {
@@ -217,7 +230,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
             {
                 logger.debug("Processing details of remote file: " + remoteFileData);
             }
-            
+
             String remoteName = remoteFileData.getRemoteName();
             String extension = FileData.getExtension(remoteName);
             long remoteSize = remoteFileData.getSize();
@@ -242,7 +255,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
                 }
                 // Check that the local file, if it exists, is of the correct size
                 File localFile = new File(mirrorDir, localName);
-                if (localFile.exists() && localFile.length() !=  fileData.getSize())
+                if (localFile.exists() && localFile.length() != fileData.getSize())
                 {
                     // Local file is incorrect
                     localFile.delete();
@@ -251,7 +264,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
             else
             {
                 localName = UUID.randomUUID().toString() + "." + extension;
-                
+
                 fileData = new FileData();
                 fileData.setFileset(fileset);
                 fileData.setRemoteName(remoteName);
@@ -264,35 +277,38 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
         }
         // Done
     }
-    
+
     /**
      * Download the file represented from the remote location to the local file.
      * Note that all stream closures must be handled internally but IO errors
      * can be allowed out.
-     * 
-     * @param fileData          data containing details of the remote file
-     * @param localFile         the local file to write to
-     * @throws IOException      will be handled by the calling code
+     *
+     * @param fileData  data containing details of the remote file
+     * @param localFile the local file to write to
+     * @throws IOException will be handled by the calling code
      */
     protected abstract void downloadRemoteFile(FileData fileData, File localFile) throws IOException;
 
     @Override
     public File getFileByName(String filename)
     {
+        indexFileData();
         FileData fileData = fileDataService.findFile(fileset, filename);
         return getFile(fileData);
     }
-    
+
     @Override
     public File getFile()
     {
+        indexFileData();
         FileData fileData = fileDataService.getRandomFile(fileset);
         return getFile(fileData);
     }
-    
+
     @Override
     public File getFile(String extension)
     {
+        indexFileData();
         FileData fileData = fileDataService.getRandomFile(fileset, extension);
         return getFile(fileData);
     }
@@ -306,6 +322,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
         {
             return null;
         }
+        indexFileData();
         // We have some data.
         // Do we already have it locally?
         File localFile = new File(mirrorDir, fileData.getLocalName());
@@ -321,24 +338,30 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
                 // Unable to get the remote file
                 String remoteName = fileData.getRemoteName();
                 fileDataService.removeFile(fileset, remoteName);
-                try { localFile.delete(); } catch (Exception ee) {}
+                try
+                {
+                    localFile.delete();
+                }
+                catch (Exception ee)
+                {
+                }
                 throw new RuntimeException("Failed to download file from remote server: " + this, e);
             }
         }
         // Done
         return localFile;
     }
-    
+
     /**
      * Test file name for JUnit testing
-     * 
+     *
      * @since 2.1.1
      */
     private String testFileName = null;
 
     /**
      * Sets test file name for JUnit testing
-     * 
+     *
      * @since 2.1.1
      */
     public void setTestFileName(String testFileName)
