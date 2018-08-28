@@ -14,7 +14,7 @@ The drivers are dependent on the manager code and should always use the latest(s
 All benchmark projects are always released off the master branch: latest and greatest.
 
 *Note:* 
-* We can do builds on branches other than master (that will publish docker images) and we can do releases based on this branchs, but this should be only used for development/testing purposes and should not be referenced on master branches of any of the bm-projects;
+* We can do builds on branches other than master (that will publish docker images) and we can do releases based on this branches, but this should be only used for development/testing purposes and should not be referenced on master branches of any of the bm-projects;
  
 
 
