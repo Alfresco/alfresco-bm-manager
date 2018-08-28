@@ -9,9 +9,14 @@ We have two type of projects :
 
 The manager is completely independent and it can be released independently, at any time.
 
-The drivers are using the manager and should always contain the latest version of [alfresco-bm-manager](https://github.com/Alfresco/alfresco-bm-manager). 
+The drivers are dependent on the manager code and should always use the latest(stable released) version of [alfresco-bm-manager](https://github.com/Alfresco/alfresco-bm-manager). 
 
 All benchmark projects are always released off the master branch: latest and greatest.
+
+*Note:* 
+* We can do builds on branches other than master (that will publish docker images) and we can do releases based on this branchs, but this should be only used for development/testing purposes and should not be referenced on master branches of any of the bm-projects;
+ 
+
 
 ### Benchmark docker images
 The only tag needed to uniquely identify any release, would be the release.version or project.version. 
