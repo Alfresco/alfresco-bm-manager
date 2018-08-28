@@ -10,10 +10,18 @@ services:
                 -Dserver.port=9082
                 "
 
+    alfresco-bm-load-data:
+        image: ${REGISTRY}alfresco/alfresco-bm-load-data:${ALFRESCO_BM_LOAD_DATA_TAG}
+        environment:
+            JAVA_OPTS : "
+                -Dmongo.config.host=${MONGO_HOST}:${MONGO_PORT}
+                -Dserver.port=9083
+                "
+
     alfresco-bm-rest-api:
         image: ${REGISTRY}alfresco/alfresco-bm-rest-api:${ALFRESCO_BM_REST_API_TAG}
         environment:
             JAVA_OPTS : "
                 -Dmongo.config.host=${MONGO_HOST}:${MONGO_PORT}
-                -Dserver.port=9083
+                -Dserver.port=9084
                 "
