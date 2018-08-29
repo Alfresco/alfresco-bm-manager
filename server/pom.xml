@@ -170,19 +170,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- this is problematic - we need to fix it - but it works for now-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>fabric8-maven-plugin</artifactId>
