@@ -11,7 +11,7 @@
     <groupId>org.alfresco</groupId>
     <artifactId>alfresco-bm-manager-project</artifactId>
     <name>Alfresco Benchmark Manager Project</name>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0-mp7</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -43,7 +43,7 @@
         <connection>scm:git:git@github.com:Alfresco/alfresco-bm-manager.git</connection>
         <developerConnection>scm:git:git@github.com:Alfresco/alfresco-bm-manager.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-bm-manager</url>
-        <tag>HEAD</tag>
+        <tag>alfresco-bm-manager-project-3.0.0-mp7</tag>
     </scm>
 
     <distributionManagement>
