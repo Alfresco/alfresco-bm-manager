@@ -4,8 +4,8 @@ Note: Commands are for Windows with Git tools installed
 #### Copy the 'src' folder to the archetype
 ```
 > cd sample
-> cp -R src archetype/src/main/resources/archetype-resources
 > cd archetype
+> cp -R src archetype/src/main/resources/archetype-resources
 ```
 
 #### Update dependency versions numbers
