@@ -25,6 +25,7 @@
         <module>server</module>
         <module>util</module>
         <module>sample</module>
+        <module>sample/archetype</module>
     </modules>
 
     <dependencyManagement>
