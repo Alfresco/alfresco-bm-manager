@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.alfresco.tas</groupId>
             <artifactId>restapi-test</artifactId>
-            <version>5.2.0-12-SNAPSHOT</version>
+            <version>5.2.0.12</version>
         </dependency>
 
         <!-- springsocial Alfresco -->
