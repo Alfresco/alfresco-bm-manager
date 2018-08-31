@@ -92,5 +92,8 @@ Additionally, installing **Robo 3T** (MongoDB GUI) is helpfull to see the databa
 ### Create an archetype
 Please use [this guide](sample/building-the-archetype.md) to create an archetype and start the new project.
 
+### Release bm-manager project
+Please use [this guide](docs/ReleaseProcess.md) for release process.
+
 ### Contributing guide
 Please use [this guide](CONTRIBUTING.md) to make a contribution to the project.
