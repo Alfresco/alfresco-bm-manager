@@ -27,12 +27,15 @@ package org.alfresco.bm;
 
 import org.alfresco.bm.driver.event.AbstractEventProcessor;
 import org.alfresco.rest.core.RestWrapper;
+import org.alfresco.utility.TasProperties;
 import org.alfresco.utility.data.DataContent;
 import org.alfresco.utility.data.DataSite;
 import org.alfresco.utility.data.DataUser;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import java.net.URL;
 
 public abstract class AbstractRestApiEventProcessor extends AbstractEventProcessor implements ApplicationContextAware
 {
@@ -59,11 +62,29 @@ public abstract class AbstractRestApiEventProcessor extends AbstractEventProcess
         }
         if (restWrapperContainer.get() == null)
         {
+            initializeTasProperties();
             RestWrapper rw = (RestWrapper) this.context.getBean("restWrapper");
-            rw.configureRequestSpec().setBaseUri(baseUrl);
             restWrapperContainer.set(rw);
         }
         return restWrapperContainer.get();
+    }
+
+    public synchronized TasProperties initializeTasProperties()
+    {
+        TasProperties tasProperties = (TasProperties) this.context.getBean("tasProperties");
+        try
+        {
+            URL url = new URL(baseUrl);
+
+            tasProperties.setScheme(url.getProtocol());
+            tasProperties.setServer(url.getHost());
+            tasProperties.setPort(url.getPort());
+        }
+        catch (Exception e)
+        {
+            logger.error(e.getMessage(), e);
+        }
+        return tasProperties;
     }
 
     /**
