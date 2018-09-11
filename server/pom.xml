@@ -19,6 +19,11 @@
         <image.tag>latest</image.tag>
         <image.registry>quay.io</image.registry>
         <docker.project_version>${project.version}</docker.project_version>
+
+        <!-- Integration tests properties -->
+        <alfresco.int.tests.server>127.0.0.1</alfresco.int.tests.server>
+        <alfresco.int.mongo.host>127.0.0.1</alfresco.int.mongo.host>
+        <alfresco.int.mongo.port>27017</alfresco.int.mongo.port>
     </properties>
 
     <dependencies>
@@ -163,6 +168,13 @@
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/test/resources</directory>
                 <includes>
                     <include>**</include>
                 </includes>

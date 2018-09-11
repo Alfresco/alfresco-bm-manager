@@ -14,14 +14,23 @@ import org.alfresco.bm.integration.test.model.TestRunSummary;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
+@RunWith(SpringRunner.class)
+@TestPropertySource(locations="classpath:prop/integration-tests.properties")
 public class IntegrationTests
 {
-    //@Value("${alfresco.server}")
+    @Value("${alfresco-int.server}")
     private String alfrescoServer;
 
-    //@Value("${mongo.test.host}")
+    @Value("${mongo-int.host}")
     private String mongoHost;
+
+    @Value("${mongo-int.port}")
+    private String mongoPort;
 
     private RestTestClient client;
 
@@ -29,8 +38,6 @@ public class IntegrationTests
     public void setUp()
     {
         client = new RestTestClient();
-        alfrescoServer = "172.31.142.102";
-        mongoHost = "172.31.142.102:27017";
     }
 
     @Test
@@ -48,9 +55,9 @@ public class IntegrationTests
         test.setSchema(Integer.valueOf(loadUserDef.getSchema()));
 
         client.createTest(test);
-        client.updateTestProperty(test, "mongo.test.host", mongoHost);
+        client.updateTestProperty(test, "mongo.test.host", mongoHost + ":" + mongoPort);
         client.updateTestProperty(test, "alfresco.server", alfrescoServer);
-        client.updateTestProperty(test, "user.numberOfUsers", "" + 50);
+        client.updateTestProperty(test, "user.numberOfUsers", "" + 100);
 
         // Create test run
         TestRunDetails testRun = new TestRunDetails();

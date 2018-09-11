@@ -19,7 +19,7 @@ public class TestRunSummary
     private Integer resultsSuccess;
     private Integer resultsFail;
     private Integer resultsTotal;
-    private Integer successRate;
+    private Double successRate;
     private List<String> drivers;
 
     public Object get_id()
@@ -172,12 +172,12 @@ public class TestRunSummary
         this.resultsTotal = resultsTotal;
     }
 
-    public Integer getSuccessRate()
+    public Double getSuccessRate()
     {
         return successRate;
     }
 
-    public void setSuccessRate(Integer successRate)
+    public void setSuccessRate(Double successRate)
     {
         this.successRate = successRate;
     }
