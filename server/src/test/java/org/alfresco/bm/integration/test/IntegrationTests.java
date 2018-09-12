@@ -75,7 +75,7 @@ public class IntegrationTests
 
         // Wait to complete test
         long starttime = System.currentTimeMillis();
-        boolean testStatus = waitTestCompleted(starttime, 60000L, test, testRun);
+        boolean testStatus = waitTestCompleted(starttime, 90000L, test, testRun);
 
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
@@ -84,8 +84,112 @@ public class IntegrationTests
         if(testStatus)
         {
             // Successful events should be more than the events scheduled for creation
-            assertTrue(results.getResultsSuccess() > 5);
-            assertTrue(results.getSuccessRate() > 0.8);
+            assertTrue("There are less than expected successful events", results.getResultsSuccess() > 5);
+            assertTrue("The success rate is lower than expected", results.getSuccessRate() > 0.8);
+        }
+        else
+        {
+            fail("Testrun did not complete. The test result was: " +  results.getState());
+        }
+    }
+
+    @Test
+    public void testPopulateWithData()
+    {
+        // Get load data driver definition
+        List<TestDefinition> testDefitions = client.getDriverDefinitions();
+        TestDefinition loadUserDef = testDefitions.stream().filter(def -> def.getRelease().contains("load-data")).findAny().get();
+
+        // Create test
+        TestDetails test = new TestDetails();
+        test.setName("LoadDataTest" + RandomStringUtils.randomAlphanumeric(5));
+        test.setDescription("Test data load driver.");
+        test.setRelease(loadUserDef.getRelease());
+        test.setSchema(Integer.valueOf(loadUserDef.getSchema()));
+
+        client.createTest(test);
+        client.updateTestProperty(test, "mongo.test.host", mongoHost + ":" + mongoPort);
+        client.updateTestProperty(test, "alfresco.server", alfrescoServer);
+
+        // Create test run
+        TestRunDetails testRun = new TestRunDetails();
+        testRun.setName("DataLoadTestRun" + RandomStringUtils.randomAlphanumeric(5));
+        testRun.setDescription("Test run for data load driver.");
+
+        client.createTestRun(test, testRun);
+
+        // Schedule the test run
+        TestRunSchedule testRunSchedule = new TestRunSchedule();
+        testRunSchedule.setScheduled(System.currentTimeMillis());
+        testRunSchedule.setVersion(0);
+
+        client.scheduleTest(test, testRun, testRunSchedule);
+
+        // Wait to complete test
+        long starttime = System.currentTimeMillis();
+        boolean testStatus = waitTestCompleted(starttime, 90000L, test, testRun);
+
+        // Get test results
+        TestRunSummary results = client.getTestRunSummary(test, testRun);
+
+        // Check test results
+        if(testStatus)
+        {
+            // Successful events should be more than the events scheduled for creation
+            assertTrue("There are less than expected successful events", results.getResultsSuccess() > 5);
+            assertTrue("The success rate is lower than expected", results.getSuccessRate() > 0.8);
+        }
+        else
+        {
+            fail("Testrun did not complete. The test result was: " +  results.getState());
+        }
+    }
+
+    @Test
+    public void testRestApiScenario()
+    {
+        // Get rest-api driver definition
+        List<TestDefinition> testDefitions = client.getDriverDefinitions();
+        TestDefinition loadUserDef = testDefitions.stream().filter(def -> def.getRelease().contains("rest-api")).findAny().get();
+
+        // Create test
+        TestDetails test = new TestDetails();
+        test.setName("RestApiTest" + RandomStringUtils.randomAlphanumeric(5));
+        test.setDescription("Test rest api driver.");
+        test.setRelease(loadUserDef.getRelease());
+        test.setSchema(Integer.valueOf(loadUserDef.getSchema()));
+
+        client.createTest(test);
+        client.updateTestProperty(test, "mongo.test.host", mongoHost + ":" + mongoPort);
+        client.updateTestProperty(test, "alfresco.server", alfrescoServer);
+
+        // Create test run
+        TestRunDetails testRun = new TestRunDetails();
+        testRun.setName("RestApiTestRun" + RandomStringUtils.randomAlphanumeric(5));
+        testRun.setDescription("Test run for rest api driver.");
+
+        client.createTestRun(test, testRun);
+
+        // Schedule the test run
+        TestRunSchedule testRunSchedule = new TestRunSchedule();
+        testRunSchedule.setScheduled(System.currentTimeMillis());
+        testRunSchedule.setVersion(0);
+
+        client.scheduleTest(test, testRun, testRunSchedule);
+
+        // Wait to complete test
+        long starttime = System.currentTimeMillis();
+        boolean testStatus = waitTestCompleted(starttime, 90000L, test, testRun);
+
+        // Get test results
+        TestRunSummary results = client.getTestRunSummary(test, testRun);
+
+        // Check test results
+        if(testStatus)
+        {
+            // Successful events should be more than the events scheduled for creation
+            assertTrue("There are less than expected successful events", results.getResultsSuccess() > 5);
+            assertTrue("The success rate is lower than expected", results.getSuccessRate() > 0.6);
         }
         else
         {
