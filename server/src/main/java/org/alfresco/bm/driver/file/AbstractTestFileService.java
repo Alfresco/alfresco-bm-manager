@@ -53,7 +53,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
     private final FileDataService fileDataService;
     private final String localDir;
 
-    private File mirrorDir;
+    volatile private File mirrorDir;
     private String fileset;
 
     public AbstractTestFileService(FileDataService fileDataService, String localDir)
@@ -65,8 +65,17 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
     @Override
     public void afterPropertiesSet()
     {
-        // TODO: FTP needs access to remote FTP server. This needs to be reimplemented
-        //indexFileData();
+        try
+        {
+            indexFileData(true);
+        }
+        catch (Exception e)
+        {
+            mirrorDir = null;
+            // we expect this to fail when running the junit tests, or when the properties are not set properly
+            // but that is ok as the reindex will be tried again when actual calls to the get<Resource> is made
+            logger.warn(e.getMessage(), e);
+        }
     }
 
     /**
@@ -79,10 +88,8 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
 
     /**
      * Provides a safe method to get the directory where physical files are mirrored.
-     * This method is static and synchronized as access to the mirror directory
-     * is VM-wide
      */
-    private static synchronized File initMirrorDir(String localDir, String mirrorPath)
+    private File initMirrorDir(String localDir, String mirrorPath)
     {
         // Check that the local directory exists
         File localStorage = new File(localDir);
@@ -117,7 +124,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
      * Looks for a {@link #PROPERTIES_FILE properties file} containing the name of the fileset that
      * this server uses.  The fileset is therefore unique to every local data location.
      */
-    private static synchronized String getFileset(File mirrorDir)
+    private String getFileset(File mirrorDir)
     {
         Properties properties = new Properties();
         // See if there is a file with the properties present
@@ -201,9 +208,10 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
     /**
      * Initialize the service by indexing the files on the FTP server
      */
-    protected void indexFileData()
+    synchronized protected void indexFileData(boolean force)
     {
-        if (mirrorDir != null)
+
+        if (!force && mirrorDir != null)
         {
             //consider this as initialized
             return;
@@ -292,7 +300,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
     @Override
     public File getFileByName(String filename)
     {
-        indexFileData();
+        indexFileData(false);
         FileData fileData = fileDataService.findFile(fileset, filename);
         return getFile(fileData);
     }
@@ -300,7 +308,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
     @Override
     public File getFile()
     {
-        indexFileData();
+        indexFileData(false);
         FileData fileData = fileDataService.getRandomFile(fileset);
         return getFile(fileData);
     }
@@ -308,7 +316,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
     @Override
     public File getFile(String extension)
     {
-        indexFileData();
+        indexFileData(false);
         FileData fileData = fileDataService.getRandomFile(fileset, extension);
         return getFile(fileData);
     }
@@ -322,7 +330,7 @@ public abstract class AbstractTestFileService implements TestFileService, Initia
         {
             return null;
         }
-        indexFileData();
+        indexFileData(false);
         // We have some data.
         // Do we already have it locally?
         File localFile = new File(mirrorDir, fileData.getLocalName());
