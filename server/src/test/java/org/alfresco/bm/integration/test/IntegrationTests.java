@@ -220,7 +220,7 @@ public class IntegrationTests
         {
             // Successful events should be more than the events scheduled for creation
             assertTrue("There are less than expected successful events", results.getResultsSuccess() > 5);
-            assertTrue("The success rate is lower than expected", results.getSuccessRate() > 0.6);
+            assertTrue("The success rate is lower than expected", results.getSuccessRate() > 0.5);
         }
         else
         {
