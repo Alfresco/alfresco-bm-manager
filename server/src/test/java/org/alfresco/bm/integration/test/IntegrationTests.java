@@ -158,7 +158,7 @@ public class IntegrationTests
 
         // Wait to complete test
         long starttime = System.currentTimeMillis();
-        boolean testStatus = waitTestCompleted(starttime, 120000L, test, testRun);
+        boolean testStatus = waitTestCompleted(starttime, 200000L, test, testRun);
 
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
