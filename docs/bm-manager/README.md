@@ -103,7 +103,10 @@ the ```MongoTestDAO```) and the ```LogService``` to:
 
    Each of these 4 services (accessible through TestRunServiceCache) are loaded and configured with the exact configuration and properties used by a particular BM Test Runs. 
    In this way, any code that wants to have data from the **BM Test Data Mongo DB** for a particular BM Test Run can do so. 
-   This is very useful for code that wants to extract the reports, results and events for a certain BM Test Run.  
+   This is very useful for code that wants to extract the reports, results and events for a certain BM Test Run. 
+
+    **Note:** Be careful when specifying the Test Data Mongo DB address so that it can be accessible by the BM-Manager machine, 
+otherwise, you won't be able to see reports or event/event results for that test run.
    
 #### Reports layer
 1. XLSXReport - creates XLSX report based on the ```TestRunServiceCache``` services for a particular BM Test Run;
