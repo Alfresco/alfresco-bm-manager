@@ -1,3 +1,28 @@
+/*
+ * #%L
+ * Alfresco Benchmark Manager
+ * %%
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * %%
+ * This file is part of the Alfresco software. 
+ * If the software was purchased under a paid Alfresco license, the terms of 
+ * the paid license agreement will prevail.  Otherwise, the software is 
+ * provided under the following open source license terms:
+ * 
+ * Alfresco is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Alfresco is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
 package org.alfresco.bm.integration.test;
 
 import static org.junit.Assert.assertTrue;
@@ -19,6 +44,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+/**
+ * Integration test class that tests the docker images produced for the Alfresco BM and related drivers.
+ * Is uses the {@link RestTestClient} for the actual Rest-API calls
+ * 
+ * @since 3.0
+ */
 @RunWith(SpringRunner.class)
 @TestPropertySource(locations="classpath:prop/integration-tests.properties")
 public class IntegrationTests
@@ -75,7 +106,7 @@ public class IntegrationTests
 
         // Wait to complete test
         long starttime = System.currentTimeMillis();
-        boolean testStatus = waitTestCompleted(starttime, 90000L, test, testRun);
+        boolean testStatus = waitTestCompleted(starttime, 120000L, test, testRun);
 
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
@@ -127,7 +158,7 @@ public class IntegrationTests
 
         // Wait to complete test
         long starttime = System.currentTimeMillis();
-        boolean testStatus = waitTestCompleted(starttime, 90000L, test, testRun);
+        boolean testStatus = waitTestCompleted(starttime, 120000L, test, testRun);
 
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
@@ -179,7 +210,7 @@ public class IntegrationTests
 
         // Wait to complete test
         long starttime = System.currentTimeMillis();
-        boolean testStatus = waitTestCompleted(starttime, 90000L, test, testRun);
+        boolean testStatus = waitTestCompleted(starttime, 120000L, test, testRun);
 
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
