@@ -172,6 +172,21 @@ public class RestTestClient
         return testRunSummary;
     }
 
+    public byte[] getTestRunResults(TestDetails testDetails, TestRunDetails testRunDetails, String reportType)
+    {
+        byte[] result = 
+                RestAssured.given().
+                                   pathParams("test", testDetails.getName(), "testrun", testRunDetails.getName(), "type", reportType)
+                           .when()
+                                   .get("/alfresco-bm-manager/api/v1/tests/{test}/runs/{testrun}/results/{type}")
+                           .then().statusCode(HttpStatus.SC_OK)
+                           .and().
+                                  extract().
+                                  body().asByteArray();
+
+        return result;
+    }
+
     public TestDefinition getDriverDefinition(String release, String schema)
     {
         TestDefinition testDef = 

@@ -28,6 +28,10 @@ package org.alfresco.bm.integration.test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.alfresco.bm.common.TestDetails;
@@ -111,6 +115,9 @@ public class IntegrationTests
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
 
+        // Write test results to local file to be picked up by bamboo
+        writeTestResultsXlsx(test, testRun);
+
         // Check test results
         if(testStatus)
         {
@@ -162,6 +169,9 @@ public class IntegrationTests
 
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
+
+        // Write test results to local file to be picked up by bamboo
+        writeTestResultsXlsx(test, testRun);
 
         // Check test results
         if(testStatus)
@@ -215,6 +225,9 @@ public class IntegrationTests
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
 
+        // Write test results to local file to be picked up by bamboo
+        writeTestResultsXlsx(test, testRun);
+
         // Check test results
         if(testStatus)
         {
@@ -240,5 +253,24 @@ public class IntegrationTests
                 && (now - starttime < maxtime));
 
         return TestRunState.COMPLETED.toString().equals(testRunState) ? true : false;
+    }
+
+    private void writeTestResultsXlsx(TestDetails testDetails, TestRunDetails testRunDetails)
+    {
+        byte[] xlsxResult = client.getTestRunResults(testDetails, testRunDetails, "xlsx");
+
+        // Get target folder path
+        String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile().replace("test-classes/", "");
+
+        // Write test results to file
+        File resultsXlsx = new File(path + testDetails.getRelease() + ".xlsx");
+        try (OutputStream outStream = new FileOutputStream(resultsXlsx))
+        {
+            outStream.write(xlsxResult);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 }
