@@ -172,34 +172,19 @@ public class RestTestClient
         return testRunSummary;
     }
 
-    public byte[] getTestRunCsvResults(TestDetails testDetails, TestRunDetails testRunDetails)
+    public byte[] getTestRunResults(TestDetails testDetails, TestRunDetails testRunDetails, String reportType)
     {
-        byte[] csvResult = 
+        byte[] result = 
                 RestAssured.given().
-                                   pathParams("test", testDetails.getName(), "testrun", testRunDetails.getName())
+                                   pathParams("test", testDetails.getName(), "testrun", testRunDetails.getName(), "type", reportType)
                            .when()
-                                   .get("/alfresco-bm-manager/api/v1/tests/{test}/runs/{testrun}/results/csv")
+                                   .get("/alfresco-bm-manager/api/v1/tests/{test}/runs/{testrun}/results/{type}")
                            .then().statusCode(HttpStatus.SC_OK)
                            .and().
                                   extract().
                                   body().asByteArray();
 
-        return csvResult;
-    }
-
-    public byte[] getTestRunXlsxResults(TestDetails testDetails, TestRunDetails testRunDetails)
-    {
-        byte[] xlsxResult = 
-                RestAssured.given().
-                                   pathParams("test", testDetails.getName(), "testrun", testRunDetails.getName())
-                           .when()
-                                   .get("/alfresco-bm-manager/api/v1/tests/{test}/runs/{testrun}/results/xlsx")
-                           .then().statusCode(HttpStatus.SC_OK)
-                           .and().
-                                  extract().
-                                  body().asByteArray();
-
-        return xlsxResult;
+        return result;
     }
 
     public TestDefinition getDriverDefinition(String release, String schema)

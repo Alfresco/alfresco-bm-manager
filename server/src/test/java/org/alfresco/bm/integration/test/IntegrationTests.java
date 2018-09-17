@@ -257,7 +257,7 @@ public class IntegrationTests
 
     private void writeTestResultsXlsx(TestDetails testDetails, TestRunDetails testRunDetails)
     {
-        byte[] xlsxResult = client.getTestRunXlsxResults(testDetails, testRunDetails);
+        byte[] xlsxResult = client.getTestRunResults(testDetails, testRunDetails, "xlsx");
 
         if (xlsxResult != null)
         {
