@@ -259,24 +259,18 @@ public class IntegrationTests
     {
         byte[] xlsxResult = client.getTestRunResults(testDetails, testRunDetails, "xlsx");
 
-        if (xlsxResult != null)
-        {
-            // Get target folder path
-            String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile().replace("test-classes/", "");
+        // Get target folder path
+        String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile().replace("test-classes/", "");
 
-            // Write test results to file
-            File resultsXlsx = new File(path + testDetails.getRelease() + ".xlsx");
-            OutputStream outStream;
-            try
-            {
-                outStream = new FileOutputStream(resultsXlsx);
-                outStream.write(xlsxResult);
-                outStream.close();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+        // Write test results to file
+        File resultsXlsx = new File(path + testDetails.getRelease() + ".xlsx");
+        try (OutputStream outStream = new FileOutputStream(resultsXlsx))
+        {
+            outStream.write(xlsxResult);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
         }
     }
 }
