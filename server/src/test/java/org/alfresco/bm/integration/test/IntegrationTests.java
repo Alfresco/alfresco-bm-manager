@@ -286,7 +286,7 @@ public class IntegrationTests
             String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile().replace("test-classes/", "");
 
             // Write test results to file
-            File resultsCsv = new File(path + testDetails.getRelease() + "-" + testDetails.getName() + "-" + testRunDetails.getName() + ".csv");
+            File resultsCsv = new File(path + testDetails.getRelease() + ".csv");
             OutputStream outStream = new FileOutputStream(resultsCsv);
             outStream.write(csvResult);
             outStream.close();
