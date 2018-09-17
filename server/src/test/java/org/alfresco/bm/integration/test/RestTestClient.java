@@ -25,7 +25,6 @@
  */
 package org.alfresco.bm.integration.test;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -186,6 +185,21 @@ public class RestTestClient
                                   body().asByteArray();
 
         return csvResult;
+    }
+
+    public byte[] getTestRunXlsxResults(TestDetails testDetails, TestRunDetails testRunDetails)
+    {
+        byte[] xlsxResult = 
+                RestAssured.given().
+                                   pathParams("test", testDetails.getName(), "testrun", testRunDetails.getName())
+                           .when()
+                                   .get("/alfresco-bm-manager/api/v1/tests/{test}/runs/{testrun}/results/xlsx")
+                           .then().statusCode(HttpStatus.SC_OK)
+                           .and().
+                                  extract().
+                                  body().asByteArray();
+
+        return xlsxResult;
     }
 
     public TestDefinition getDriverDefinition(String release, String schema)

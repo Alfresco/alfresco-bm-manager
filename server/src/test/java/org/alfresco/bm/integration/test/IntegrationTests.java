@@ -115,6 +115,9 @@ public class IntegrationTests
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
 
+        // Write test results to local file to be picked up by bamboo
+        writeTestResultsXlsx(test, testRun);
+
         // Check test results
         if(testStatus)
         {
@@ -125,16 +128,6 @@ public class IntegrationTests
         else
         {
             fail("Testrun did not complete. The test result was: " +  results.getState());
-        }
-
-        // Write test results to local file to be picked up by bamboo
-        try
-        {
-            writeTestResultsCsv(test, testRun);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
         }
     }
 
@@ -177,6 +170,9 @@ public class IntegrationTests
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
 
+        // Write test results to local file to be picked up by bamboo
+        writeTestResultsXlsx(test, testRun);
+
         // Check test results
         if(testStatus)
         {
@@ -187,16 +183,6 @@ public class IntegrationTests
         else
         {
             fail("Testrun did not complete. The test result was: " +  results.getState());
-        }
-
-        // Write test results to local file to be picked up by bamboo
-        try
-        {
-            writeTestResultsCsv(test, testRun);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
         }
     }
 
@@ -239,6 +225,9 @@ public class IntegrationTests
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
 
+        // Write test results to local file to be picked up by bamboo
+        writeTestResultsXlsx(test, testRun);
+
         // Check test results
         if(testStatus)
         {
@@ -249,16 +238,6 @@ public class IntegrationTests
         else
         {
             fail("Testrun did not complete. The test result was: " +  results.getState());
-        }
-
-        // Write test results to local file to be picked up by bamboo
-        try
-        {
-            writeTestResultsCsv(test, testRun);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
         }
     }
 
@@ -276,20 +255,28 @@ public class IntegrationTests
         return TestRunState.COMPLETED.toString().equals(testRunState) ? true : false;
     }
 
-    private void writeTestResultsCsv(TestDetails testDetails, TestRunDetails testRunDetails) throws IOException
+    private void writeTestResultsXlsx(TestDetails testDetails, TestRunDetails testRunDetails)
     {
-        byte[] csvResult = client.getTestRunCsvResults(testDetails, testRunDetails);
+        byte[] xlsxResult = client.getTestRunXlsxResults(testDetails, testRunDetails);
 
-        if (csvResult != null)
+        if (xlsxResult != null)
         {
             // Get target folder path
             String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile().replace("test-classes/", "");
 
             // Write test results to file
-            File resultsCsv = new File(path + testDetails.getRelease() + ".csv");
-            OutputStream outStream = new FileOutputStream(resultsCsv);
-            outStream.write(csvResult);
-            outStream.close();
+            File resultsXlsx = new File(path + testDetails.getRelease() + ".xlsx");
+            OutputStream outStream;
+            try
+            {
+                outStream = new FileOutputStream(resultsXlsx);
+                outStream.write(xlsxResult);
+                outStream.close();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 }
