@@ -28,6 +28,10 @@ package org.alfresco.bm.integration.test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.alfresco.bm.common.TestDetails;
@@ -122,6 +126,16 @@ public class IntegrationTests
         {
             fail("Testrun did not complete. The test result was: " +  results.getState());
         }
+
+        // Write test results to local file to be picked up by bamboo
+        try
+        {
+            writeTestResultsCsv(test, testRun);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -173,6 +187,16 @@ public class IntegrationTests
         else
         {
             fail("Testrun did not complete. The test result was: " +  results.getState());
+        }
+
+        // Write test results to local file to be picked up by bamboo
+        try
+        {
+            writeTestResultsCsv(test, testRun);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
         }
     }
 
@@ -226,6 +250,16 @@ public class IntegrationTests
         {
             fail("Testrun did not complete. The test result was: " +  results.getState());
         }
+
+        // Write test results to local file to be picked up by bamboo
+        try
+        {
+            writeTestResultsCsv(test, testRun);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private boolean waitTestCompleted(long starttime, long maxtime, TestDetails testDetails, TestRunDetails testRunDetails)
@@ -240,5 +274,22 @@ public class IntegrationTests
                 && (now - starttime < maxtime));
 
         return TestRunState.COMPLETED.toString().equals(testRunState) ? true : false;
+    }
+
+    private void writeTestResultsCsv(TestDetails testDetails, TestRunDetails testRunDetails) throws IOException
+    {
+        byte[] csvResult = client.getTestRunCsvResults(testDetails, testRunDetails);
+
+        if (csvResult != null)
+        {
+            // Get target folder path
+            String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile().replace("test-classes/", "");
+
+            // Write test results to file
+            File resultsCsv = new File(path + testDetails.getRelease() + "-" + testDetails.getName() + "-" + testRunDetails.getName() + ".csv");
+            OutputStream outStream = new FileOutputStream(resultsCsv);
+            outStream.write(csvResult);
+            outStream.close();
+        }
     }
 }
