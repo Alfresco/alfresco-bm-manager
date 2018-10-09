@@ -8,3 +8,8 @@
 ### Old documentation
 
 * BM Manager and BM Drivers [old documentation](/docs/old/Alfresco_Benchmark_Toolkit_2.0-Load_and_Scalability_testing-Sep_2015.pdf)
+
+### How to run BM tests against an Alfresco in EKS
+
+* See [this page](/docs/RunBenchmarkOnAWS.md)
+
