@@ -30,7 +30,7 @@ import org.alfresco.bm.driver.event.Event;
 import java.util.List;
 
 /**
- * Interface for components that can redirect events accoding to
+ * Interface for components that can redirect events according to
  * customized logic.  The framework will attempt to find a producer for each event
  * and, if found, transform it using the {@link #getNextEvents(Event)} method.  If
  * no producer exists, then the event is persisted directly.

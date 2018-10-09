@@ -220,7 +220,7 @@ public class IntegrationTests
 
         // Wait to complete test
         long starttime = System.currentTimeMillis();
-        boolean testStatus = waitTestCompleted(starttime, 120000L, test, testRun);
+        boolean testStatus = waitTestCompleted(starttime, 300000L, test, testRun);
 
         // Get test results
         TestRunSummary results = client.getTestRunSummary(test, testRun);
@@ -233,7 +233,7 @@ public class IntegrationTests
         {
             // Successful events should be more than the events scheduled for creation
             assertTrue("There are less than expected successful events", results.getResultsSuccess() > 5);
-            assertTrue("The success rate is lower than expected", results.getSuccessRate() > 0.5);
+            assertTrue("The success rate is lower than expected", results.getSuccessRate() > 0.9);
         }
         else
         {
@@ -243,16 +243,17 @@ public class IntegrationTests
 
     private boolean waitTestCompleted(long starttime, long maxtime, TestDetails testDetails, TestRunDetails testRunDetails)
     {
-        String testRunState;
+    	TestRunState testRunState;
         long now;
         do
         {
-            testRunState = client.getTestRunState(testDetails, testRunDetails);
+            testRunState = TestRunState.valueOf(client.getTestRunState(testDetails, testRunDetails));
             now = System.currentTimeMillis();
-        } while (!TestRunState.COMPLETED.toString().equals(testRunState) && !TestRunState.STOPPED.toString().equals(testRunState)
-                && (now - starttime < maxtime));
+        } while (!TestRunState.COMPLETED.equals(testRunState) && 
+        		 !TestRunState.STOPPED.equals(testRunState) && 
+        		 (now - starttime < maxtime));
 
-        return TestRunState.COMPLETED.toString().equals(testRunState) ? true : false;
+        return TestRunState.COMPLETED.equals(testRunState) ? true : false;
     }
 
     private void writeTestResultsXlsx(TestDetails testDetails, TestRunDetails testRunDetails)

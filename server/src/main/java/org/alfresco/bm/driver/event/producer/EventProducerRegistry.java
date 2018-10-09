@@ -33,7 +33,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 /**
  * A registry of {@link EventProducer event producers} that allow for simple
- * {@link AbstractEventProcessor#register() registration}
+ * {@link AbstractEventProducer#register() registration}
  * 
  * @author Derek Hulley
  * @since 2.0

@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * Basic services for the {@link EventProducer event producer} implementations
  * <p/>
- * <b>Read {@link EventProdcuer 'good practice'} notes for documenting behaviour.
+ * <b>Read {@link EventProducer 'good practice'} notes for documenting behaviour.
  * 
  * @author Derek Hulley
  * @since 2.0
