@@ -65,7 +65,7 @@ Groups: 61,381
    2. System performance: https://<--AWS DNS entry for your server-->/alfresco/s/enterprise/admin/admin-performance
 
 **Note:** The problems with support tools pages is that 
-* They are not very efficient -> a lot of async calls are made to the sever
+* They are not very efficient -> a lot of async calls are made to the server
 * The calls are not always redirected to the same node in the cluster; Depends on your ingress/ngnix configuration;
 * Even if they are always redirected to one node, it means you don't see the activity on the other nodes; 
 You only monitor one node effectively;
@@ -240,7 +240,7 @@ services:
                 -Dserver.port=9084
                 "
 ```
-**Note:** You could set up another separate mongo DB that would hold all the test data(results) that would be more secured, 
+**Note:** You could set up another separate mongo DB that would hold all the test data (results) that would be more secured, 
 in case it contains sensitive data. So this is a good time to do that; You will use this in the UI ( or REST API ) when you 
 define new test definitions or test runs. This will be referred to as the test results mongo db. If you don't have client
 sensitive data, you can use the same config mongo DB from the bm manager ec2 machine;
