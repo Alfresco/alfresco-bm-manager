@@ -28,8 +28,8 @@ Before you can start any form of testing with the Alfresco Benchmark Framework, 
 Maven is used as the build tool so make sure you have Apache Maven 3 installed. 
 
 #### 3. MongoDB
-There also needs to be an instance of MongoDB, version 2.6.3 or later. The Benchmark Framework servers expects the port number to be *27017*.
-
+There also needs to be an instance of MongoDB, version 2.6.3 or later. The Benchmark Framework servers expects the port number to be *27017*.  
+If you want to use docker: ```docker run -p 27017:27017 mongo```  
 Additionally, installing **Robo 3T** (MongoDB GUI) is helpfull to see the database connection.
 
 ### Start Alfresco Benchmark Driver and run Test Suite
