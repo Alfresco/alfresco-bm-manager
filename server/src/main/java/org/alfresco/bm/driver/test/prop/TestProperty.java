@@ -50,6 +50,8 @@ public abstract class TestProperty implements Comparable<TestProperty>
     public static final String PROP_DESCRIPTION = "description";
     public static final String PROP_HIDE = "hide";
     public static final String PROP_MASK = "mask";
+    public static final String PROP_INDEX = "index";
+    public static final int DEFAULT_INDEX = 0;
     
     /** @since 2.1 - optional validation for the property */
     public static final String PROP_VALIDATION = "validation";
@@ -139,6 +141,7 @@ public abstract class TestProperty implements Comparable<TestProperty>
         valueNames.add(PROP_DESCRIPTION);
         valueNames.add(PROP_HIDE);
         valueNames.add(PROP_MASK);
+        valueNames.add(PROP_INDEX);
         valueNames.add(PROP_VALIDATION);
         valueNames.add(PROP_CHOICE_COLLECTION);
         return valueNames;
@@ -153,6 +156,7 @@ public abstract class TestProperty implements Comparable<TestProperty>
     private final String description;
     private final boolean hide;
     private final boolean mask;
+    private final int index;
     private final String validation;
     private final String choices;
     
@@ -171,6 +175,7 @@ public abstract class TestProperty implements Comparable<TestProperty>
         this.description = properties.getProperty(PROP_DESCRIPTION, "");
         this.hide = Boolean.parseBoolean(properties.getProperty(PROP_HIDE, "false"));
         this.mask = Boolean.parseBoolean(properties.getProperty(PROP_MASK, "false"));
+        this.index = Integer.parseInt(properties.getProperty(PROP_INDEX, "" + DEFAULT_INDEX )); 
 
         // since 2.1 (optional extra values if to specify a "special" validation or a list of allowed values) 
         this.validation =  properties.getProperty(PROP_VALIDATION, "");
@@ -189,7 +194,8 @@ public abstract class TestProperty implements Comparable<TestProperty>
           .append(", title=").append(title)
           .append(", description=").append(description)
           .append(", hide=").append(hide)
-          .append(", mask=").append(mask);
+          .append(", mask=").append(mask)
+          .append(", index=").append(index);
       // since 2.1 append optional values 
       if (!this.validation.isEmpty())
       {
@@ -289,6 +295,7 @@ public abstract class TestProperty implements Comparable<TestProperty>
         properties.setProperty(PROP_DESCRIPTION, description);
         properties.setProperty(PROP_HIDE, "" + hide);
         properties.setProperty(PROP_MASK, "" + mask);
+        properties.setProperty(PROP_INDEX, "" + index);
         
         // add optional values (since 2.1)
         if (!this.validation.isEmpty())
@@ -353,6 +360,11 @@ public abstract class TestProperty implements Comparable<TestProperty>
     {
         return mask;
     }
+    
+    public int getIndex() 
+    {
+		return index;
+	}
     
     /**
      * @return validation name for UI - the JavaScript validation called for this property

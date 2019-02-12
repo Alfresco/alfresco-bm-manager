@@ -216,6 +216,7 @@
                     if(item.value == undefined){
                         item.value = item['default'];
                     }
+                    item.index = parseInt(item.index);
                 });
                 var result = UtilService.groupBy($scope.data.test.properties, function(item) {
                     return [item.group];
@@ -223,7 +224,7 @@
                 $scope.data.properties = result;
                 $scope.master = angular.copy($scope.data.test);
             });
-
+            
           //callback for ng-click 'importProperties':
             $scope.importProperties = function(testName){
             	$scope.importPropsData = {
