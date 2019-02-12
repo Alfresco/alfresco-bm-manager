@@ -11,7 +11,7 @@
     <groupId>org.alfresco</groupId>
     <artifactId>alfresco-bm-manager-project</artifactId>
     <name>Alfresco Benchmark Manager Project</name>
-    <version>-SNAPSHOT</version>
+    <version>3.0.3patched-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
