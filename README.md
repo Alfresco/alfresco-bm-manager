@@ -1,5 +1,8 @@
 ### Alfresco Benchmark Manager
 
+Important note: This (and all the other alfresco-bm-* ) projects do not compile if you don't have access to alfresco nexus internal maven repositories. Follow https://issues.alfresco.com/jira/browse/REPO-3886 to get an update for when the required TAS-RESTAPI library will be made public as well, making this project compilable by anyone.
+
+
 This project provides a management application and a supporting library for development of highly scalable, easy-to-run Java-based load and benchmark tests.  Maven and Java development patterns are employed so that load tests can be included in automated build plans; both for the product they are testing but also to prevent regressions in the tests.
 
 More information on the <a href="https://community.alfresco.com/docs/DOC-6235">Alfresco Community Site</a>
