@@ -98,7 +98,7 @@
         <!-- Collapse group -->
         <!-- List group -->
         <ul class="test list-group" id="property-{{prop.uid}}" ng-hide="prop.collapsed == true">
-            <li class="list-group-item filterable" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : 'group' : reverse "  filter-value="{{item.title.toLowerCase()}}">
+            <li class="list-group-item filterable" ng-repeat="item in prop.properties | filter : {hide:'false'} | orderBy : ['group', 'index'] : reverse "  filter-value="{{item.title.toLowerCase()}}">
                 <div class="row">
                     <!-- item.mask is NOT a boolean unless converted, it's a string! -->                                               
                     <div class="col-xs-6 col-md-6" ng-init="validate(item); item.mask = ( (('' + item.mask).toLowerCase()) == 'true');">
