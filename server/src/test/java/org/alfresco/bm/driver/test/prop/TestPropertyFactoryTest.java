@@ -157,6 +157,7 @@ public class TestPropertyFactoryTest
         assertEquals(256, strProp.getMax());
         assertEquals(".*", strProp.getRegex());
         assertEquals(true, strProp.isMask());
+        assertEquals(0, strProp.getIndex());
         
         prop = mapProps.get("one.int");
         intProp = (IntTestProperty) prop;
@@ -172,6 +173,7 @@ public class TestPropertyFactoryTest
         assertEquals("123", intProp.getDefault());
         assertEquals(0, intProp.getMin());
         assertEquals(256, intProp.getMax());
+        assertEquals(0, strProp.getIndex());
         
         prop = mapProps.get("one.dec");
         decProp = (DecimalTestProperty) prop;
@@ -187,6 +189,7 @@ public class TestPropertyFactoryTest
         assertEquals("123.456", decProp.getDefault());
         assertEquals(-5.4, decProp.getMin(), 0.01);
         assertEquals(+5.4, decProp.getMax(), 0.01);
+        assertEquals(0, strProp.getIndex());
         
         prop = mapProps.get("one.boolean");
         booleanProp = (BooleanTestProperty) prop;
@@ -200,6 +203,7 @@ public class TestPropertyFactoryTest
         assertEquals("One description (Boolean)", prop.getDescription());
         assertEquals(false, prop.isHide());
         assertEquals("true", booleanProp.getDefault());
+        assertEquals(0, strProp.getIndex());
         
         // Test defaults i.e. where ONLY the default and type is provided
         
@@ -216,6 +220,7 @@ public class TestPropertyFactoryTest
         assertEquals(128, strProp.getMax());
         assertEquals(".*", strProp.getRegex());
         assertEquals(false, strProp.isMask());
+        assertEquals(0, strProp.getIndex());
         
         prop = mapProps.get("two.int");
         intProp = (IntTestProperty) prop;
@@ -266,5 +271,6 @@ public class TestPropertyFactoryTest
         assertEquals("0", intProp.getDefault());
         assertEquals(0, intProp.getMin());
         assertEquals(65535, intProp.getMax());
+        assertEquals(3, intProp.getIndex());
     }
 }
