@@ -360,12 +360,12 @@ public abstract class TestProperty implements Comparable<TestProperty>
     {
         return mask;
     }
-    
+
     public int getIndex() 
     {
-		return index;
-	}
-    
+        return index;
+    }
+
     /**
      * @return validation name for UI - the JavaScript validation called for this property
      * 
