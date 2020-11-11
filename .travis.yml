@@ -13,6 +13,7 @@ addons:
 
 stages:
   - name: Default Stage
+  - name: Integration Tests
   - name: Release
     if: fork = false AND (branch = master OR branch =~ /support\/.*/) AND type != pull_request AND commit_message !~ /\[no-release\]/
 
@@ -88,6 +89,184 @@ jobs:
         - mvn clean install "-Dimage.tag=${INJECT_TAG}" -${INJECT_PROFILE}
       after_script:
         - artifacts upload target/README.txt
+    - stage: "Integration Tests"
+      name: "BMF Docker Tests"
+      before_script:
+        # Checkout Default Repository
+        - git clone git@github.com:Alfresco/acs-packaging.git alfresco-packaging
+      script:
+        # Clean up old images
+        - |
+          sh -c "$(cat <<'EOF'
+          #!/bin/bash
+          
+          echo
+          echo docker images
+               docker images
+          echo
+          echo docker ps
+               docker ps
+          echo
+          echo docker ps --all
+               docker ps --all
+          
+          echo "Stopping and removing containers"
+          docker stop $(docker ps -aq)
+          docker rm $(docker ps -aq)
+          
+          docker_images=$(docker images | grep 'alfresco-bm')
+          docker_images_list=$(docker images | grep 'alfresco-bm'| awk '{print $3}' | uniq)
+          echo "Docker images: $docker_images"
+          
+          if [ "$docker_images_list" == "" ]; then
+              echo "No docker images on the agent"
+          else
+              echo "Clearing images: $docker_images_list"
+              docker rmi -f $docker_images_list
+          fi
+          EOF
+          )"
+        # Get agent ip address
+        - |
+          sh -c "$(cat <<'EOF'
+          mkdir alfresco-bm-manager/target
+          touch alfresco-bm-manager/target/bamboo-variables.properties;
+          
+          ip_address=$(hostname -I | awk '{print $1}')
+          echo "The agent ip address is $ip_address"
+          
+          # save variable in a text file
+          echo "ip_address=$ip_address" > alfresco-bm-manager/target/bamboo-variables.properties
+          EOF
+          )"
+        # Inject bamboo agent ip address
+        - cat "alfresco-bm-manager/target/bamboo-variables.properties" | sed -e "s/^/export bamboo.inject./g" -e "s/\\./_/g" > "$TMPDIR/bamboo-inject.properties"
+        - source "$TMPDIR/bamboo-inject.properties"
+        # Run BM Manager
+        - |
+          pushd "alfresco-bm-manager/server/docker-compose" && IP_ADDRESS=${INJECT_IP_ADDRESS} BM_MANAGER_VER=${MANAGER_VERSION} sh -c "$(cat <<'EOF'
+          #!/bin/bash
+          docker info
+          docker-compose --version
+          export ALFRESCO_BM_MANAGER_TAG=$BM_MANAGER_VER
+          export MONGO_TAG=latest
+          export MONGO_HOST=$IP_ADDRESS
+          export MONGO_PORT=27017
+          export REGISTRY="quay.io/"
+          
+          echo "Bamboo agent ip is:"
+          hostname -I | awk '{print $1}'
+          
+          docker-compose config
+          echo "Starting Alfresco BM Manager in Docker container"
+          docker-compose ps
+          docker-compose pull
+          docker-compose -f docker-compose-manager.yml up -d
+          
+          WAIT_INTERVAL=1
+          COUNTER=0
+          TIMEOUT=30
+          t0=`date +%s`
+          
+          echo "Waiting for BM Manager to start"
+          until $(curl --output /dev/null --silent --head --fail http://localhost:9080/alfresco-bm-manager) ||
+                [ "$COUNTER" -eq "$TIMEOUT" ]; do
+             printf '.'
+             sleep $WAIT_INTERVAL
+             COUNTER=$(($COUNTER+$WAIT_INTERVAL))
+          done
+          
+          if (("$COUNTER" < "$TIMEOUT")) ; then
+             t1=`date +%s`
+             delta=$((($t1 - $t0)/60))
+             echo "Alfresco BM Manager Started in $delta minutes"
+          else
+             echo "Waited $COUNTER seconds"
+             echo "Alfresco BM Manager Could not start in time."
+             echo "Last 200 lines from logs:"
+             ALFBMCONTAINER=docker ps -a | grep alfresco-bm-manager | awk '{ print $1 }'
+             docker logs --tail=200 $ALFBMCONTAINER
+             exit 1
+          fi
+          EOF
+          )" && popd
+        # Run BM Drivers
+        - |
+          pushd "alfresco-bm-manager/server/docker-compose" && IP_ADDRESS=${INJECT_IP_ADDRESS} sh -c "$(cat <<'EOF'
+          #!/bin/bash
+          docker info
+          docker-compose --version
+          export ALFRESCO_BM_LOAD_USERS_TAG=latest
+          export ALFRESCO_BM_LOAD_DATA_TAG=latest
+          export ALFRESCO_BM_REST_API_TAG=latest
+          export MONGO_TAG=latest
+          export MONGO_HOST=$IP_ADDRESS
+          export MONGO_PORT=27017
+          export REGISTRY="quay.io/"
+          
+          echo "Bamboo agent ip is:"
+          hostname -I | awk '{print $1}'
+          
+          docker-compose config
+          echo "Starting Alfresco BM Drivers in Docker containers"
+          docker-compose ps
+          docker-compose pull
+          docker-compose -f docker-compose-drivers.yml up -d
+          
+          TIMEOUT=40
+          
+          echo "Waiting for BM Drivers to start"
+          sleep $TIMEOUT
+          EOF
+          )" && popd
+        # Start Alfresco
+        - |
+          pushd "alfresco-packaging/docker-alfresco/test" &&  sh -c "$(cat <<'EOF'
+          #!/bin/bash
+          docker info
+          docker-compose --version
+          export ALFRESCO_TAG=6.1.0
+          export REGISTRY="quay.io/"
+          
+          docker-compose config
+          echo "Starting Alfresco in Docker container"
+          docker-compose ps
+          docker-compose pull
+          docker-compose up -d
+          
+          WAIT_INTERVAL=1
+          COUNTER=0
+          TIMEOUT=250
+          t0=`date +%s`
+          
+          echo "Waiting for alfresco to start"
+          until $(curl --output /dev/null --silent --head --fail http://localhost:8082/alfresco) ||
+                [ "$COUNTER" -eq "$TIMEOUT" ]; do
+             printf '.'
+             sleep $WAIT_INTERVAL
+             COUNTER=$(($COUNTER+$WAIT_INTERVAL))
+          done
+          
+          if (("$COUNTER" < "$TIMEOUT")) ; then
+             t1=`date +%s`
+             delta=$((($t1 - $t0)/60))
+             echo "Alfresco Started in $delta minutes"
+          else
+             echo "Waited $COUNTER seconds"
+             echo "Alfresco Could not start in time."
+             echo "Last 200 lines from alfresco.log:"
+             ALFCONTAINER=docker ps -a | grep alfresco-content-repository | awk '{ print $1 }'
+             docker logs --tail=200 $ALFCONTAINER
+             exit 1
+          fi
+          EOF
+          )" && popd
+        # Run Integration Tests - Load Users
+        - pushd "alfresco-bm-manager/server" && mvn clean test "-Dalfresco.int.tests.server=${INJECT_IP_ADDRESS}" "-Dalfresco.int.mongo.host=${INJECT_IP_ADDRESS}" "-Dalfresco.int.mongo.port=27017" -Dtest=IntegrationTests#testPopulateWithUsers && popd
+        # Run Integration Tests - Load Data and Rest-Api
+        - pushd "alfresco-bm-manager/server" && mvn test "-Dalfresco.int.tests.server=${INJECT_IP_ADDRESS}" "-Dalfresco.int.mongo.host=${INJECT_IP_ADDRESS}" "-Dalfresco.int.mongo.port=27017" -Dtest=IntegrationTests#testPopulateWithData+testRestApiScenario && popd
+      after_script:
+        - artifacts upload alfresco-bm-manager/server/target/**/*.xlsx
     # Stage: release artifact and image
     - stage: "Release"
       name: "Release"
